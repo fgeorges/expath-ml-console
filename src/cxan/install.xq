@@ -28,7 +28,7 @@ declare function local:install(
          if ( $code eq 404 ) then
             <p><b>Error</b>: There is no package at { $uri }.</p>
          else if ( $code eq 200 ) then
-            if ( r:install($xar, $repo) ) then
+            if ( r:install-package($xar, $repo) ) then
                <p>Package succesfully installed from { $uri } into { $repo/fn:string(@name) }.</p>
             else
                <p><b>Error</b>: Unknown error installing the package from { $uri }.

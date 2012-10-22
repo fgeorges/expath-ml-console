@@ -8,7 +8,6 @@ import module namespace v   = "http://expath.org/ns/ml/console/view"   at "../li
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
 declare namespace xdmp = "http://marklogic.com/xdmp";
-declare namespace zip  = "xdmp:zip";
 
 (: TODO: Check the params are there, and validate them... :)
 let $reponame := t:mandatory-field('repo')
@@ -17,15 +16,15 @@ let $xar      := t:mandatory-field('xar')
 (: TODO: Check the filename is there... :)
 let $filename := t:mandatory-field-filename('xar')
 let $stored   := r:save-in-attic($xar, $filename, $repo)
-let $pkg      := r:install($xar, $repo)
+let $pkg      := r:install-package($xar, $repo)
 (:
 let $override := xs:boolean(t:optional-field('override', 'false'))
-let $pkg      := r:install($xar, $repo, $override)
+let $pkg      := r:install-package($xar, $repo, $override)
 :)
 return
    v:console-page(
-      'install',
-      'Install',
+      'repo',
+      'Install package',
       '../',
       (
          if ( exists($pkg) ) then
@@ -33,6 +32,7 @@ return
                '{ $reponame }', within the package directory '{ $pkg/fn:string(@dir) }'.</p>
          else
             (: TODO: Provide more accurate info! :)
+            (: TODO: Use try/catch instead...! :)
             <p>Package '{ $filename }' NOT installed into '{ $reponame }'.  Did it
                already exist?</p>,
          <p>Back to the <a href="show.xq?repo={ $reponame }">repository</a>.</p>

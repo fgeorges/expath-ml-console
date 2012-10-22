@@ -140,12 +140,12 @@ declare function r:get-package-by-pkgdir(
  :
  : TODO: Overriding an existing package has been disable for now.  Either re
  :)
-declare function r:install(
+declare function r:install-package(
    $xar     (: as binary() :),
    $repo     as element(c:repo)
 ) as element(pp:package)?
 (:
-declare function r:install(
+declare function r:install-package(
    $xar     (: as binary() :),
    $repo     as element(c:repo),
    $override as xs:boolean
@@ -204,7 +204,7 @@ declare function r:install(
  :       - delete everything in $pkgdir
  :       - possible to remove directories as well? their property documents?
  :       - remove everything from ML (from packages.xml, etc.)
- :   * OLD for DB (might still be useful, move to r:install-pkg...):
+ :   * OLD for DB (might still be useful, move to r:install-package...):
  :       - add all the files to a collection for $repo/$pkdir when unzipping
  :       - http://expath.org/coll/pkg/repos/{repo}/packages/{pkgdir}
  :       - add that collection name to packages.xml
