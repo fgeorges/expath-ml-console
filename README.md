@@ -1,4 +1,4 @@
 expath-ml-console
 =================
 
-EXPath Console for MarkLogic
+EXPath Console for MarkLogic.
