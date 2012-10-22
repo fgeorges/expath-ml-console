@@ -57,7 +57,8 @@ return
                   <td>Name</td>
                   <td>Database</td>
                   <td>Root</td>
-                  <td>Web?</td>
+                  <!-- Meaningful, really? -->
+                  <!--td>Web?</td-->
                   <td>Actions</td>
                </thead>
                <tbody> {
@@ -78,10 +79,15 @@ return
                               fn:string($repo/c:absolute)
                         }
                         </td>
-                        <td>{ 'No' }</td>
                         <td>
-                           <a href="repo/delete.xq?repo={ $escaped }">remove</a>,
-                           <a href="repo/delete.xq?repo={ $escaped }&amp;delete=true">delete</a>
+                           <a href="repo/delete.xq?repo={ $escaped }">remove</a> {
+                           if ( fn:exists($repo/c:database) ) then (
+                              <span>, </span>,
+                              <a href="repo/delete.xq?repo={ $escaped }&amp;delete=true">delete</a>
+                           )
+                           else (
+                           )
+                        }
                         </td>
                      </tr>
                }
@@ -89,7 +95,7 @@ return
             </table>,
             <p><em>Removing a repository means removing its configuration from the
                console. It does not delete the repository content itself. Deleting
-               a repository does.</em></p>
+               a repository does (not available for on-disk repos).</em></p>
             )
          }
          <h4>Create a repository</h4>
