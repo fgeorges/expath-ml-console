@@ -7,13 +7,9 @@ import module namespace v   = "http://expath.org/ns/ml/console/view"   at "../li
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
-declare namespace xdmp = "http://marklogic.com/xdmp";
-
-(: TODO: Check the params are there, and validate them... :)
 let $reponame := t:mandatory-field('repo')
 let $repo     := cfg:get-repo($reponame)
 let $xar      := t:mandatory-field('xar')
-(: TODO: Check the filename is there... :)
 let $filename := t:mandatory-field-filename('xar')
 let $stored   := r:save-in-attic($xar, $filename, $repo)
 let $pkg      := r:install-package($xar, $repo)

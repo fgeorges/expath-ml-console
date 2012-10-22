@@ -1,4 +1,4 @@
-xquery version "1.0";
+xquery version "3.0";
 
 module namespace r = "http://expath.org/ns/ml/console/repo";
 
@@ -6,10 +6,13 @@ import module namespace a   = "http://expath.org/ns/ml/console/admin" at "admin.
 import module namespace t   = "http://expath.org/ns/ml/console/tools" at "tools.xql";
 
 declare namespace c    = "http://expath.org/ns/ml/console";
+declare namespace w    = "http://expath.org/ns/ml/webapp";
 declare namespace pkg  = "http://expath.org/ns/pkg";
 declare namespace pp   = "http://expath.org/ns/repo/packages";
 declare namespace xdmp = "http://marklogic.com/xdmp";
 declare namespace zip  = "xdmp:zip";
+
+(: ==== Simple repo tools ======================================================== :)
 
 (:~
  : Return true if $repo is a repository stored on the filesystem.
@@ -75,25 +78,11 @@ declare function r:get-from(
  : Return the packages info for $repo.
  :
  : TODO: Is the returned element really optional?
- : TODO: Why is this accessing directly the DB/FS?  Shouldn't it use
- : r:get-from() instead?
  :)
 declare function r:get-packages-list($repo as element(c:repo))
    as element(pp:packages)?
 {
    r:get-from('.expath-pkg/packages.xml', $repo)/*
-   (:
-   if ( r:is-filesystem-repo($repo) ) then
-      xdmp:document-get($repo/c:packages-file)/*
-   else
-      xdmp:eval(
-         'declare variable $pkg-doc external;
-          doc($pkg-doc)/*',
-         (xs:QName('pkg-doc'), $repo/fn:string(c:packages-doc)),
-         <options xmlns="xdmp:eval">
-            <database>{ $repo/c:database/fn:string(@id) }</database>
-         </options>)
-   :)
 };
 
 (:~
@@ -127,6 +116,8 @@ declare function r:get-package-by-pkgdir(
 {
    r:get-packages-list($repo)/pp:package[@dir eq $pkgdir]
 };
+
+(: ==== Managing packages ======================================================== :)
 
 (:~
  : Install the package $xar in $repo.
@@ -226,7 +217,10 @@ declare function r:delete-package(
    r:remove-package-from-list($pkg, $repo)
 };
 
-declare function r:remove-package-from-list(
+(:~
+ : Remove the package element from packages.xml, the repo package list.
+ :)
+declare %private function r:remove-package-from-list(
    $pkg  as element(pp:package),
    $repo as element(c:repo)
 )
@@ -238,4 +232,30 @@ declare function r:remove-package-from-list(
       }
       </packages>,
       $repo)
+};
+
+(: ==== Managing webapps ======================================================== :)
+
+(:~
+ : Install the webapp $xaw in $container (storage in $repo).
+ :
+ : TODO: Not implemented yet.
+ :)
+declare function r:install-webapp(
+   $xaw    (: as binary() :),
+   $repo      as element(c:repo),
+   $container as element(w:container)
+) as element(w:application)
+(:
+declare function r:install-webapp(
+   $xaw    (: as binary() :),
+   $repo      as element(c:repo),
+   $container as element(w:container),
+   $override  as xs:boolean
+) as element(w:application)
+:)
+{
+   t:error(
+      'not-implemented-yet',
+      'The function r:install-webapp($xaw, $repo, $container) is not implemented yet!')
 };
