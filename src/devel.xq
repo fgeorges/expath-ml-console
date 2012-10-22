@@ -17,6 +17,7 @@ declare namespace xdmp = "http://marklogic.com/xdmp";
 v:console-page(
    'devel',
    'Developement tools',
+   '',
    <wrapper>
       <p>Some useful queries used in the implementation of the console.</p>
       <p>You can use this page to show some useful information about your

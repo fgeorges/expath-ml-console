@@ -7,6 +7,7 @@ declare default element namespace "http://www.w3.org/1999/xhtml";
 v:console-page(
    'home',
    'EXPath Console',
+   '',
    (: <img class="left" src="images/machine.jpg" alt="Machine"/> :)
    <wrapper>
       <p>Welcome to the EXPath console for MarkLogic. First, you might want to

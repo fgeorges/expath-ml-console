@@ -13,26 +13,33 @@ declare namespace h = "http://www.w3.org/1999/xhtml";
 
 declare variable $v:pages as element(pages) :=
    <pages>
-      <page name="home"     title="Console Home"          label="Home"/>
-      <page name="repo"     title="Package Repositories"  label="Repositories"/>
-      <page name="install"  title="Install Package"       label="Install"/>
-      <page name="cxan"     title="Install From CXAN"     label="CXAN"/>
-      <!--page name="xproject" title="XProject Tools"        label="XProject"/>
-      <page name="xspec"    title="XSpec Tools"           label="XSpec"/-->
-      <page name="setup"    title="Setup the Console"     label="Setup"/>
-      <page name="tools"    title="Goodies for MarkLogic" label="Tools"/>
-      <page name="help"     title="Console Help"          label="Help"/>
-      <!--page name="devel"    title="Devel's evil"          label="Devel" right="true"/-->
+      <page name="home"     title="Console Home"                 label="Home"/>
+      <!--page name="setup"    title="Setup the Console"            label="Setup"/-->
+      <page name="repo"     title="Package Repositories"         label="Repositories"/>
+      <page name="web"      title="Web Applications Containers"  label="Web Containers"/>
+      <!--page name="install"  title="Install Package"              label="Install"/-->
+      <page name="cxan"     title="CXAN Config"                  label="CXAN"/>
+      <!--page name="xproject" title="XProject Tools"            label="XProject"/>
+      <page name="xspec"    title="XSpec Tools"                  label="XSpec"/-->
+      <page name="tools"    title="Goodies for MarkLogic"        label="Tools"/>
+      <page name="help"     title="Console Help"                 label="Help"/>
+      <!--page name="devel"    title="Devel's evil"              label="Devel" right="true"/-->
    </pages>;
 
-declare function v:console-page-menu($page as xs:string)
+(:~
+ : Format the top-level menu of a console page.
+ :
+ : $page: the current page (must be the key of one menu)
+ : $root: '' if a top-level page, or '../' if in a sub-directory
+ :)
+declare function v:console-page-menu($page as xs:string, $root as xs:string)
    as element(h:li)+
 {
    for $p in $v:pages/page
    return
       <li xmlns="http://www.w3.org/1999/xhtml"> {
          attribute { 'class' } { 'right' }[$p/@right/xs:boolean(.)],
-         <a href="{ $p/@name }.xq" title="{ $p/@title }"> {
+         <a href="{ $root }{ $p/@name }.xq" title="{ $p/@title }"> {
             attribute { 'class' } { 'active' }[$p/@name eq $page],
             $p/fn:string(@label)
          }
@@ -41,6 +48,9 @@ declare function v:console-page-menu($page as xs:string)
       </li>
 };
 
+(:~
+ : Display a message at the top of the page if the console has not been setup.
+ :)
 declare function v:check-setup($page as xs:string)
    as element(h:p)?
 {
@@ -54,16 +64,22 @@ declare function v:check-setup($page as xs:string)
 (:~
  : Format a console page.
  :
+ : $page: the current page (must be the key of one menu)
+ : $title: the title of the page (to appear on top of the page)
+ : $root: '' if a top-level page, or '../' if in a sub-directory
+ : $content: the actual HTML content, pasted as the content of the page
+ :
  : TODO: Shouldn't it set the response MIME type and HTTP code?
  :)
-declare function v:console-page($page as xs:string, $title as xs:string, $content as node()+)
+declare function v:console-page($page as xs:string, $title as xs:string, $root as xs:string, $content as node()+)
    as element(h:html)
 {
    <html>
       <head>
          <title>{ $title }</title>
-         <link rel="stylesheet" type="text/css" href="style/default.css"/>
-         <link rel="shortcut icon" type="image/png" href="images/expath-icon.png"/>
+         <link rel="stylesheet" type="text/css" href="{ $root }style/default.css"/>
+         <link rel="shortcut icon" type="image/png" href="{ $root }images/expath-icon.png"/>
+         <script src="{ $root }js/sorttable.js"/>
       </head>
       <body>
          <div id="upbg"/>
@@ -71,12 +87,13 @@ declare function v:console-page($page as xs:string, $title as xs:string, $conten
             <div id="header">
                <div id="headercontent">
                   <h1>EXPath Console</h1>
-                  <h2>(: <i>Managing your Portable XPath Extensions and Packages</i> :)</h2>
+                  <h2>(: <i>Managing your Portable XQuery Extensions, Packages
+                     and Web Applications on MarkLogic Server</i> :)</h2>
                </div>
             </div>
             <div id="menu">
                <ul> {
-                  v:console-page-menu($page)
+                  v:console-page-menu($page, $root)
                }
                </ul>
             </div>

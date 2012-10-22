@@ -1,15 +1,19 @@
 xquery version "1.0";
 
-import module namespace a   = "http://expath.org/ns/ml/console/admin"  at "lib/admin.xql";
-import module namespace cfg = "http://expath.org/ns/ml/console/config" at "lib/config.xql";
-import module namespace t   = "http://expath.org/ns/ml/console/tools"  at "lib/tools.xql";
-import module namespace v   = "http://expath.org/ns/ml/console/view"   at "lib/view.xql";
+import module namespace a   = "http://expath.org/ns/ml/console/admin"  at "../lib/admin.xql";
+import module namespace cfg = "http://expath.org/ns/ml/console/config" at "../lib/config.xql";
+import module namespace t   = "http://expath.org/ns/ml/console/tools"  at "../lib/tools.xql";
+import module namespace v   = "http://expath.org/ns/ml/console/view"   at "../lib/view.xql";
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
 declare namespace h    = "http://www.w3.org/1999/xhtml";
 declare namespace xdmp = "http://marklogic.com/xdmp";
 
+(:~
+ : TODO: ...
+ : TODO: Duplicated in web/create.xq, factorize out! Probably in lib/admin.xql?
+ :)
 declare function local:create-repo-in-appserver(
    $name as xs:string,
    $root as xs:string,
@@ -28,6 +32,10 @@ declare function local:create-repo-in-appserver(
       t:error('SETUP002', ('How can I have a WebDAV appserver here?!?: ', xdmp:quote($as)))
 };
 
+(:~
+ : TODO: ...
+ : TODO: Duplicated in web/create.xq, factorize out! Probably in lib/admin.xql?
+ :)
 declare function local:create-repo-in-database(
    $name as xs:string,
    $root as xs:string,
@@ -48,6 +56,10 @@ declare function local:create-repo-in-database(
             you must delete it first.</p>
 };
 
+(:~
+ : TODO: ...
+ : TODO: Duplicated in web/create.xq, factorize out! Probably in lib/admin.xql?
+ :)
 declare function local:create-repo-in-directory(
    $name as xs:string,
    $root as xs:string,
@@ -75,19 +87,23 @@ let $do-as := t:optional-field('create-as', ())
 let $do-db := t:optional-field('create-db', ())
 return
    v:console-page(
-      'setup',
-      'Setup',
-      if ( $do-as ) then
-         let $as   := t:mandatory-field('appserver')
-         let $id   := xs:unsignedLong($as)
-         let $info := a:get-appserver($id)
-         return
-            local:create-repo-in-appserver($name, $root, $info)
-      else if ( $do-db ) then
-         let $db   := t:mandatory-field('database')
-         let $id   := xs:unsignedLong($db)
-         let $info := a:get-database($id)
-         return
-            local:create-repo-in-database($name, $root, $info)
-      else
-         t:error('SETUP001', 'Create neither a database nor an appserver?!?'))
+      'repo',
+      'Repositories',
+      '../',
+      (
+         if ( $do-as ) then
+            let $as   := t:mandatory-field('appserver')
+            let $id   := xs:unsignedLong($as)
+            let $info := a:get-appserver($id)
+            return
+               local:create-repo-in-appserver($name, $root, $info)
+         else if ( $do-db ) then
+            let $db   := t:mandatory-field('database')
+            let $id   := xs:unsignedLong($db)
+            let $info := a:get-database($id)
+            return
+               local:create-repo-in-database($name, $root, $info)
+         else
+            t:error('SETUP001', 'Create neither a database nor an appserver?!?'),
+         <p>Back to <a href="../repo.xq">repositories</a>.</p>
+      ))

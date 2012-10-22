@@ -362,18 +362,24 @@ div.formRow {
 }
 
 table {
-    border: solid 1pt;
-    border-collapse:collapse;
+    margin: 0px;
+    margin-bottom: 15px;
+    padding: 0px;
+    border-collapse: collapse;
+    width: 100%;
 }
 
 thead {
-    text-align: center;
+    background-color: #333;
+    color: #fff;
     font-weight: bold;
+    cursor: default;
+    /* text-align: center; */
 }
 
 td {
-    padding: 3pt;
-    border: solid 1pt;
+    padding: 5px 15px;
+    border-bottom: 1px solid #eee;
 }
 
 

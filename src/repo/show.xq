@@ -1,10 +1,10 @@
 xquery version "1.0";
 
-import module namespace a   = "http://expath.org/ns/ml/console/admin"  at "lib/admin.xql";
-import module namespace cfg = "http://expath.org/ns/ml/console/config" at "lib/config.xql";
-import module namespace r   = "http://expath.org/ns/ml/console/repo"   at "lib/repo.xql";
-import module namespace t   = "http://expath.org/ns/ml/console/tools"  at "lib/tools.xql";
-import module namespace v   = "http://expath.org/ns/ml/console/view"   at "lib/view.xql";
+import module namespace a   = "http://expath.org/ns/ml/console/admin"  at "../lib/admin.xql";
+import module namespace cfg = "http://expath.org/ns/ml/console/config" at "../lib/config.xql";
+import module namespace r   = "http://expath.org/ns/ml/console/repo"   at "../lib/repo.xql";
+import module namespace t   = "http://expath.org/ns/ml/console/tools"  at "../lib/tools.xql";
+import module namespace v   = "http://expath.org/ns/ml/console/view"   at "../lib/view.xql";
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
@@ -20,7 +20,7 @@ declare function local:package-row($pkg as element(pp:package), $repo as element
       <td>{ $pkg/fn:string(@dir) }</td>
       <td>{ $pkg/fn:string(@version) }</td>
       <td>
-         <a href="do-delete.xq?repo={ $repo/@name }&amp;pkg={ $pkg/fn:escape-html-uri(@dir) }">delete</a>
+         <a href="delete-pkg.xq?repo={ $repo/@name }&amp;pkg={ $pkg/fn:escape-html-uri(@dir) }">delete</a>
       </td>
    </tr>
 };
@@ -43,34 +43,60 @@ let $to-remove := r:get-to-remove-list($repo)
 return
    v:console-page(
       'repo',
-      'Repository',
-      <wrapper>
-         <p>Packages in the repository <b>'{ $name }'</b>:</p>
-         {
-            if ( fn:empty($packages/pp:package|$to-remove/pp:package) ) then
-               <p><em>there is no package installed in this repository yet</em></p>
-            else
-               <table>
-                  <thead>
-                     <td>Name</td>
-                     <td>Dir</td>
-                     <td>Version</td>
-                     <td>Action</td>
-                  </thead>
-                  <tbody> {
-                     for $p in $packages/pp:package
+      concat('Repository ''', $name, ''''),
+      '../',
+      <wrapper> {
+         if ( fn:empty($packages/pp:package|$to-remove/pp:package) ) then
+            ()
+         else
+            <table class="sortable">
+               <thead>
+                  <td>Name</td>
+                  <td>Dir</td>
+                  <td>Version</td>
+                  <td>Action</td>
+               </thead>
+               <tbody> {
+                  for $p in $packages/pp:package
+                  order by $p/fn:string(@dir)
+                  return
+                     local:package-row($p, $repo),
+                  if ( fn:exists($to-remove/pp:package) ) then (
+                     <tr><td colspan="4"><em>Directories to manually delete:</em></td></tr>,
+                     for $p in $to-remove/pp:package
+                     order by $p/fn:string(@dir)
                      return
-                        local:package-row($p, $repo),
-                     if ( fn:exists($to-remove/pp:package) ) then (
-                        <tr><td colspan="4"><em>Directories to manually delete:</em></td></tr>,
-                        for $p in $to-remove/pp:package
-                        return
-                           local:to-remove-row($p, $repo)
-                     )
-                     else (
-                     )
-                  }
-                  </tbody>
-               </table>
+                        local:to-remove-row($p, $repo)
+                  )
+                  else (
+                  )
+               }
+               </tbody>
+            </table>
          }
+         <h4>Install from file</h4>
+         <p>Install packages and applications from your filesystem, using a package
+            file (usually a *.xar or *.xaw file).</p>
+         <form method="post" action="install-pkg.xq" enctype="multipart/form-data">
+            <input type="file" name="xar"/>
+            <input type="submit" value="Install"/>
+            <!--br/><br/>
+            <input type="checkbox" name="override" value="true"/>
+            <em>Override the package of it already exists</em-->
+            <input type="hidden" name="repo" value="{ $name }"/>
+         </form>
+         <h4>Install from CXAN</h4>
+         <p>Install packages and applications directly from CXAN, using a package
+            name or a CXAN ID (one or the other), and optionally a version number
+            (retrieve the latest version by default).</p>
+         <form method="post" action="../cxan/install.xq" enctype="multipart/form-data">
+            <span>ID:</span>
+            <input type="text" name="id" size="25"/>
+            <span>Name:</span>
+            <input type="text" name="name" size="50"/>
+            <span>Version:</span>
+            <input type="text" name="version" size="25"/>
+            <input type="submit" value="Install"/>
+            <input type="hidden" name="repo" value="{ $name }"/>
+         </form>
       </wrapper>/*)

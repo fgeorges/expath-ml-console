@@ -8,30 +8,24 @@ declare default element namespace "http://www.w3.org/1999/xhtml";
 v:console-page(
    'cxan',
    'CXAN',
-   (<p>Install packages and applications directly from CXAN into a specific
-      repository, using a package name or a CXAN ID (one or the other), and
-      optionally a version number (retrieve the latest version by default).</p>,
+   '',
     if ( cfg:is-setup() ) then
-      <form method="post" action="do-cxan.xq" enctype="multipart/form-data">
-         <span>Target repo:</span>
-         <select name="repo"> {
-            for $r in cfg:get-repos()
+      <wrapper>
+         <p>Configure the CXAN website to talk to, for instance http://cxan.org/
+            or http://test.cxan.org/.</p>
+         {
+            let $site := cfg:get-cxan-site()
             return
-               <option>{ $r/string(@name) }</option>
+               if ( fn:empty($site) ) then
+                  <p><em>No repo has been created yet, please proceed first.</em></p>
+               else
+                  <form method="post" action="cxan/change.xq" enctype="multipart/form-data">
+                     <span>The CXAN website: </span>
+                     <input type="text" name="site" size="50" value="{ $site }"/>
+                     <input name="set-site" type="submit" value="Set"/>
+                  </form>
          }
-         </select>
-         <br/>
-         <span>CXAN ID:</span>
-         <input type="text" name="id" size="25"/>
-         <br/>
-         <span>Name:</span>
-         <input type="text" name="name" size="50"/>
-         <br/>
-         <span>Version:</span>
-         <input type="text" name="version" size="25"/>
-         <br/>
-         <input type="submit" value="Install"/>
-      </form>
+      </wrapper>/*
     else
       <p>The console has not been set up yet, please
-         <a href="setup.xq">create a repo</a> first.</p>))
+         <a href="setup.xq">create a repo</a> first.</p>)

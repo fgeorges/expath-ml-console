@@ -7,6 +7,7 @@ declare default element namespace "http://www.w3.org/1999/xhtml";
 v:console-page(
    'help',
    'Help',
+   '',
    <wrapper>
       <h4>Introduction</h4>
       <p>The EXPath Console for MarkLogic comes with several tools. The main
