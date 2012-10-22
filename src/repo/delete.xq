@@ -25,6 +25,7 @@ declare namespace xdmp = "http://marklogic.com/xdmp";
 let $repo    := t:mandatory-field('repo')
 let $delete  := xs:boolean(t:optional-field('delete', 'false'))
 let $confirm := xs:boolean(t:optional-field('confirm', 'false'))
+let $action  := if ( $delete ) then 'delete' else 'remove'
 return
    v:console-page(
       'repo',
@@ -33,7 +34,7 @@ return
       (
          if ( not($confirm) ) then
             <p>
-               <span>Are you sure you want to delete  repo '{ $repo }': </span>
+               <span>Are you sure you want to { $action } repo '{ $repo }': </span>
                <a href="delete.xq?repo={ $repo }&amp;delete={ $delete }&amp;confirm=true">Yes</a>
                <span> / </span>
                <a href="../repo.xq">No</a>
@@ -41,7 +42,7 @@ return
          else
             try {
                cfg:forget-repo($repo, $delete),
-               <p>The repository '{ $repo }' has been successfully removed.</p>
+               <p>The repository '{ $repo }' has been successfully { $action }d.</p>
             }
             catch c:* {
                <p><b>Error</b>: { $err:description }</p>

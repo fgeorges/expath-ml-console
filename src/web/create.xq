@@ -88,7 +88,7 @@ return
          else if ( fn:empty(($repo-id, $repo-name, $repo-root)) ) then
             <p><b>Error</b>: You have to either select an existing repository
                or to create a new one.</p>
-         else if ( fn:empty($repo-name) or fn:empty($repo-root) ) then
+         else if ( fn:empty($repo-id) and ( fn:empty($repo-name) or fn:empty($repo-root) ) ) then
             <p><b>Error</b>: The params 'repo-name' and 'repo-root' must both
                be set to create a new repository. Values passed resp.:
                '{ $repo-name }' and '{ $repo-root }'.</p>

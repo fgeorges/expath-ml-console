@@ -308,7 +308,7 @@ declare %private function cfg:insert-new-repo($repo as element(c:repo))
 };
 
 (:~
- : Forget about a previously created repository.
+ : Remove a repository from the config.
  :
  : If $delete is true, all content of the repo is deleted from the database.
  :
@@ -316,7 +316,7 @@ declare %private function cfg:insert-new-repo($repo as element(c:repo))
  :
  : Throw 'repo-on-disk' if the repository is on disk and $delete is true.
  :)
-declare function cfg:forget-repo($name as xs:string, $delete as xs:boolean)
+declare function cfg:remove-repo($name as xs:string, $delete as xs:boolean)
    as empty-sequence()
 {
    let $repo := cfg:get-repo($name)
@@ -441,4 +441,56 @@ declare function cfg:create-web-container(
          let $dummy := xdmp:node-insert-child(cfg:get-config(), $ref)
          return
             $ref
+};
+
+(:~
+ : Remove a repository from the config.
+ :
+ : If $delete is true, all content of the repo is deleted from the database.
+ :
+ : Throw 'container-not-exist' if the given container ID does not exist.
+ :
+ : Throw 'repo-on-disk' if the repository attached to the container is on disk
+ : and $delete is true.
+ :)
+declare function cfg:remove-container($id as xs:string, $delete as xs:boolean)
+   as empty-sequence()
+{
+   let $ref := cfg:get-container-ref($id)
+   return
+      if ( fn:empty($ref) ) then
+         t:error('container-not-exist', ('The web container ''', $id, ''' does not exist.'))
+      else
+         let $container := cfg:get-container($ref)
+         return
+            if ( fn:empty($container) ) then (
+               t:error(
+                  'config-corrupted',
+                  ('Config file has a reference to container ''', $id, ''' but it does not exist?!?'))
+            )
+            else if ( $delete ) then (
+               cfg:remove-repo($container/w:repo, $delete),
+               cfg:remove-container-from-config($ref, $container)
+            )
+            else (
+               cfg:remove-container-from-config($ref, $container)
+            )
+};
+
+(:~
+ : Remove the container element from the config file, in the correct database.
+ :)
+declare %private function cfg:remove-container-from-config(
+   $ref       as element(c:container),
+   $container as element(w:container)
+) as empty-sequence()
+{
+   let $as-id                    := $container/xs:unsignedLong(@appserver)
+   let $as                       := a:get-appserver($as-id)
+   let $db-id                    := $as/a:db/xs:unsignedLong(@id)
+   let $doc as element(w:config) := a:get-from-database($db-id, $cfg:web-config-docname, '')/*
+   let $new-doc                  := t:remove-child($doc, $doc/w:container[@id eq $container/@id])
+   let $dummy                    := a:insert-into-database($db-id, $cfg:web-config-docname, $new-doc)
+   return
+      xdmp:node-delete($ref)
 };

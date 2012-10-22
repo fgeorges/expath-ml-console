@@ -54,7 +54,7 @@ declare function t:mandatory-field-filename($name as xs:string)
 };
 
 (:~
- : Add an element as last child of a parent element. Returned the modified parent.
+ : Add an element as last child of a parent element. Return the modified parent.
  :)
 declare function t:add-last-child($parent as element(), $new-child as element())
    as node()
@@ -63,6 +63,18 @@ declare function t:add-last-child($parent as element(), $new-child as element())
       $parent/@*,
       $parent/node(),
       $new-child
+   }
+};
+
+(:~
+ : Remove an element from its parent element. Return the modified parent.
+ :)
+declare function t:remove-child($parent as element(), $child as element())
+   as node()
+{
+   element { fn:node-name($parent) } {
+      $parent/@*,
+      $parent/node() except $child
    }
 };
 

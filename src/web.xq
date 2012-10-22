@@ -45,6 +45,7 @@ return
                   <td>Name</td>
                   <td>App Server</td>
                   <td>Root</td>
+                  <td>Repo</td>
                   <td>Actions</td>
                </thead>
                <tbody> {
@@ -55,6 +56,9 @@ return
                   let $escaped   := fn:escape-html-uri($id)
                   let $as-id     := xs:unsignedLong($container/@appserver)
                   let $appserver := a:get-appserver($as-id)
+                  let $repo-name := fn:string($container/w:repo)
+                  let $repo-esc  := fn:escape-html-uri($repo-name)
+                  let $repo      := cfg:get-repo($repo-name)
                   order by $name
                   return
                      <tr>
@@ -65,16 +69,27 @@ return
                         <td>{ fn:string($appserver/a:name) }</td>
                         <td>{ fn:string($container/w:web-root) }</td>
                         <td>
-                           <a href="web/delete.xq?container={ $escaped }">remove</a>,
-                           <a href="web/delete.xq?container={ $escaped }&amp;delete=true">delete</a>
+                           <a href="repo/show.xq?repo={ $repo-esc }">{ $repo-name }</a>
+                        </td>
+                        <td>
+                           <a href="web/delete.xq?container={ $escaped }">remove</a> {
+                           if ( fn:exists($repo/c:database) ) then (
+                              <span>, </span>,
+                              <a href="web/delete.xq?container={ $escaped }&amp;delete=true">delete</a>
+                           )
+                           else (
+                           )
+                        }
                         </td>
                      </tr>
                }
                </tbody>
             </table>,
             <p><em>Removing a web container means removing its configuration from the
-               console. It does not delete the web container itself. Deleting a web
-               container does.</em></p>
+               console. It does not delete the associated repo and all its content
+               (installed packages and webapps). Deleting a web container does delete
+               the associated repo and all its content (not available for on-disk
+               repos).</em></p>
             )
          }
          <h4>Create a web container</h4>
