@@ -38,7 +38,7 @@ declare function r:save-in-attic(
 {
    (: TODO: Check if it already exists! :)
    r:insert-into(
-      fn:concat('.expath-pkg/attic/', $filename),
+      fn:concat('.expath-pkg/attic/', fn:encode-for-uri($filename)),
       $xar,
       $repo)
 };
@@ -47,6 +47,8 @@ declare function r:save-in-attic(
  : Insert a file in a repository.
  :
  : $file is the relative path to store the file (relative to the $repo root).
+ : It must be a valid URI reference (it must be relative, can contain '/', and
+ : every other character has to be legal in a URI).
  :)
 declare function r:insert-into(
    $file as xs:string,
@@ -151,6 +153,7 @@ declare function r:install-package(
    let $pkg     := r:get-package-by-name($name, $version, $repo)
    return
       if ( fn:exists($pkg) ) then
+         (: TODO: Make it an error instead if it already exists and $override is false. :)
          ()
       else
          (: TODO: Validate $pkgdir (no space, it does not exist, etc.) :)
@@ -160,6 +163,7 @@ declare function r:install-package(
          let $options := <options xmlns="xdmp:zip-get"><format>binary</format></options>
          return (
             (: unzip each entry in the XAR to the package dir :)
+            (: TODO: Throw an error if the $part is not a valid URI ref. :)
             for $part in xdmp:zip-manifest($xar)/zip:part/fn:string(.)
             where fn:not(fn:ends-with($part, '/')) (: skip dir entries :)
             return
