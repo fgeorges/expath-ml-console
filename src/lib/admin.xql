@@ -1,5 +1,4 @@
-xquery version "1.0-ml";
-(: TODO: Version "1.0-ml" needed because of the try/catch for WebDAV app servers.  To remove... :)
+xquery version "3.0";
 
 (:~
  : Library wrapping admin information retrieval and setting from MarkLogic.
@@ -11,7 +10,8 @@ import module namespace t     = "http://expath.org/ns/ml/console/tools"
 import module namespace admin = "http://marklogic.com/xdmp/admin"
    at "/MarkLogic/admin.xqy";
 
-declare namespace c = "http://expath.org/ns/ml/console";
+declare namespace c    = "http://expath.org/ns/ml/console";
+declare namespace xdmp = "http://marklogic.com/xdmp";
 
 (:~
  : Get a document from the database $db-id.
@@ -107,9 +107,9 @@ declare function a:load-dir-into-database(
  : The return value is the URI of the directory inserted.
  :)
 declare function a:load-zipdir-into-database(
-   $db-id as xs:unsignedLong,
-   $uri   as xs:string,
-   $zip   as binary()
+   $db-id  as xs:unsignedLong,
+   $uri    as xs:string,
+   $zip (: as binary() :)
 ) as xs:string
 {
    a:eval-on-database(
@@ -214,9 +214,10 @@ declare function a:get-appserver($as as xs:unsignedLong)
             try {
                (: WebDAV ASs do not have a module DB:)
                (: TODO: How to retrieve the type of a server programmatically? :)
+               (: TODO: Be sure to catch only this error! :)
                admin:appserver-get-modules-database($config, $as)
             }
-            catch ( $err ) {
+            catch * {
                ()
             }
    return
@@ -336,7 +337,8 @@ declare function a:remove-directory($db-id as xs:unsignedLong, $dir as xs:string
 {
    a:eval-on-database(
       $db-id,
-      'declare variable $dir external;
+      'declare namespace xdmp = "http://marklogic.com/xdmp";
+       declare variable $dir external;
        xdmp:directory($dir, "infinity")/xdmp:document-delete(fn:document-uri(.))',
       (xs:QName('dir'), $dir))
 };

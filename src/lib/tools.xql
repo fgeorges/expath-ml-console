@@ -1,4 +1,4 @@
-xquery version "1.0";
+xquery version "3.0";
 
 module namespace t = "http://expath.org/ns/ml/console/tools";
 
