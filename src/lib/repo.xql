@@ -63,6 +63,30 @@ declare function r:insert-into(
 };
 
 (:~
+ : Unzip in a sub-dir of a repository.
+ :)
+declare function r:unzip-into(
+   $zip (: as binary() :),
+   $subdir as xs:string,
+   $repo   as element(c:repo)
+) as empty-sequence()
+{
+   (: TODO: Binary?  Really?  Even for, say, XSLT stylesheets? :)
+   let $options := <options xmlns="xdmp:zip-get"><format>binary</format></options>
+   let $dummy   :=
+         (: TODO: Throw an error if $part is not a valid URI ref. :)
+         for $part in xdmp:zip-manifest($zip)/zip:part/fn:string(.)
+         where fn:not(fn:ends-with($part, '/')) (: skip dir entries :)
+         return
+            r:insert-into(
+               fn:concat($subdir, '/', $part),
+               xdmp:zip-get($zip, $part, $options),
+               $repo)
+   return
+      ()
+};
+
+(:~
  : Insert a file in a repository.
  :)
 declare function r:get-from(
@@ -157,34 +181,24 @@ declare function r:install-package(
          ()
       else
          (: TODO: Validate $pkgdir (no space, it does not exist, etc.) :)
-         let $pkgdir  := fn:concat($abbrev, '-', $version)
-         let $in-db   := r:is-filesystem-repo($repo)
-         (: TODO: Binary?  Really?  Even for, say, XSLT stylesheets? :)
-         let $options := <options xmlns="xdmp:zip-get"><format>binary</format></options>
-         return (
-            (: unzip each entry in the XAR to the package dir :)
-            (: TODO: Throw an error if the $part is not a valid URI ref. :)
-            for $part in xdmp:zip-manifest($xar)/zip:part/fn:string(.)
-            where fn:not(fn:ends-with($part, '/')) (: skip dir entries :)
-            return
+         let $pkgdir := fn:concat($abbrev, '-', $version)
+         let $in-db  := r:is-filesystem-repo($repo)
+         let $dummy  := r:unzip-into($xar, $pkgdir, $repo)
+         let $dummy  :=
+               (: update the repository descriptor :)
+               (: TODO: Detect if already there! (we can have duplicate if we add w/o checking) :)
+               (: TODO: When the repo is in a database, we should update the document in place! :)
+               (: TODO: Create a dedicated function to get/update packages.xml, as it is recorded
+                  in $repo (either packages-doc or packages-file).  See r:get-packages-list()... :)
                r:insert-into(
-                  fn:concat($pkgdir, '/', $part),
-                  xdmp:zip-get($xar, $part, $options),
-                  $repo),
-            (: update the repository descriptor :)
-            (: TODO: Detect if already there! (we can have duplicate if we add w/o checking) :)
-            (: TODO: When the repo is in a database, we should update the document in place! :)
-            (: TODO: Create a dedicated function to get/update packages.xml, as it is recorded
-               in $repo (either packages-doc or packages-file).  See r:get-packages-list()... :)
-            r:insert-into(
-               '.expath-pkg/packages.xml',
-               t:add-last-child(
-                  r:get-from('.expath-pkg/packages.xml', $repo)/pp:packages,
-                  <package xmlns="http://expath.org/ns/repo/packages"
-                           name="{ $name }" dir="{ $pkgdir }" version="{ $version }"/>),
-               $repo),
+                  '.expath-pkg/packages.xml',
+                  t:add-last-child(
+                     r:get-from('.expath-pkg/packages.xml', $repo)/pp:packages,
+                     <package xmlns="http://expath.org/ns/repo/packages"
+                              name="{ $name }" dir="{ $pkgdir }" version="{ $version }"/>),
+                  $repo)
+         return
             r:get-package-by-name($name, $version, $repo)
-         )[fn:last()]
 };
 
 (:~
