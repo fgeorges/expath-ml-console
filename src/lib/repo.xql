@@ -31,9 +31,9 @@ declare function r:is-filesystem-repo($repo as element(c:repo))
  : The attic is in [repo]/.expath-pkg/attic/.
  :)
 declare function r:save-in-attic(
-   $xar (: as binary() :),
+   $xar   (: as binary() :),
    $filename as xs:string,
-   $repo as element(c:repo)
+   $repo     as element(c:repo)
 ) as xs:string
 {
    (: TODO: Check if it already exists! :)
@@ -46,7 +46,7 @@ declare function r:save-in-attic(
 (:~
  : Insert a file in a repository.
  :
- : $file is the relative path to store the file (relative to the Rrepo root).
+ : $file is the relative path to store the file (relative to the $repo root).
  :)
 declare function r:insert-into(
    $file as xs:string,
@@ -98,12 +98,12 @@ declare function r:get-to-remove-list($repo as element(c:repo))
  : Return the package info for $pkg/$version in $repo.
  :)
 declare function r:get-package-by-name(
-   $pkg     as xs:string,
+   $name    as xs:string,
    $version as xs:string,
    $repo    as element(c:repo)
 ) as element(pp:package)?
 {
-   r:get-packages-list($repo)/pp:package[@name eq $pkg][@version eq $version]
+   r:get-packages-list($repo)/pp:package[@name eq $name][@version eq $version]
 };
 
 (:~

@@ -3,6 +3,10 @@ xquery version "3.0";
 (:~
  : Library to access the configuration.
  :
+ : TODO: Write schemas for the config files and other elements used in this
+ : library module (and other library modules as well), and import them here to
+ : validate any piece of data and documents we create/modify/access.
+ :
  : There are several documents managed by this library.  The first one is the
  : config document, with the config of the console itself.  Basically, it
  : contains the URI of the CXAN website, and config about all existing repos in
@@ -17,12 +21,14 @@ xquery version "3.0";
  :        <cxan>
  :           <site>http://cxan.org/</site>
  :        </cxan>
- :        <repo name="xxx">
+ :        <repo id="xxx">
+ :           <name>First repo</name>
  :           <root>path/relative/to/db/root</root>
  :           <database id="123">Modules</database>
  :           <packages-doc>path/relative/to/db/root/.expath-pkg/packages.xml</packages-doc>
  :        </repo>
- :        <repo name="yyy">
+ :        <repo id="yyy">
+ :           <name>Second repo</name>
  :           <root>path/relative/to/dir</root>
  :           <directory>/dir/...</directory>
  :           <absolute>/dir/.../path/relative/to/dir</absolute>
@@ -114,12 +120,12 @@ declare function cfg:get-repos()
 };
 
 (:~
- : Return one specific repo given its name.
+ : Return one specific repo given its ID.
  :)
-declare function cfg:get-repo($name as xs:string)
+declare function cfg:get-repo($id as xs:string)
    as element(c:repo)?
 {
-   cfg:get-config()/c:repo[@name eq $name]
+   cfg:get-config()/c:repo[@id eq $id]
 };
 
 (:~
@@ -151,6 +157,7 @@ declare function cfg:get-appserver-repos($as as element(a:appserver))
  : See cfg:get-appserver-repos().
  :
  : TODO: Should probably use something more complex than starts-with()...
+ : TODO: Should the repo have been created explicitly for the App Server?
  :)
 declare function cfg:is-repo-in-appserver($repo as element(c:repo), $as as element(a:appserver))
    as xs:boolean
@@ -211,6 +218,7 @@ declare function cfg:get-container($container as element(c:container))
  : TODO: Factorise with cfg:create-repo-in-directory().
  :)
 declare function cfg:create-repo-in-database(
+   $id      as xs:string,
    $name    as xs:string,
    $root    as xs:string,
    $db-id   as xs:string,
@@ -219,7 +227,8 @@ declare function cfg:create-repo-in-database(
 {
    let $_root   := if ( fn:ends-with($root, '/') ) then $root else fn:concat($root, '/')
    let $repo    :=
-         <repo name="{ $name }" xmlns="http://expath.org/ns/ml/console">
+         <repo id="{ $id }" xmlns="http://expath.org/ns/ml/console">
+            <name>{ $name }</name>
             <root>{ $_root }</root>
             <database id="{ $db-id }">{ $db-name }</database>
          </repo>
@@ -242,6 +251,7 @@ declare function cfg:create-repo-in-database(
  : TODO: Factorise with cfg:create-repo-in-database().
  :)
 declare function cfg:create-repo-in-directory(
+   $id   as xs:string,
    $name as xs:string,
    $root as xs:string,
    $dir  as xs:string
@@ -251,7 +261,8 @@ declare function cfg:create-repo-in-directory(
    let $_dir     := if ( fn:ends-with($dir, '/') )  then $dir  else fn:concat($dir, '/')
    let $absolute := fn:concat($_dir, if ( fn:starts-with($_root, '/') ) then fn:substring($_root, 2) else $_root)
    let $repo     :=
-         <repo name="{ $name }" xmlns="http://expath.org/ns/ml/console">
+         <repo id="{ $id }" xmlns="http://expath.org/ns/ml/console">
+            <name>{ $name }</name>
             <root>{ $_root }</root>
             <directory>{ $_dir }</directory>
             <absolute>{ $absolute }</absolute>
@@ -283,7 +294,7 @@ declare function cfg:create-repo-in-directory(
  :
  : If the config file does not exist yet, it is created.
  :
- : Throws 'c:repo-exists' if a repo with the same name already exists.
+ : Throws 'c:repo-exists' if a repo with the same ID already exists.
  :
  : TODO: Is it possible to return a reference to the inserted repo element,
  : instead of a reference to the in-memory element?
@@ -291,8 +302,8 @@ declare function cfg:create-repo-in-directory(
 declare %private function cfg:insert-new-repo($repo as element(c:repo))
    as element(c:repo)
 {
-   if ( fn:exists(cfg:get-repo($repo/@name)) ) then
-      t:error('repo-exists', ('The repo ''', $repo/@name, ''' already exists.'))
+   if ( fn:exists(cfg:get-repo($repo/@id)) ) then
+      t:error('repo-exists', ('The repo ''', $repo/@id, ''' already exists.'))
    else if ( cfg:is-setup() ) then
       xdmp:node-insert-child(cfg:get-config(), $repo)
    else
@@ -312,19 +323,19 @@ declare %private function cfg:insert-new-repo($repo as element(c:repo))
  :
  : If $delete is true, all content of the repo is deleted from the database.
  :
- : Throw 'repo-not-exist' if the given repository name does not exist.
+ : Throw 'repo-not-exist' if the given repository ID does not exist.
  :
  : Throw 'repo-on-disk' if the repository is on disk and $delete is true.
  :)
-declare function cfg:remove-repo($name as xs:string, $delete as xs:boolean)
+declare function cfg:remove-repo($id as xs:string, $delete as xs:boolean)
    as empty-sequence()
 {
-   let $repo := cfg:get-repo($name)
+   let $repo := cfg:get-repo($id)
    return (
       if ( fn:empty($repo) ) then
-         t:error('repo-not-exist', ('The repo ''', $name, ''' does not exist.'))
+         t:error('repo-not-exist', ('The repo ''', $id, ''' does not exist.'))
       else if ( $delete and r:is-filesystem-repo($repo) ) then
-         t:error('repo-on-disk', ('The repo ''', $name, ''' is on disk, it cannot be deleted.'))
+         t:error('repo-on-disk', ('The repo ''', $id, ''' is on disk, it cannot be deleted.'))
       else if ( $delete ) then
          a:remove-directory($repo/c:database/@id, $repo/c:root)
       else
