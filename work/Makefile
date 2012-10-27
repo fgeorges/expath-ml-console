@@ -1,5 +1,11 @@
-ml-console-0.1.0.zip:
-	svn export ../src/ ml-console-0.1.0/
-	zip -r $@ ml-console-0.1.0/
+NAME=expath-ml-console-0.2.0
 
-.PHONY: ml-console-0.1.0.xar
+../dist/$(NAME).zip:
+	mkdir $(NAME)
+	cp README $(NAME)/
+	cp -r ../src/ $(NAME)/src
+	rm -f $@
+	zip -r $@ $(NAME)/
+	rm -rf $(NAME)
+
+.PHONY: ../dist/$(NAME).zip
