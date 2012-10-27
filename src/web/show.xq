@@ -19,7 +19,7 @@ declare function local:page()
    (: TODO: Check the parameter has been passed, to avoid XQuery errors! :)
    (: (turn it into a human-friendly error instead...) :)
    (: And validate it! (does the container exist?) :)
-   let $id        := t:mandatory-field('id')
+   let $id        := t:mandatory-field('container')
    let $ref       := cfg:get-container-ref($id)
    let $container := cfg:get-container($ref)
    return
