@@ -11,6 +11,8 @@ declare namespace c    = "http://expath.org/ns/ml/console";
 declare namespace h    = "http://www.w3.org/1999/xhtml";
 declare namespace xdmp = "http://marklogic.com/xdmp";
 
+declare option xdmp:update "true";
+
 declare function local:page()
    as element()+
 {
@@ -93,10 +95,10 @@ declare function local:create-repo-in-appserver(
       cfg:create-repo-in-directory($id, $name, $root, $as/a:modules-path)
    else if ( fn:exists($as/a:modules-db) ) then
       (: TODO: Should we adapt the root to take DB's root in the AppServer? :)
-      let $id   := xs:unsignedLong($as/a:modules-db/@id)
-      let $db   := a:get-database($id)
+      let $db-id := $as/a:modules-db/@id
+      let $db    := a:get-database(xs:unsignedLong($db-id))
       return
-         cfg:create-repo-in-database($id, $name, $root, $id, $db/fn:string(a:name))
+         cfg:create-repo-in-database($id, $name, $root, $db-id, $db/fn:string(a:name))
    else
       t:error('SETUP002', ('How can I have a WebDAV appserver here?!?: ', xdmp:quote($as)))
 };

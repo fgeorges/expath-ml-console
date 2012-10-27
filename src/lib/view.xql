@@ -81,7 +81,7 @@ declare function v:console-page(
       })
 };
 
-declare function v:console-page-static(
+declare %private function v:console-page-static(
    $root    as xs:string,
    $page    as xs:string,
    $title   as xs:string,
