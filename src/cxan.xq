@@ -1,14 +1,13 @@
-xquery version "1.0";
+xquery version "3.0";
 
 import module namespace cfg = "http://expath.org/ns/ml/console/config" at "lib/config.xql";
 import module namespace v   = "http://expath.org/ns/ml/console/view"   at "lib/view.xql";
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
-v:console-page(
-   'cxan',
-   'CXAN',
-   '',
+declare function local:page()
+   as element()+
+{
     if ( cfg:is-setup() ) then
       <wrapper>
          <p>Configure the CXAN website to talk to, for instance http://cxan.org/
@@ -28,4 +27,7 @@ v:console-page(
       </wrapper>/*
     else
       <p>The console has not been set up yet, please
-         <a href="setup.xq">create a repo</a> first.</p>)
+         <a href="repo.xq">create a repo</a> first.</p>
+};
+
+v:console-page('', 'cxan', 'CXAN', local:page#0)

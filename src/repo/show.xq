@@ -1,4 +1,4 @@
-xquery version "1.0";
+xquery version "3.0";
 
 import module namespace a   = "http://expath.org/ns/ml/console/admin"  at "../lib/admin.xql";
 import module namespace cfg = "http://expath.org/ns/ml/console/config" at "../lib/config.xql";
@@ -12,39 +12,17 @@ declare namespace c    = "http://expath.org/ns/ml/console";
 declare namespace pp   = "http://expath.org/ns/repo/packages";
 declare namespace xdmp = "http://marklogic.com/xdmp";
 
-declare function local:package-row($pkg as element(pp:package), $repo as element(c:repo))
-   as element(tr)
+declare function local:page()
+   as element()+
 {
-   <tr>
-      <td>{ $pkg/fn:string(@name) }</td>
-      <td>{ $pkg/fn:string(@dir) }</td>
-      <td>{ $pkg/fn:string(@version) }</td>
-      <td>
-         <a href="delete-pkg.xq?repo={ $repo/@name }&amp;pkg={ $pkg/fn:escape-html-uri(@dir) }">delete</a>
-      </td>
-   </tr>
-};
-
-declare function local:to-remove-row($pkg as element(pp:package), $repo as element(c:repo))
-   as element(tr)
-{
-   <tr>
-      <td colspan="4">{ $repo/fn:string(c:absolute) }{ $pkg/fn:string(@dir) }/</td>
-   </tr>
-};
-
-(: TODO: Check the parameter has been passed, to avoid XQuery errors! :)
-(: (turn it into a human-friendly error instead...) :)
-(: And validate it! (does the repo exist?) :)
-let $name      := t:mandatory-field('repo')
-let $repo      := cfg:get-repo($name)
-let $packages  := r:get-packages-list($repo)
-let $to-remove := r:get-to-remove-list($repo)
-return
-   v:console-page(
-      'repo',
-      concat('Repository ''', $name, ''''),
-      '../',
+   (: TODO: Check the parameter has been passed, to avoid XQuery errors! :)
+   (: (turn it into a human-friendly error instead...) :)
+   (: And validate it! (does the repo exist?) :)
+   let $repo-id   := t:mandatory-field('repo')
+   let $repo      := cfg:get-repo($repo-id)
+   let $packages  := r:get-packages-list($repo)
+   let $to-remove := r:get-to-remove-list($repo)
+   return
       <wrapper> {
          if ( fn:empty($packages/pp:package|$to-remove/pp:package) ) then
             ()
@@ -76,14 +54,14 @@ return
          }
          <h4>Install from file</h4>
          <p>Install packages and applications from your filesystem, using a package
-            file (usually a *.xar or *.xaw file).</p>
+            file (usually a *.xar file).</p>
          <form method="post" action="install-pkg.xq" enctype="multipart/form-data">
             <input type="file" name="xar"/>
             <input type="submit" value="Install"/>
             <!--br/><br/>
             <input type="checkbox" name="override" value="true"/>
             <em>Override the package of it already exists</em-->
-            <input type="hidden" name="repo" value="{ $name }"/>
+            <input type="hidden" name="repo" value="{ $repo-id }"/>
          </form>
          <h4>Install from CXAN</h4>
          <p>Install packages and applications directly from CXAN, using a package
@@ -97,6 +75,30 @@ return
             <span>Version:</span>
             <input type="text" name="version" size="25"/>
             <input type="submit" value="Install"/>
-            <input type="hidden" name="repo" value="{ $name }"/>
+            <input type="hidden" name="repo" value="{ $repo-id }"/>
          </form>
-      </wrapper>/*)
+      </wrapper>/*
+};
+
+declare function local:package-row($pkg as element(pp:package), $repo as element(c:repo))
+   as element(tr)
+{
+   <tr>
+      <td>{ $pkg/fn:string(@name) }</td>
+      <td>{ $pkg/fn:string(@dir) }</td>
+      <td>{ $pkg/fn:string(@version) }</td>
+      <td>
+         <a href="delete-pkg.xq?repo={ $repo/@id }&amp;pkg={ $pkg/fn:escape-html-uri(@dir) }">delete</a>
+      </td>
+   </tr>
+};
+
+declare function local:to-remove-row($pkg as element(pp:package), $repo as element(c:repo))
+   as element(tr)
+{
+   <tr>
+      <td colspan="4">{ $repo/fn:string(c:absolute) }{ $pkg/fn:string(@dir) }/</td>
+   </tr>
+};
+
+v:console-page('../', 'repo', 'Repository', local:page#0)

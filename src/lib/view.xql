@@ -1,4 +1,4 @@
-xquery version "1.0";
+xquery version "3.0";
 
 (:~
  : Library to help generating the view.
@@ -9,15 +9,15 @@ import module namespace cfg = "http://expath.org/ns/ml/console/config" at "confi
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
-declare namespace h = "http://www.w3.org/1999/xhtml";
+declare namespace c    = "http://expath.org/ns/ml/console";
+declare namespace err  = "http://www.w3.org/2005/xqt-errors";
+declare namespace xdmp = "http://marklogic.com/xdmp";
 
 declare variable $v:pages as element(pages) :=
    <pages>
       <page name="home"     title="Console Home"                 label="Home"/>
-      <!--page name="setup"    title="Setup the Console"            label="Setup"/-->
       <page name="repo"     title="Package Repositories"         label="Repositories"/>
-      <page name="web"      title="Web Applications Containers"  label="Web Containers"/>
-      <!--page name="install"  title="Install Package"              label="Install"/-->
+      <!--page name="web"      title="Web Applications Containers"  label="Web Containers"/-->
       <page name="cxan"     title="CXAN Config"                  label="CXAN"/>
       <!--page name="xproject" title="XProject Tools"            label="XProject"/>
       <page name="xspec"    title="XSpec Tools"                  label="XSpec"/-->
@@ -33,7 +33,7 @@ declare variable $v:pages as element(pages) :=
  : $root: '' if a top-level page, or '../' if in a sub-directory
  :)
 declare function v:console-page-menu($page as xs:string, $root as xs:string)
-   as element(h:li)+
+   as element(li)+
 {
    for $p in $v:pages/page
    return
@@ -49,19 +49,6 @@ declare function v:console-page-menu($page as xs:string, $root as xs:string)
 };
 
 (:~
- : Display a message at the top of the page if the console has not been setup.
- :)
-declare function v:check-setup($page as xs:string)
-   as element(h:p)?
-{
-   if ( cfg:is-setup() or $page eq 'setup' ) then
-      ()
-   else
-      <p><b>WARNING</b>: The console has not been setup, please
-         <a href="setup.xq">proceed first</a>.</p>
-};
-
-(:~
  : Format a console page.
  :
  : $page: the current page (must be the key of one menu)
@@ -71,8 +58,35 @@ declare function v:check-setup($page as xs:string)
  :
  : TODO: Shouldn't it set the response MIME type and HTTP code?
  :)
-declare function v:console-page($page as xs:string, $title as xs:string, $root as xs:string, $content as node()+)
-   as element(h:html)
+declare function v:console-page(
+   $root    as xs:string,
+   $page    as xs:string,
+   $title   as xs:string,
+   $content as function() as element()+
+) as element(html)
+{
+   v:console-page-static(
+      $root,
+      $page,
+      $title,
+      try {
+         $content()
+      }
+      catch c:* {
+         <p><b>Error</b>: { $err:description }</p>
+      }
+      catch * {
+         <p><b>SYSTEM ERROR</b> (please report this to the mailing list): { $err:description }</p>,
+         <pre>{ xdmp:quote($err:additional) }</pre>
+      })
+};
+
+declare function v:console-page-static(
+   $root    as xs:string,
+   $page    as xs:string,
+   $title   as xs:string,
+   $content as element()+
+) as element(html)
 {
    <html>
       <head>
@@ -102,7 +116,6 @@ declare function v:console-page($page as xs:string, $title as xs:string, $root a
                <div class="normalcontent">
                   <h3><strong>{ $title }</strong></h3>
                   <div class="contentarea"> {
-                     v:check-setup($page),
                      $content
                   }
                   </div>

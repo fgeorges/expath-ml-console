@@ -13,24 +13,9 @@ declare default element namespace "http://www.w3.org/1999/xhtml";
 declare namespace c    = "http://expath.org/ns/ml/console";
 declare namespace xdmp = "http://marklogic.com/xdmp";
 
-declare function local:display-xml($elem as element())
-   as element(pre)
+declare function local:page()
+   as element()+
 {
-   <pre> {
-      (: TODO: Add syntax highlighting... :)
-      xdmp:quote(
-         $elem,
-         <options xmlns="xdmp:quote">
-            <indent-untyped>yes</indent-untyped>
-         </options>)
-   }
-   </pre>
-};
-
-v:console-page(
-   'tools',
-   'Show config',
-   '../',
    <wrapper>
       <p>This page shows the Console config files content, as well as various
          MarkLogic object as they are represented within the code of the
@@ -45,13 +30,13 @@ v:console-page(
          databases, attached to the App Servers whithin which web containers have
          been installed, with the document URI { $cfg:web-config-docname }.</p>
       {
-         let $dbs := cfg:get-container-refs()/c:db
-         for $db in fn:distinct-values($dbs/@id)
-         let $id := xs:unsignedLong($db)
-         let $doc := a:get-from-database($id, $cfg:web-config-docname, '')
+         let $dbs  := cfg:get-container-refs()/c:db
+         for $db   in fn:distinct-values($dbs/@id)
+         let $id   := xs:unsignedLong($db)
+         let $conf := a:get-from-database($id, $cfg:web-config-docname, '')/*
          return (
             <p>In the database '{ fn:string(($dbs[@id eq $db])[1]) }'</p>,
-            local:display-xml($doc/*)
+            local:display-xml($conf)
          )
       }
       <h4>Databases</h4>
@@ -64,4 +49,21 @@ v:console-page(
          returned by the admin.xql library (and as used and manipulated by all
          the Console code).</p>
       { local:display-xml(a:get-appservers()) }
-   </wrapper>/*)
+   </wrapper>/*
+};
+
+declare function local:display-xml($elem as element()?)
+   as element(pre)
+{
+   <pre> {
+      (: TODO: Add syntax highlighting... :)
+      xdmp:quote(
+         $elem,
+         <options xmlns="xdmp:quote">
+            <indent-untyped>yes</indent-untyped>
+         </options>)
+   }
+   </pre>
+};
+
+v:console-page('../', 'tools', 'Show config', local:page#0)

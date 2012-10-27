@@ -1,13 +1,12 @@
-xquery version "1.0";
+xquery version "3.0";
 
 import module namespace v = "http://expath.org/ns/ml/console/view" at "lib/view.xql";
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
-v:console-page(
-   'home',
-   'EXPath Console',
-   '',
+declare function local:page()
+   as element()+
+{
    (: <img class="left" src="images/machine.jpg" alt="Machine"/> :)
    <wrapper>
       <p>Welcome to the EXPath console for MarkLogic. First, you might want to
@@ -21,4 +20,7 @@ v:console-page(
            </li>
       }
       </ul>
-   </wrapper>/*)
+   </wrapper>/*
+};
+
+v:console-page('', 'home', 'EXPath Console', local:page#0)

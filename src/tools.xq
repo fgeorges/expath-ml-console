@@ -1,4 +1,4 @@
-xquery version "1.0";
+xquery version "3.0";
 
 (:~
  : Aimed at providing general tools for MarkLogic.
@@ -9,26 +9,11 @@ import module namespace v = "http://expath.org/ns/ml/console/view"  at "lib/view
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
-(:~
- : TODO: ...
- :)
-declare function local:database-options()
+declare function local:page()
+   as element()+
 {
-   <select name="database"> {
-      for $db in a:get-databases()/a:database
-      order by $db/a:name
-      return
-         <option value="{ $db/@id }">{ $db/fn:string(a:name) }</option>
-   }
-   </select>
-};
-
-let $db-options := local:database-options()
-return
-   v:console-page(
-      'tools',
-      'Tools',
-      '',
+   let $db-options := local:database-options()
+   return
       <wrapper>
          <p>Some generic tools for MarkLogic.</p>
          <h4>Console and MarkLogic config</h4>
@@ -122,4 +107,22 @@ return
             generating xqdoc documentation, running test suites, checking a repo
             integrity (like no duplicates in packages.xml, check that packages.xml
             is in synch with the directories...), etc.</p>
-      </wrapper>/*)
+      </wrapper>/*
+};
+
+(:~
+ : TODO: ...
+ : TODO: Duplicated in repo.xq, factorize out!
+ :)
+declare function local:database-options()
+{
+   <select name="database"> {
+      for $db in a:get-databases()/a:database
+      order by $db/a:name
+      return
+         <option value="{ $db/@id }">{ $db/fn:string(a:name) }</option>
+   }
+   </select>
+};
+
+v:console-page('', 'tools', 'Tools', local:page#0)

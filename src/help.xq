@@ -1,13 +1,12 @@
-xquery version "1.0";
+xquery version "3.0";
 
 import module namespace v = "http://expath.org/ns/ml/console/view" at "lib/view.xql";
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
-v:console-page(
-   'help',
-   'Help',
-   '',
+declare function local:page()
+   as element()+
+{
    <wrapper>
       <h4>Introduction</h4>
       <p>The EXPath Console for MarkLogic comes with several tools. The main
@@ -70,4 +69,7 @@ v:console-page(
          <li>The page "<a href="tools.xq">Tools</a>" provides some general
             purpose tools for MarkLogic.</li>
       </ul>
-   </wrapper>/*)
+   </wrapper>/*
+};
+
+v:console-page('',  'help', 'Help', local:page#0)

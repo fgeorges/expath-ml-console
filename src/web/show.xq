@@ -1,4 +1,4 @@
-xquery version "1.0";
+xquery version "3.0";
 
 import module namespace a   = "http://expath.org/ns/ml/console/admin"  at "../lib/admin.xql";
 import module namespace cfg = "http://expath.org/ns/ml/console/config" at "../lib/config.xql";
@@ -13,30 +13,16 @@ declare namespace w    = "http://expath.org/ns/ml/webapp";
 declare namespace pp   = "http://expath.org/ns/repo/packages";
 declare namespace xdmp = "http://marklogic.com/xdmp";
 
-declare function local:app-row($app as element(w:application))
-   as element(tr)
+declare function local:page()
+   as element()+
 {
-   <tr>
-      <td>{ $app/fn:string(@id) }</td>
-      <td>{ $app/fn:string(w:name) }</td>
-      <td>{ $app/fn:string(w:root) }</td>
-      <td>{ $app/fn:string(w:pkg-dir) }</td>
-      <td>
-         <a href="delete-app.xq?container={ $app/../@id }&amp;webapp={ $app/fn:string(@id) }">delete</a>
-      </td>
-   </tr>
-};
-
-(: TODO: Check the parameter has been passed, to avoid XQuery errors! :)
-(: (turn it into a human-friendly error instead...) :)
-(: And validate it! (does the container exist?) :)
-let $name      := t:mandatory-field('container')
-let $container := cfg:get-repo($name)
-return
-   v:console-page(
-      'web',
-      concat('Web container ''', $name, ''''),
-      '../',
+   (: TODO: Check the parameter has been passed, to avoid XQuery errors! :)
+   (: (turn it into a human-friendly error instead...) :)
+   (: And validate it! (does the container exist?) :)
+   let $id        := t:mandatory-field('id')
+   let $ref       := cfg:get-container-ref($id)
+   let $container := cfg:get-container($ref)
+   return
       <wrapper> {
          (: TODO: Display some infos about the web container (ID, name, etc.) :)
          if ( fn:empty($container/w:application) ) then
@@ -68,7 +54,7 @@ return
             <!--br/><br/>
             <input type="checkbox" name="override" value="true"/>
             <em>Override the package of it already exists</em-->
-            <input type="hidden" name="container" value="{ $name }"/>
+            <input type="hidden" name="container" value="{ $id }"/>
          </form>
          <h4>Install from CXAN</h4>
          <p>TODO: Still to implement...</p>
@@ -83,6 +69,23 @@ return
             <span>Version:</span>
             <input type="text" name="version" size="25"/>
             <input type="submit" value="Install"/>
-            <input type="hidden" name="container" value="{ $name }"/>
+            <input type="hidden" name="container" value="{ $id }"/>
          </form-->
-      </wrapper>/*)
+      </wrapper>/*
+};
+
+declare function local:app-row($app as element(w:application))
+   as element(tr)
+{
+   <tr>
+      <td>{ $app/fn:string(@id) }</td>
+      <td>{ $app/fn:string(w:name) }</td>
+      <td>{ $app/fn:string(w:root) }</td>
+      <td>{ $app/fn:string(w:pkg-dir) }</td>
+      <td>
+         <a href="delete-app.xq?container={ $app/../@id }&amp;webapp={ $app/fn:string(@id) }">delete</a>
+      </td>
+   </tr>
+};
+
+v:console-page('../',  'web', 'Web container', local:page#0)

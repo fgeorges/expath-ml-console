@@ -1,5 +1,4 @@
-xquery version "1.0-ml";
-(: TODO: Version "1.0-ml" needed because of the try/catch for WebDAV app servers.  To remove... :)
+xquery version "3.0";
 
 import module namespace a   = "http://expath.org/ns/ml/console/admin"  at "lib/admin.xql";
 import module namespace cfg = "http://expath.org/ns/ml/console/config" at "lib/config.xql";
@@ -14,10 +13,9 @@ declare default element namespace "http://www.w3.org/1999/xhtml";
 declare namespace c    = "http://expath.org/ns/ml/console";
 declare namespace xdmp = "http://marklogic.com/xdmp";
 
-v:console-page(
-   'devel',
-   'Developement tools',
-   '',
+declare function local:page()
+   as element()+
+{
    <wrapper>
       <p>Some useful queries used in the implementation of the console.</p>
       <p>You can use this page to show some useful information about your
@@ -25,7 +23,7 @@ v:console-page(
          to see how to retrieve the same information from within XQuery.</p>
       <h4>Browsing a pkg dir</h4>
       <ul> {
-         let $repo  := cfg:get-repo('db-repo')
+         for $repo  in cfg:get-repos()
          let $db-id := $repo/c:database/@id
          let $root  := $repo/c:root
          let $docs  :=
@@ -83,9 +81,10 @@ v:console-page(
                try {
                   admin:appserver-get-modules-database($config, $as)
                }
-               catch ( $err ) {
+               catch * {
                   (: WebDAV ASs do not have a module DB:)
                   (: TODO: How to retrieve the type of a server programmatically? :)
+                  (: TODO: Be sure to catch only this error! :)
                   'N/A'
                },
                ' / Root: ', admin:appserver-get-root($config, $as)
@@ -114,4 +113,7 @@ v:console-page(
             </li>
       }
       </ul>
-   </wrapper>/*)
+   </wrapper>/*
+};
+
+v:console-page('', 'devel', 'Developement tools', local:page#0)

@@ -14,6 +14,22 @@ declare namespace http  = "xdmp:http";
 declare namespace xdmp  = "http://marklogic.com/xdmp";
 declare namespace zip   = "xdmp:zip";
 
+declare function local:page()
+   as element()+
+{
+   (: TODO: Check the params are there, and validate them... :)
+   let $repo-id := t:mandatory-field('repo')
+   let $repo    := cfg:get-repo($repo-id)
+   let $id      := t:optional-field('id', ())
+   let $name    := t:optional-field('name', ())
+   let $version := t:optional-field('version', ())
+   let $site    := cfg:get-config()/c:cxan/c:site
+   return (
+      local:do-it($repo, $id, $name, $version, $site),
+      <p>Back to the <a href="../repo/show.xq?repo={ $repo-id }">repository</a>.</p>
+   )
+};
+
 declare function local:install(
    $repo as element(c:repo),
    $uri  as xs:string
@@ -29,7 +45,7 @@ declare function local:install(
             <p><b>Error</b>: There is no package at { $uri }.</p>
          else if ( $code eq 200 ) then
             if ( r:install-package($xar, $repo) ) then
-               <p>Package succesfully installed from { $uri } into { $repo/fn:string(@name) }.</p>
+               <p>Package succesfully installed from { $uri } into { $repo/fn:string(@id) }.</p>
             else
                <p><b>Error</b>: Unknown error installing the package from { $uri }.
                   Does it already exist?</p>
@@ -71,19 +87,4 @@ declare function local:do-it(
       <p><b>Error</b>: No CXAN ID nor package name provided.</p>
 };
 
-(: TODO: Check the params are there, and validate them... :)
-let $reponame := t:mandatory-field('repo')
-let $repo     := cfg:get-repo($reponame)
-let $id       := t:optional-field('id', ())
-let $name     := t:optional-field('name', ())
-let $version  := t:optional-field('version', ())
-let $site     := cfg:get-config()/c:cxan/c:site
-return
-   v:console-page(
-      'cxan',
-      'CXAN',
-      '../',
-      (
-         local:do-it($repo, $id, $name, $version, $site),
-         <p>Back to the <a href="../repo/show.xq?repo={ $reponame }">repository</a>.</p>
-      ))
+v:console-page('../', 'cxan', 'CXAN', local:page#0)

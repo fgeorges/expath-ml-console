@@ -1,4 +1,4 @@
-xquery version "1.0";
+xquery version "3.0";
 
 import module namespace a   = "http://expath.org/ns/ml/console/admin"  at "lib/admin.xql";
 import module namespace cfg = "http://expath.org/ns/ml/console/config" at "lib/config.xql";
@@ -10,31 +10,11 @@ declare namespace c    = "http://expath.org/ns/ml/console";
 declare namespace w    = "http://expath.org/ns/ml/webapp";
 declare namespace xdmp = "http://marklogic.com/xdmp";
 
-(:~
- : TODO: What if there is none?
- : TODO: Duplicated in repo.xq, factorize out!
- :)
-declare function local:appserver-options()
+declare function local:page()
+   as element()+
 {
-   <select name="appserver"> {
-      for $as in a:get-appservers()/a:appserver
-      order by $as/a:name
-      return
-         (: For now, the way to detect WebDAV servers is that they do not have none of them. :)
-         if ( fn:empty($as/(a:modules-db|a:modules-path)) ) then
-            ()
-         else
-            <option value="{ $as/@id }">{ $as/fn:string(a:name) }</option>
-   }
-   </select>
-};
-
-let $container-refs := cfg:get-container-refs()
-return
-   v:console-page(
-      'web',
-      'Web containers',
-      '',
+   let $container-refs := cfg:get-container-refs()
+   return
       <wrapper> {
          if ( fn:empty($container-refs) ) then
             ()
@@ -116,4 +96,26 @@ return
             { local:appserver-options() }
             <input name="create" type="submit" value="Create"/>
          </form>
-      </wrapper>/*)
+      </wrapper>/*
+};
+
+(:~
+ : TODO: What if there is none?
+ : TODO: Duplicated in repo.xq, factorize out!
+ :)
+declare function local:appserver-options()
+{
+   <select name="appserver"> {
+      for $as in a:get-appservers()/a:appserver
+      order by $as/a:name
+      return
+         (: For now, the way to detect WebDAV servers is that they do not have none of them. :)
+         if ( fn:empty($as/(a:modules-db|a:modules-path)) ) then
+            ()
+         else
+            <option value="{ $as/@id }">{ $as/fn:string(a:name) }</option>
+   }
+   </select>
+};
+
+v:console-page('', 'web', 'Web containers', local:page#0)
