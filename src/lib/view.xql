@@ -114,7 +114,7 @@ declare %private function v:console-page-static(
             <div id="menubottom"/>
             <div id="content">
                <div class="normalcontent">
-                  <h3><strong>{ $title }</strong></h3>
+                  <h3>{ $title }</h3>
                   <div class="contentarea"> {
                      $content
                   }

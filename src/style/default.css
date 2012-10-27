@@ -6,7 +6,7 @@ pre {
     background-color: #eee;
     margin-left: 5%;
     margin-right: 5%;
-    margin-bottom: 5pt;
+    margin-bottom: 10pt;
 }
 
 .syntaxhighlighter {
@@ -38,7 +38,7 @@ body {
 }
 
 body,input {
-    font-size: 10pt;
+    font-size: 11pt;
     font-family: "georgia", "times new roman", serif;
     color: #333333;
 }
@@ -46,7 +46,7 @@ body,input {
 p,form {
     line-height: 1.5em;
     margin-bottom: 1.0em;
-    text-align: justify;
+    /* text-align: justify; */
 }
 
 fieldset {
@@ -67,7 +67,6 @@ h3 span {
 }
 
 h3,h4 {
-    display: inline;
     font-weight: bold;
     background-repeat: no-repeat;
     background-position: right;
@@ -286,7 +285,7 @@ ul li {
     background: #C2872E url('../images/menubg.gif') repeat-x top left;
     /*background: #84001C url('../images/menubg.gif') repeat-x top left;*/
     /*background: #CD9E55 url('../images/menubg.gif') repeat-x top left;*/
-    height: 3.5em;
+    height: 3.3em;
     padding: 0em 1.0em 0em 1.0em;
     margin-bottom: 2px;
 }
@@ -312,7 +311,7 @@ ul li {
 }
 
 #menu ul li a.active {
-    background: #84001C url('../images/menuactive.gif') repeat-x top left;
+    background: #C2872E url('../images/menuactive.gif') repeat-x top left;
     /*background: #CD9E55 url('../images/menuactive.gif') repeat-x top left;*/
 }
 
@@ -323,7 +322,12 @@ ul li {
 }
 
 #content {
+/*
     padding: 0em 2.0em 0em 2.0em;
+*/
+    width: 700px;
+    margin-right: auto;
+    margin-left: auto;
 }
 
 #error-message {

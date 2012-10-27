@@ -70,10 +70,12 @@ declare function local:page()
          <form method="post" action="../cxan/install.xq" enctype="multipart/form-data">
             <span>ID:</span>
             <input type="text" name="id" size="25"/>
-            <span>Name:</span>
+            <span> or name:</span>
             <input type="text" name="name" size="50"/>
-            <span>Version:</span>
-            <input type="text" name="version" size="25"/>
+            <br/>
+            <span>Version (optional):</span>
+            <input type="text" name="version" size="15"/>
+            <br/>
             <input type="submit" value="Install"/>
             <input type="hidden" name="repo" value="{ $repo-id }"/>
          </form>
