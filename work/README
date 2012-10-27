@@ -1,0 +1,24 @@
+
+
+                                  * EXPath *
+
+                            Console for MarkLogic
+
+
+
+   1. Installation
+
+     Create a new HTTP server in the MarkLogic admin Console.  Copy the
+   content of the src/ directory to the root of the App Server (depending on
+   the options you selected creating the App Server, it could be on its
+   modules database, or on the filesystem if you decided to store the modules
+   of this App Server on the filesystem).  The database linked to the HTTP
+   server will be used only to store the Console configuration document.  You
+   can then access the Console by pointing your preferred browser to (say the
+   port has been set to 8888):
+
+       http://localhost:8888/home.xq
+
+     The help page is:
+
+       http://localhost:8888/help.xq
