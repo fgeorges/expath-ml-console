@@ -102,7 +102,7 @@ declare %private function v:console-page-static(
                <div id="headercontent">
                   <h1>EXPath Console</h1>
                   <h2>(: <i>Managing your Portable XQuery Extensions, Packages
-                     and Web Applications on MarkLogic Server</i> :)</h2>
+                     and Web Applications</i> :)</h2>
                </div>
             </div>
             <div id="menu">
