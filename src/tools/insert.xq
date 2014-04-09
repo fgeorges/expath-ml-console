@@ -27,9 +27,10 @@ xquery version "3.0";
  : TODO: Split into 3 different queries for the 3 cases above...?
  :)
 
-import module namespace a = "http://expath.org/ns/ml/console/admin" at "../lib/admin.xql";
-import module namespace t = "http://expath.org/ns/ml/console/tools" at "../lib/tools.xql";
-import module namespace v = "http://expath.org/ns/ml/console/view"  at "../lib/view.xql";
+import module namespace a = "http://expath.org/ns/ml/console/admin"  at "../lib/admin.xql";
+import module namespace b = "http://expath.org/ns/ml/console/binary" at "../lib/binary.xql";
+import module namespace t = "http://expath.org/ns/ml/console/tools"  at "../lib/tools.xql";
+import module namespace v = "http://expath.org/ns/ml/console/view"   at "../lib/view.xql";
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
@@ -145,32 +146,28 @@ declare function local:handle-zipdir($zip (: as binary() :))
 declare function local:get-node($file as node(), $format as xs:string)
    as node()
 {
-   if ( $format eq 'text' and $file instance of document-node() and fn:exists($file/text()) ) then
-      $file
-   (:
-   else if ( $format eq 'text' and $file instance of binary() ) then
-      t:error('INSERT101', 'Text file is a binary node, please report this to the mailing list')
-   :)
-   else if ( $format eq 'text' ) then
-      t:error('INSERT001', 'Text file is not a text node, please report this to the mailing list')
+   if ( $format eq 'text' ) then
+      if ( $file instance of document-node() and fn:exists($file/text()) ) then
+         $file
+      else if ( b:is-binary($file) ) then
+         text { xdmp:binary-decode($file, 'utf-8') }
+      else
+         t:error('INSERT001', 'Text file is not a text node, please report this to the mailing list')
    else if ( $format eq 'binary' ) then
-      $file
-   (:
-   else if ( $format eq 'binary' and $file instance of binary() ) then
-      $file
-   else if ( $format eq 'binary' ) then
-      t:error('INSERT002', 'Binary file is not a binary node, please report this to the mailing list')
-   :)
-   else if ( $format eq 'xml' and $file instance of document-node() and fn:exists($file/*) ) then
-      $file
-   else if ( $format eq 'xml' and $file instance of document-node() and fn:exists($file/text()) ) then
-      xdmp:unquote($file)
-   (:
-   else if ( $format eq 'xml' and $file instance of binary() ) then
-      t:error('INSERT102', 'XML file is a binary node, please report this to the mailing list')
-   :)
+      if ( b:is-binary($file) ) then
+         $file
+      else
+         t:error('INSERT002', 'Binary file is not a binary node, please report this to the mailing list')
    else if ( $format eq 'xml' ) then
-      t:error('INSERT003', 'XML file is neither parsed nor a document node with an element, please report this to the mailing list')
+      if ( $file instance of document-node() and fn:exists($file/*) ) then
+         $file
+      else if ( $file instance of document-node() and fn:exists($file/text()) ) then
+         xdmp:unquote($file)
+      else if ( b:is-binary($file) ) then
+         (: TODO: Decode the binary... :)
+         t:error('INSERT102', 'XML file is a binary node, please report this to the mailing list')
+      else
+         t:error('INSERT003', 'XML file is neither parsed nor a document node with an element, please report this to the mailing list')
    else
       t:error('INSERT004', fn:concat('Format not known: "', $format, '"'))
 };
