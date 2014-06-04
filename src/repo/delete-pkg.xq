@@ -45,4 +45,4 @@ declare function local:page()
       :)
 };
 
-v:console-page('../', 'repo', 'Repository', local:page#0)
+v:console-page('../', 'pkg', 'Repository', local:page#0)

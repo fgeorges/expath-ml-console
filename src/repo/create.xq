@@ -113,4 +113,4 @@ declare function local:create-repo-in-directory(
             you must delete it first.</p>
 };
 
-v:console-page('../', 'repo', 'Repositories', local:page#0)
+v:console-page('../', 'pkg', 'Repositories', local:page#0)

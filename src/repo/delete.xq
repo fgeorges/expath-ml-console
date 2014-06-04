@@ -47,4 +47,4 @@ declare function local:page()
    )
 };
 
-v:console-page('../', 'repo', 'Repositories', local:page#0)
+v:console-page('../', 'pkg', 'Repositories', local:page#0)

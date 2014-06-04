@@ -103,4 +103,4 @@ declare function local:to-remove-row($pkg as element(pp:package), $repo as eleme
    </tr>
 };
 
-v:console-page('../', 'repo', 'Repository', local:page#0)
+v:console-page('../', 'pkg', 'Repository', local:page#0)

@@ -33,4 +33,4 @@ declare function local:page()
    )
 };
 
-v:console-page('../', 'repo', 'Install package', local:page#0)
+v:console-page('../', 'pkg', 'Install package', local:page#0)
