@@ -87,7 +87,7 @@ declare function r:unzip-into(
 };
 
 (:~
- : Insert a file in a repository.
+ : Get a file from a repository.
  :)
 declare function r:get-from(
    $file as xs:string,
@@ -203,20 +203,6 @@ declare function r:install-package(
 
 (:~
  : Delete the package in the package directory $pkgdir from $repo.
- :
- : TODO:
- :   * for filesystem:
- :       - mark the package directory to be deleted
- :       - remove everything from ML (from packages.xml, etc.)
- :   * for databases:
- :       - use xdmp:directory($pkgdir, 'infinity') to get all the URIs of the documents
- :       - delete everything in $pkgdir
- :       - possible to remove directories as well? their property documents?
- :       - remove everything from ML (from packages.xml, etc.)
- :   * OLD for DB (might still be useful, move to r:install-package...):
- :       - add all the files to a collection for $repo/$pkdir when unzipping
- :       - http://expath.org/coll/pkg/repos/{repo}/packages/{pkgdir}
- :       - add that collection name to packages.xml
  :)
 declare function r:delete-package(
    $pkg  as element(pp:package),

@@ -5,6 +5,8 @@ module namespace t = "http://expath.org/ns/ml/console/tools";
 declare namespace c    = "http://expath.org/ns/ml/console";
 declare namespace xdmp = "http://marklogic.com/xdmp";
 
+(: ==== Error handling ======================================================== :)
+
 (:~
  : TODO: Return an HTTP error instead...
  :)
@@ -15,6 +17,8 @@ declare function t:error($code as xs:string, $msg as xs:string+)
       fn:QName('http://expath.org/ns/ml/console', fn:concat('c:', $code)),
       fn:string-join($msg, ''))
 };
+
+(: ==== HTTP request fields ======================================================== :)
 
 (:~
  : Return a request field, or a default value if it has not been passed.
@@ -53,6 +57,8 @@ declare function t:mandatory-field-filename($name as xs:string)
          t:error('TOOLS001', ('Mandatory field filename not passed: ', $name))
 };
 
+(: ==== XML tools ======================================================== :)
+
 (:~
  : Add an element as last child of a parent element. Return the modified parent.
  :)
@@ -78,6 +84,8 @@ declare function t:remove-child($parent as element(), $child as element())
    }
 };
 
+(: ==== File and URI tools ======================================================== :)
+
 (:~
  : Given a path, strip the last component unless it ends with a slash.
  :)
@@ -101,4 +109,16 @@ declare function t:ensure-dir($dir as xs:string)
       <options xmlns="xdmp:filesystem-directory-create">
          <create-parents>true</create-parents>
       </options>)
+};
+
+(:~
+ : Ensure `$file` is a relative path (does not start with a '/').
+ :)
+declare function t:ensure-relative($file as xs:string)
+   as xs:string
+{
+   if ( fn:starts-with($file, '/') ) then
+      fn:substring($file, 2)
+   else
+      $file
 };
