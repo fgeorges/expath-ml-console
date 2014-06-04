@@ -12,11 +12,10 @@ declare function local:page()
       <p>Welcome to the EXPath console for MarkLogic. First, you might want to
          go the to <a href="help.xq">help section</a>. The other pages are:</p>
       <ul> {
-         for $p in $v:pages/*[not(@name = ('home', 'help'))]
+         for $p in $v:pages/*[not(@name = ('.', 'help'))]
          return
             <li>
-               <a href="{ $p/string(@name) }.xq">{ $p/string(@label) }</a>:
-               { $p/string(@title) }
+               <a href="{ $p/string(@name) }">{ $p/string(@title) }</a>
            </li>
       }
       </ul>

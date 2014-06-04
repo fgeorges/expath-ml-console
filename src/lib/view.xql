@@ -15,16 +15,30 @@ declare namespace xdmp = "http://marklogic.com/xdmp";
 
 declare variable $v:pages as element(pages) :=
    <pages>
-      <page name="home"     title="Console Home"                 label="Home"/>
-      <page name="repo"     title="Package Repositories"         label="Repositories"/>
-      <!--page name="web"      title="Web Applications Containers"  label="Web Containers"/-->
+      <page name="."        title="Console Home"                 label="Home"/>
+      <page name="pkg"      title="Packages"                     label="Packages"/>
+      <page name="web"      title="Web Applications Containers"  label="Web"/>
       <page name="cxan"     title="CXAN Config"                  label="CXAN"/>
-      <!--page name="xproject" title="XProject Tools"            label="XProject"/>
-      <page name="xspec"    title="XSpec Tools"                  label="XSpec"/-->
+      <page name="xproject" title="XProject Tools"               label="XProject"/>
+      <page name="xspec"    title="XSpec Tools"                  label="XSpec"/>
       <page name="tools"    title="Goodies for MarkLogic"        label="Tools"/>
-      <page name="help"     title="Console Help"                 label="Help"/>
-      <!--page name="devel"    title="Devel's evil"              label="Devel" right="true"/-->
+      <page name="help"     title="Console Help"                 label="Help"  right="true"/>
+      <page name="devel"    title="Devel's evil"                 label="Devel" right="true"/>
    </pages>;
+
+(:~
+ : Redirect to `$url`, using a 302 HTTP status code.
+ :
+ : Note: I am not a fan of using side-effect functions like this.  The user
+ : should be able to return a different status code and message than "200 OK"
+ : on the view itself.
+ :)
+declare function v:redirect($url as xs:string)
+   as empty-sequence()
+{
+   xdmp:set-response-code(302, 'Found'),
+   xdmp:add-response-header('Location', $url)
+};
 
 (:~
  : Format the top-level menu of a console page.
@@ -39,7 +53,7 @@ declare function v:console-page-menu($page as xs:string, $root as xs:string)
    return
       <li xmlns="http://www.w3.org/1999/xhtml"> {
          attribute { 'class' } { 'right' }[$p/@right/xs:boolean(.)],
-         <a href="{ $root }{ $p/@name }.xq" title="{ $p/@title }"> {
+         <a href="{ $root }{ $p/@name }" title="{ $p/@title }"> {
             attribute { 'class' } { 'active' }[$p/@name eq $page],
             $p/fn:string(@label)
          }

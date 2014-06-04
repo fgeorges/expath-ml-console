@@ -19,12 +19,12 @@ declare function local:page()
          <h4>Console and MarkLogic config</h4>
          <p>The following page shows the Console config files content, as well
             as various MarkLogic object as they are represented within the code
-            of the Console, using XML elements: <a href="tools/config.xq">config</a>.</p>
+            of the Console, using XML elements: <a href="tools/config">config</a>.</p>
          <h4>Insert a document</h4>
          <p>Insert a file at some specific place into a specific database. By
             default the file is expected to be XML, but you can change its type to
             text or binary. If the file already exists, it is overriden.</p>
-         <form method="post" action="tools/insert.xq" enctype="multipart/form-data">
+         <form method="post" action="tools/insert" enctype="multipart/form-data">
             <span>Target database:</span>
             { $db-options }
             <br/>
@@ -61,7 +61,7 @@ declare function local:page()
             last '/', also for directories). If the exclude filter is provided,
             the set of selected files is further restricted by getting rid of
             the files matching the filter.</p>
-         <form method="post" action="tools/insert.xq" enctype="multipart/form-data">
+         <form method="post" action="tools/insert" enctype="multipart/form-data">
             <span>Target database:</span>
             { $db-options }
             <br/>
@@ -83,7 +83,7 @@ declare function local:page()
          <p>Insert a directory based on a ZIP file. The ZIP file is expanded to
             create the content of the directory on the database. It is an error
             if the directory already exists in the database.</p>
-         <form method="post" action="tools/insert.xq" enctype="multipart/form-data">
+         <form method="post" action="tools/insert" enctype="multipart/form-data">
             <span>Target database:</span>
             { $db-options }
             <br/>
