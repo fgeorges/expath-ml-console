@@ -34,9 +34,9 @@ declare function local:page()
       if ( not($confirm) ) then
          <p>
             <span>Are you sure you want to { $action } the web container '{ $container }': </span>
-            <a href="delete.xq?container={ $container }&amp;delete={ $delete }&amp;confirm=true">Yes</a>
+            <a href="delete?container={ $container }&amp;delete={ $delete }&amp;confirm=true">Yes</a>
             <span> / </span>
-            <a href="../web.xq">No</a>
+            <a href="../web">No</a>
          </p>
       else
          try {
@@ -46,7 +46,7 @@ declare function local:page()
          catch c:* {
             <p><b>Error</b>: { $err:description }</p>
          },
-      <p>Back to <a href="../web.xq">web containers</a>.</p>
+      <p>Back to <a href="../web">web containers</a>.</p>
    )
 };
 

@@ -29,7 +29,7 @@ declare function local:page()
          (: TODO: Use try/catch instead...! :)
          <p>Package '{ $filename }' NOT installed into '{ $repo-id }'.  Did it
             already exist?</p>,
-      <p>Back to the <a href="show.xq?repo={ $repo-id }">repository</a>.</p>
+      <p>Back to the <a href="show?repo={ $repo-id }">repository</a>.</p>
    )
 };
 

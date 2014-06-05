@@ -43,19 +43,19 @@ declare function local:page()
                   return
                      <tr>
                         <td>
-                           <a href="web/show.xq?container={ $escaped }">{ $id }</a>
+                           <a href="web/show?container={ $escaped }">{ $id }</a>
                         </td>
                         <td>{ $name }</td>
                         <td>{ fn:string($appserver/a:name) }</td>
                         <td>{ fn:string($container/w:web-root) }</td>
                         <td>
-                           <a href="repo/show.xq?repo={ $repo-esc }">{ $repo-name }</a>
+                           <a href="repo/show?repo={ $repo-esc }">{ $repo-name }</a>
                         </td>
                         <td>
-                           <a href="web/delete.xq?container={ $escaped }">remove</a> {
+                           <a href="web/delete?container={ $escaped }">remove</a> {
                            if ( fn:exists($repo/c:database) ) then (
                               <span>, </span>,
-                              <a href="web/delete.xq?container={ $escaped }&amp;delete=true">delete</a>
+                              <a href="web/delete?container={ $escaped }&amp;delete=true">delete</a>
                            )
                            else (
                            )
@@ -84,7 +84,7 @@ declare function local:page()
             that web container). You also have to select the App Server to create
             the web container in (it must already exist, see the MarkLogic admin
             console for creating HTTP App Servers).</p>
-         <form method="post" action="web/select-repo.xq" enctype="multipart/form-data">
+         <form method="post" action="web/select-repo" enctype="multipart/form-data">
             <span>The container ID (any valid NCName, must be unique):</span><br/>
             <input type="text" name="id" size="50"/><br/>
             <span>A human-friendly name (any string):</span><br/>

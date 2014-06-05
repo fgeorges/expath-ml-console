@@ -50,21 +50,21 @@ declare function local:page()
          linked to the HTTP server will be used only to store the console
          configuration document. You can then access the Console by pointing
          your preferred browser to (say if you set the port to 8888):</p>
-      <pre>http://localhost:8888/home.xq</pre>
+      <pre>http://localhost:8888/</pre>
       <h4>Pages</h4>
       <p>Every page should be self-explained. If one page does not contain
          enough help for you to understand what to do, please report it to the
          mailing list. The top-level pages, or area, are the following:</p>
       <ul>
-         <li>The page "<a href="repo.xq">Repositories</a>" lists all the
+         <li>The page "<a href="repo">Repositories</a>" lists all the
             repositories created in this console. The page provides a form to
             create new repositories, and the ability to remove and delete
             existing repos. From the repo list, you can open a specific repo,
             show the list of packages it contains, delete them and install new
             packages (from your filesystem or directly from CXAN).</li>
-         <li>The page "<a href="cxan.xq">CXAN</a>" lets you configuring the
+         <li>The page "<a href="cxan">CXAN</a>" lets you configuring the
             CXAN website to talk to.</li>
-         <li>The page "<a href="tools.xq">Tools</a>" provides some general
+         <li>The page "<a href="tools">Tools</a>" provides some general
             purpose tools for MarkLogic, as well as the source of the internal
             Console config files.</li>
       </ul>

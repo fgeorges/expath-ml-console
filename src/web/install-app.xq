@@ -27,7 +27,7 @@ declare function local:page()
    :)
    return (
       local:install-webapp($xaw, $repo, $container, $filename),
-      <p>Back to the <a href="show.xq?container={ $id }">web container</a>.</p>
+      <p>Back to the <a href="show?container={ $id }">web container</a>.</p>
    )
 };
 

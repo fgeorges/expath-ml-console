@@ -35,15 +35,15 @@ declare function local:page()
       if ( not($confirm) ) then
          <p>
             <span>Are you sure you want to { $action } repo '{ $repo }': </span>
-            <a href="delete.xq?repo={ $repo }&amp;delete={ $delete }&amp;confirm=true">Yes</a>
+            <a href="delete?repo={ $repo }&amp;delete={ $delete }&amp;confirm=true">Yes</a>
             <span> / </span>
-            <a href="../repo.xq">No</a>
+            <a href="../repo">No</a>
          </p>
       else (
          cfg:remove-repo($repo, $delete),
          <p>The repository '{ $repo }' has been successfully { $action }d.</p>
       ),
-      <p>Back to <a href="../repo.xq">repositories</a>.</p>
+      <p>Back to <a href="../repo">repositories</a>.</p>
    )
 };
 

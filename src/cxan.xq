@@ -27,7 +27,7 @@ declare function local:page()
       </wrapper>/*
    else
       <p>The console has not been set up yet, please
-         <a href="repo.xq">create a repo</a> first.</p>
+         <a href="repo">create a repo</a> first.</p>
 };
 
 v:console-page('', 'cxan', 'CXAN', local:page#0)

@@ -24,9 +24,9 @@ declare function local:page()
          else if ( not($confirm) ) then
             <p>
                <span>Are you sure you want to delete '{ $pkgdir }' in repo '{ $id }': </span>
-               <a href="delete-pkg.xq?repo={ $id }&amp;pkg={ $pkgdir }&amp;confirm=true">Yes</a>
+               <a href="delete-pkg?repo={ $id }&amp;pkg={ $pkgdir }&amp;confirm=true">Yes</a>
                <span> / </span>
-               <a href="show.xq?repo={ $id }">No</a>
+               <a href="show?repo={ $id }">No</a>
             </p>
          else
             <p>
@@ -35,7 +35,7 @@ declare function local:page()
                succesfully uninstalled from { $pkgdir }.
             </p>
          }
-         <p>Back to the <a href="show.xq?repo={ $id }">repository</a>.</p>
+         <p>Back to the <a href="show?repo={ $id }">repository</a>.</p>
       </wrapper>/*
       (:
       else if ( r:delete-package($pkg, $repo) ) then

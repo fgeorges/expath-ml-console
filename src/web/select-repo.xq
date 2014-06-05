@@ -26,11 +26,11 @@ declare function local:page()
             associate the web container to a repository where to store its web
             applications. Either select an existing repository or create a new
             one.</p>
-         <p>To cancel: go back to <a href="../web.xq">web containers</a>.</p>
+         <p>To cancel: go back to <a href="../web">web containers</a>.</p>
          <h4>Select a repository</h4>
          <!-- TODO: Tell it if there is no suitable repo for this App Server. -->
          <p>Select an existing repository to associate to the web container:</p>
-         <form method="post" action="create.xq" enctype="multipart/form-data">
+         <form method="post" action="create" enctype="multipart/form-data">
             { local:repo-options($appserver) }
             <input name="select" type="submit" value="Select"/>
             <input type="hidden" name="id" value="{ $id }"/>
@@ -41,7 +41,7 @@ declare function local:page()
          <h4>Create a repository</h4>
          <p>Create a new repository, on the selected App Server, to be associated
             to the web container:</p>
-         <form method="post" action="create.xq" enctype="multipart/form-data">
+         <form method="post" action="create" enctype="multipart/form-data">
             <span>The repo ID (must be a valid NCName):</span><br/>
             <input type="text" name="repo-id" size="50"/><br/>
             <span>The repo name (any string):</span><br/>

@@ -48,7 +48,7 @@ declare function local:page()
          <h4>Install from file</h4>
          <p>Install web applications from your filesystem, using a package
             file (usually a *.xaw file).</p>
-         <form method="post" action="install-app.xq" enctype="multipart/form-data">
+         <form method="post" action="install-app" enctype="multipart/form-data">
             <input type="file" name="xaw"/>
             <input type="submit" value="Install"/>
             <!--br/><br/>
@@ -61,7 +61,7 @@ declare function local:page()
          <!--p>Install web applications directly from CXAN, using a package name
             or a CXAN ID (one or the other), and optionally a version number
             (retrieve the latest version by default).</p>
-         <form method="post" action="../cxan/install.xq" enctype="multipart/form-data">
+         <form method="post" action="../cxan/install" enctype="multipart/form-data">
             <span>ID:</span>
             <input type="text" name="id" size="25"/>
             <span>Name:</span>
@@ -83,7 +83,7 @@ declare function local:app-row($app as element(w:application))
       <td>{ $app/fn:string(w:root) }</td>
       <td>{ $app/fn:string(w:pkg-dir) }</td>
       <td>
-         <a href="delete-app.xq?container={ $app/../@id }&amp;webapp={ $app/fn:string(@id) }">delete</a>
+         <a href="delete-app?container={ $app/../@id }&amp;webapp={ $app/fn:string(@id) }">delete</a>
       </td>
    </tr>
 };

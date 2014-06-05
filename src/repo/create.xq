@@ -38,7 +38,7 @@ declare function local:page()
             local:create-repo-in-database($id, $name, $root, $db)
       else
          t:error('SETUP001', 'Create neither a database nor an appserver?!?'),
-      <p>Back to <a href="../repo.xq">repositories</a>.</p>
+      <p>Back to <a href="../repo">repositories</a>.</p>
    )
 };
 

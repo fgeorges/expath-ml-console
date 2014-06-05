@@ -10,7 +10,7 @@ declare function local:page()
    (: <img class="left" src="images/machine.jpg" alt="Machine"/> :)
    <wrapper>
       <p>Welcome to the EXPath console for MarkLogic. First, you might want to
-         go the to <a href="help.xq">help section</a>. The other pages are:</p>
+         go the to <a href="help">help section</a>. The other pages are:</p>
       <ul> {
          for $p in $v:pages/*[not(@name = ('.', 'help'))]
          return

@@ -55,7 +55,7 @@ declare function local:page()
          <h4>Install from file</h4>
          <p>Install packages and applications from your filesystem, using a package
             file (usually a *.xar file).</p>
-         <form method="post" action="install-pkg.xq" enctype="multipart/form-data">
+         <form method="post" action="install-pkg" enctype="multipart/form-data">
             <input type="file" name="xar"/>
             <input type="submit" value="Install"/>
             <!--br/><br/>
@@ -67,7 +67,7 @@ declare function local:page()
          <p>Install packages and applications directly from CXAN, using a package
             name or a CXAN ID (one or the other), and optionally a version number
             (retrieve the latest version by default).</p>
-         <form method="post" action="../cxan/install.xq" enctype="multipart/form-data">
+         <form method="post" action="../cxan/install" enctype="multipart/form-data">
             <span>ID:</span>
             <input type="text" name="id" size="25"/>
             <span> or name:</span>
@@ -90,7 +90,7 @@ declare function local:package-row($pkg as element(pp:package), $repo as element
       <td>{ $pkg/fn:string(@dir) }</td>
       <td>{ $pkg/fn:string(@version) }</td>
       <td>
-         <a href="delete-pkg.xq?repo={ $repo/@id }&amp;pkg={ $pkg/fn:escape-html-uri(@dir) }">delete</a>
+         <a href="delete-pkg?repo={ $repo/@id }&amp;pkg={ $pkg/fn:escape-html-uri(@dir) }">delete</a>
       </td>
    </tr>
 };

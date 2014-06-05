@@ -26,7 +26,7 @@ declare function local:page()
    let $site    := cfg:get-config()/c:cxan/c:site
    return (
       local:do-it($repo, $id, $name, $version, $site),
-      <p>Back to the <a href="../repo/show.xq?repo={ $repo-id }">repository</a>.</p>
+      <p>Back to the <a href="../repo/show?repo={ $repo-id }">repository</a>.</p>
    )
 };
 
@@ -78,7 +78,7 @@ declare function local:do-it(
          and '{ $name }'.</p>
    else if ( fn:empty($site[.]) ) then
       <p><b>Error</b>: The console seems to have not been set up yet, please
-         <a href="setup.xq">create a repo</a> first.</p>
+         <a href="setup">create a repo</a> first.</p>
    else if ( fn:exists($id[.]) ) then
       local:install($repo, fn:concat($site, 'file?id=', $id, '&amp;version=', $version))
    else if ( fn:exists($name[.]) ) then

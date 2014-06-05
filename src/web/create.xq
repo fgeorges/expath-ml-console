@@ -43,7 +43,7 @@ declare function local:page()
             '{ $repo-id }', '{ $repo-name }' and '{ $repo-root }'.</p>
       else
          local:create-container($id, $name, $root, $appserver, $repo, $repo-id, $repo-name, $repo-root),
-      <p>Back to <a href="../web.xq">web containers</a>.</p>
+      <p>Back to <a href="../web">web containers</a>.</p>
    )
 };
 
