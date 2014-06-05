@@ -7,23 +7,22 @@ module namespace v = "http://expath.org/ns/ml/console/view";
 
 import module namespace cfg = "http://expath.org/ns/ml/console/config" at "config.xql";
 
-declare default element namespace "http://www.w3.org/1999/xhtml";
-
 declare namespace c    = "http://expath.org/ns/ml/console";
+declare namespace h    = "http://www.w3.org/1999/xhtml";
 declare namespace err  = "http://www.w3.org/2005/xqt-errors";
 declare namespace xdmp = "http://marklogic.com/xdmp";
 
 declare variable $v:pages as element(pages) :=
    <pages>
-      <page name="."        title="Console Home"                 label="Home"/>
+      <page name="home"     title="Console Home"                 label="Home"     href="."/>
       <page name="pkg"      title="Packages"                     label="Packages"/>
       <page name="web"      title="Web Applications Containers"  label="Web"/>
       <page name="cxan"     title="CXAN Config"                  label="CXAN"/>
       <page name="xproject" title="XProject Tools"               label="XProject"/>
       <page name="xspec"    title="XSpec Tools"                  label="XSpec"/>
       <page name="tools"    title="Goodies for MarkLogic"        label="Tools"/>
-      <page name="help"     title="Console Help"                 label="Help"  right="true"/>
-      <page name="devel"    title="Devel's evil"                 label="Devel" right="true"/>
+      <page name="help"     title="Console Help"                 label="Help"/>
+      <page name="devel"    title="Devel's evil"                 label="Devel"/>
    </pages>;
 
 (:~
@@ -47,14 +46,13 @@ declare function v:redirect($url as xs:string)
  : $root: '' if a top-level page, or '../' if in a sub-directory
  :)
 declare function v:console-page-menu($page as xs:string, $root as xs:string)
-   as element(li)+
+   as element(h:li)+
 {
    for $p in $v:pages/page
    return
       <li xmlns="http://www.w3.org/1999/xhtml"> {
-         attribute { 'class' } { 'right' }[$p/@right/xs:boolean(.)],
-         <a href="{ $root }{ $p/@name }" title="{ $p/@title }"> {
-            attribute { 'class' } { 'active' }[$p/@name eq $page],
+         attribute { 'class' } { 'current' }[$p/@name eq $page],
+         <a class="stip" href="{ $root }{ $p/(@href, @name)[1] }" title="{ $p/@title }"> {
             $p/fn:string(@label)
          }
          </a>
@@ -77,7 +75,7 @@ declare function v:console-page(
    $page    as xs:string,
    $title   as xs:string,
    $content as function() as element()+
-) as element(html)
+) as element(h:html)
 {
    v:console-page-static(
       $root,
@@ -100,40 +98,36 @@ declare %private function v:console-page-static(
    $page    as xs:string,
    $title   as xs:string,
    $content as element()+
-) as element(html)
+) as element(h:html)
 {
-   <html>
+   <html xmlns="http://www.w3.org/1999/xhtml">
       <head>
-         <title>{ $title }</title>
-         <link rel="stylesheet" type="text/css" href="{ $root }style/default.css"/>
+         <link rel="stylesheet" type="text/css" media="screen" href="{ $root }style/screen.css"/>
          <link rel="shortcut icon" type="image/png" href="{ $root }images/expath-icon.png"/>
          <script src="{ $root }js/sorttable.js"/>
+         <title>{ $title }</title>
       </head>
       <body>
-         <div id="upbg"/>
-         <div id="outer">
+         <div id="container">
             <div id="header">
-               <div id="headercontent">
-                  <h1>EXPath Console</h1>
-                  <h2>(: <i>Managing your Portable XQuery Extensions, Packages
-                     and Web Applications</i> :)</h2>
-               </div>
+               <header>
+                  <h1>
+                     <a href="/">EXPath Console</a>
+                  </h1>
+                  <nav>
+                     <ul> {
+                        v:console-page-menu($page, $root)
+                     }
+                     </ul>
+                  </nav>
+               </header>
             </div>
-            <div id="menu">
-               <ul> {
-                  v:console-page-menu($page, $root)
-               }
-               </ul>
-            </div>
-            <div id="menubottom"/>
+            <div id="header-bottom-bar"/>
             <div id="content">
-               <div class="normalcontent">
-                  <h3>{ $title }</h3>
-                  <div class="contentarea"> {
-                     $content
-                  }
-                  </div>
-               </div>
+               <h1>{ $title }</h1>
+               {
+                  $content
+               }
             </div>
          </div>
       </body>
