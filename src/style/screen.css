@@ -1,3 +1,8 @@
+pre {
+   padding: 3px;
+   padding-left: 10px;
+   border: 1pt dotted;
+}
 article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section {display: block;}
 body {
 	margin: 0;
@@ -83,10 +88,14 @@ table:not(.lines) {
 	margin: 20px 0 1em 0;
 }
 thead th {
-	background: #ECECEC url(/images/bg_table_features_topmiddle.png) center top repeat-x;
+	/* background: #ECECEC url(/images/bg_table_features_topmiddle.png) center top repeat-x; */
+	background-color: #666;
+	color: #DDD;
+	text-align: left;
 	white-space: nowrap;
 	vertical-align: bottom;
-	padding: 20px 5px 10px;
+	/* padding: 20px 5px 10px; */
+	padding: 10px 5px 10px;
 	line-height: 100%;
   /*
 	font-size: 20px;
@@ -95,9 +104,11 @@ thead th {
 }
 thead th:first-child {
 	padding-left: 15px !important;
+/*
 	background:
 		url("/images/bg_table_features_topleft.png") left top no-repeat,
 		url(/images/bg_table_features_topmiddle.png) center top repeat-x #ECECEC;
+*/
 }
 thead th.title {
 	font-size: 16px;
@@ -105,6 +116,7 @@ thead th.title {
 	padding-left: 15px;
 	color: #899B3B;
 }
+/*
 thead th:last-child {
 	background:
 		url("/images/bg_table_features_topright.png") right top no-repeat,
@@ -116,6 +128,7 @@ thead th:only-child {
 		url("/images/bg_table_features_topright.png") right top no-repeat,
 		url("/images/bg_table_features_topmiddle.png") center top repeat-x #ECECEC;
 }
+*/
 thead th p {margin: 0;}
 tbody {border: 1px solid #CCC;}
 tbody th, tbody td {padding: 10px 5px; white-space: normal}
@@ -195,12 +208,13 @@ table small {
 }
 th, td {
 	vertical-align: top;
-	text-align: left;
+	/* text-align: left; */
 }
 ul {
 	margin: 1em 0;
 	padding: 0;
-	list-style: none;
+	list-style: disc;
+	margin-left: 30px;
 }
 ol {
 	margin-left: 0;
@@ -347,6 +361,9 @@ nav ul {margin: 0;}
 	display: block;
 	margin-bottom: 3px; /* ok to remove? */
 }
+#header nav ul {
+	list-style: none;
+}
 #header nav .current {padding-bottom: 0;}
 #header nav .current:after {
 	content: "";
@@ -393,6 +410,8 @@ nav ul {margin: 0;}
 	xposition: relative;
 	z-index: 1;
 	padding: 50px;
+	padding-left: 200px;
+	padding-right: 200px;
 }
 #content #main_container {
 	width: 1070px;
