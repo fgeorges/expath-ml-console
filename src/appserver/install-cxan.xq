@@ -8,6 +8,9 @@ declare default element namespace "http://www.w3.org/1999/xhtml";
 
 declare namespace pp = "http://expath.org/ns/repo/packages";
 
+(:~
+ : The overall page function.
+ :)
 declare function local:page()
    as element()+
 {

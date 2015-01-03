@@ -6,6 +6,9 @@ import module namespace v = "http://expath.org/ns/ml/console/view"  at "../lib/v
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
+(:~
+ : The overall page function.
+ :)
 declare function local:page()
    as element()+
 {

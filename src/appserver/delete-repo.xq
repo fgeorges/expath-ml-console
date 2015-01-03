@@ -9,6 +9,9 @@ declare default element namespace "http://www.w3.org/1999/xhtml";
 declare namespace c   = "http://expath.org/ns/ml/console";
 declare namespace err = "http://www.w3.org/2005/xqt-errors";
 
+(:~
+ : The overall page function.
+ :)
 declare function local:page()
    as element()+
 {
@@ -32,9 +35,8 @@ declare function local:page()
                has been entirely deleted.</p>
          }
          catch c:not-confirmed {
+            <p>{ $err:description }</p>,
             <form method="post" action="delete-repo" enctype="multipart/form-data">
-               <span>{ $err:description }</span>
-               <br/><br/>
                <span><b>Warning</b>: This will remove all packages, if any, and all the repo management</span>
                <br/><br/>
                <input type="hidden" name="confirm" value="true"/>

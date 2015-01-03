@@ -9,10 +9,10 @@ declare function local:page()
 {
    (: <img class="left" src="images/machine.jpg" alt="Machine"/> :)
    <wrapper>
-      <p>Welcome to the EXPath console for MarkLogic. First, you might want to
-         go the to <a href="help">help section</a>. The other pages are:</p>
+      <p><em>(: Managing your Portable XQuery Extensions, Packages and Web
+         Applications :)</em></p>
       <ul> {
-         for $p in $v:pages/*[not(@name = ('.', 'help'))]
+         for $p in $v:pages/*[not(@name eq 'home')]
          return
             <li>
                <a href="{ $p/string(@name) }">{ $p/string(@title) }</a>

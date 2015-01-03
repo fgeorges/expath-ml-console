@@ -10,12 +10,12 @@ declare namespace xdmp = "http://marklogic.com/xdmp";
 (:~
  : TODO: Return an HTTP error instead...
  :)
-declare function t:error($code as xs:string, $msg as xs:string+)
+declare function t:error($code as xs:string, $msg as xs:string)
    as empty-sequence()
 {
    fn:error(
       fn:QName('http://expath.org/ns/ml/console', fn:concat('c:', $code)),
-      fn:string-join($msg, ''))
+      $msg)
 };
 
 (: ==== HTTP request fields ======================================================== :)

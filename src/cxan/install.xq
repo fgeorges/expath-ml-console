@@ -14,6 +14,9 @@ declare namespace http  = "xdmp:http";
 declare namespace xdmp  = "http://marklogic.com/xdmp";
 declare namespace zip   = "xdmp:zip";
 
+(:~
+ : The overall page function.
+ :)
 declare function local:page()
    as element()+
 {

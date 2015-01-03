@@ -42,9 +42,9 @@ declare function local:appservers-table($grp as element(a:group))
 {
    <table class="sortable">
       <thead>
-         <td>Name</td>
-         <td>Modules</td>
-         <td align="center">Repo?</td>
+         <th>Name</th>
+         <th>Modules</th>
+         <th align="center">Repo?</th>
       </thead>
       <tbody> {
          for $as in a:get-appservers($grp)/a:appserver
@@ -64,10 +64,12 @@ declare function local:appservers-table($grp as element(a:group))
                }
                </td>
                <td align="center"> {
-                  if ( fn:exists(a:appserver-get-packages($as)) ) then
-                     '&#x2611;'
-                  else
-                     '&#x2610;'
+                  if ( fn:exists(a:appserver-get-packages($as)) ) then (
+                     attribute { 'style' } { 'color: green' }, (:'&#x2611;':) '&#x2713;'
+                  )
+                  else (
+                     attribute { 'style' } { 'color: red' }, (:'&#x2610;':) '&#x2717;'
+                  )
                }
                </td>
             </tr>
