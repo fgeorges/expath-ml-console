@@ -26,6 +26,21 @@ declare variable $attic-path := '.expath-pkg/attic/';
 (: ==== Database tools ======================================================== :)
 
 (:~
+ : Check whether `$doc` is available on the database `$db`.
+ :)
+declare function a:exists-on-database(
+   $db  as xs:unsignedLong,
+   $doc as xs:string
+) as xs:boolean
+{
+   a:eval-on-database(
+      $db,
+      'declare variable $doc external;
+       fn:doc-available($doc)',
+      (xs:QName('doc'), $doc))
+};
+
+(:~
  : Get a document from the database `$db`.
  :
  : The URI of the document is the absolute URI `$uri`.
@@ -148,14 +163,18 @@ declare function a:load-zipdir-into-database(
        declare variable $uri external;
        declare variable $zip external;
        declare function local:do-it() {
-       for $part in xdmp:zip-manifest($zip)/zip:part/fn:string(.)
-       where fn:not(fn:ends-with($part, "/")) (: skip dir entries :)
-       return
-          xdmp:document-insert(
-             fn:concat($uri, $part),
-             xdmp:zip-get($zip, $part))
+          for $part in xdmp:zip-manifest($zip)/zip:part/fn:string(.)
+          (: encode each path part individually :)
+          let $path := fn:string-join(fn:tokenize($part, "/") ! fn:encode-for-uri(.), "/")
+          (: skip dir entries :)
+          where fn:not(fn:ends-with($part, "/"))
+          return
+             xdmp:document-insert(
+                fn:concat($uri, $path),
+                xdmp:zip-get($zip, $part))
        };
-       local:do-it(), $uri',
+       local:do-it(),
+       $uri',
       (xs:QName('uri'), $uri, xs:QName('zip'), $zip))
 };
 
@@ -174,6 +193,19 @@ declare function a:eval-on-database(
 };
 
 (:~
+ : Remove a document on a database.
+ :)
+declare function a:remove-doc($db-id as xs:unsignedLong, $uri as xs:string)
+{
+   a:eval-on-database(
+      $db-id,
+      'declare namespace xdmp = "http://marklogic.com/xdmp";
+       declare variable $uri external;
+       xdmp:document-delete($uri)',
+      (xs:QName('uri'), $uri))
+};
+
+(:~
  : Remove a directory on a database, recursively.
  :
  : Note: Keep in mind that a directory name ends with '/', and that a URI ending
@@ -185,12 +217,15 @@ declare function a:eval-on-database(
  :)
 declare function a:remove-directory($db-id as xs:unsignedLong, $dir as xs:string)
 {
-   a:eval-on-database(
-      $db-id,
-      'declare namespace xdmp = "http://marklogic.com/xdmp";
-       declare variable $dir external;
-       xdmp:directory($dir, "infinity")/xdmp:document-delete(fn:document-uri(.))',
-      (xs:QName('dir'), $dir))
+   if ( fn:ends-with($dir, '/') ) then
+      a:eval-on-database(
+         $db-id,
+         'declare namespace xdmp = "http://marklogic.com/xdmp";
+          declare variable $dir external;
+          xdmp:directory($dir, "infinity")/xdmp:document-delete(fn:document-uri(.))',
+         (xs:QName('dir'), $dir))
+   else
+      t:error('not-dir', 'The directory URI does not end with a forward slash: ' || $dir)
 };
 
 (:~
@@ -549,11 +584,11 @@ declare function a:get-appserver-or-database($id as xs:unsignedLong)
    as element()?
 {
    let $config := admin:get-configuration()
-   let $dbs := admin:get-database-ids($config)
-   let $ass := admin:get-appserver-ids($config)
+   let $dbs    := admin:get-database-ids($config)
+   let $ass    := admin:get-appserver-ids($config)
    return
       if ( $id = $dbs and $id = $ass ) then
-         t:error('ADMIN001', ('The id is for both a database and an app server: ', $id))
+         t:error('non-unique-id', 'The id is for both a database and an app server: ' || $id)
       else if ( $id = $dbs ) then
          a:get-database($id)
       else if ( $id = $ass ) then
