@@ -37,6 +37,9 @@ declare default element namespace "http://www.w3.org/1999/xhtml";
 declare namespace prop = "http://marklogic.com/xdmp/property";
 declare namespace xdmp = "http://marklogic.com/xdmp";
 
+(:~
+ : The overall page function.
+ :)
 declare function local:page()
    as element()+
 {
@@ -79,6 +82,15 @@ declare function local:handle-file($file as node())
 
 (:~
  : Return () if $uri does NOT exist, and an error message in case it does exist.
+ :
+ : A directory is considered to be existing if it contains the property
+ : `prop:directory` in its document properties, or if there is any document in
+ : that directory or any descendent.
+ :
+ : FIXME: I think this is wrong!  The functions `xdmp:document-properties`,
+ : `fn:doc-available` and `xdmp:directory` should be evaluated on the target
+ : database, not called directly here! Same error in `local:handle-file`.
+ : (or did I miss something?)
  :)
 declare function local:dir-exists($uri as xs:string)
    as element(p)?
@@ -90,8 +102,11 @@ declare function local:dir-exists($uri as xs:string)
       else if ( fn:exists($props/prop:properties/prop:directory) ) then
          <p><b>Error</b>: Directory already exists at '{ $uri }'.</p>
       else if ( fn:exists($props) ) then
-         (: this should never happen if $uri ends with a slash :)
-         <p><b>Error</b>: A FILE already exists at '{ $uri }'.</p>
+         <p><b>Error</b>: Directory already exists at '{ $uri }'.</p>
+      else if ( fn:doc-available($uri) ) then
+         <p><b>Error</b>: Directory already exists at '{ $uri }'.</p>
+      else if ( fn:exists(xdmp:directory($uri, 'infinity')) ) then
+         <p><b>Error</b>: Directory already exists at '{ $uri }'.</p>
       else
          ()
 };
