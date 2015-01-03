@@ -16,13 +16,13 @@ declare variable $v:pages as element(pages) :=
    <pages>
       <page name="home"     title="Console Home"                 label="Home"     href="."/>
       <page name="pkg"      title="Packages"                     label="Packages"/>
-      <page name="web"      title="Web Applications Containers"  label="Web"/>
+      <!--page name="web"      title="Web Applications Containers"  label="Web"/>
       <page name="cxan"     title="CXAN Config"                  label="CXAN"/>
       <page name="xproject" title="XProject Tools"               label="XProject"/>
-      <page name="xspec"    title="XSpec Tools"                  label="XSpec"/>
+      <page name="xspec"    title="XSpec Tools"                  label="XSpec"/-->
       <page name="tools"    title="Goodies for MarkLogic"        label="Tools"/>
       <page name="help"     title="Console Help"                 label="Help"/>
-      <page name="devel"    title="Devel's evil"                 label="Devel"/>
+      <!--page name="devel"    title="Devel's evil"                 label="Devel"/-->
    </pages>;
 
 (:~
@@ -60,6 +60,33 @@ declare function v:console-page-menu($page as xs:string, $root as xs:string)
       </li>
 };
 
+declare variable $serial-options :=
+   <options xmlns="xdmp:quote">
+      <indent-untyped>yes</indent-untyped>
+   </options>;
+
+(:~
+ : Format a `pre` element containing some XML.
+ :
+ : $elem: the element to serialize and display in a `pre` (with syntax highlighted)
+ : $id: a unique ID to be used on the `pre` element
+ :)
+declare function v:display-xml(
+   $elem as element()?,
+   $id   as xs:string
+) as element(h:pre)
+{
+   let $serialized := xdmp:quote($elem, $serial-options)
+   let $lines      := fn:count(fn:tokenize($serialized, '&#10;'))
+   return
+      <pre id="{ $id }" style="height: { $lines * 12 - 4 }pt" xmlns="http://www.w3.org/1999/xhtml">
+         <code class="language-xml"> {
+            $serialized
+         }
+         </code>
+      </pre>
+};
+
 (:~
  : Format a console page.
  :
@@ -77,33 +104,55 @@ declare function v:console-page(
    $content as function() as element()+
 ) as element(h:html)
 {
-   v:console-page-static(
-      $root,
-      $page,
-      $title,
-      try {
-         $content()
-      }
-      catch c:* {
-         <p><b>Error</b>: { $err:description }</p>
-      }
-      catch * {
-         <p><b>SYSTEM ERROR</b> (please report this to the mailing list): { $err:description }</p>,
-         <pre>{ xdmp:quote($err:additional) }</pre>
-      })
+   let $c := v:eval-content($content)
+   return
+      v:console-page-static(
+         $root,
+         $page,
+         $title,
+         $c,
+         $c/descendant-or-self::h:pre[fn:starts-with(h:code/@class, 'language-')])
 };
 
+(:~
+ : Eval content, protecting from exceptions.
+ :
+ : The return value is the result of calling `$content`.  In case it throws an
+ : error, this function returns HTML elements describing the error instead, to
+ : be displayed to the user.
+ :)
+declare %private function v:eval-content(
+   $content as function() as element()+
+) as element()+
+{
+   try {
+      $content()
+   }
+   catch c:* {
+      <p><b>Error</b>: { $err:description }</p>
+   }
+   catch * {
+      <p><b>SYSTEM ERROR</b> (please report this to the mailing list): { $err:description }</p>,
+      v:display-xml($err:additional, 'error')
+   }
+};
+
+(:~
+ : Inject the content inot the overall page structure of the console.
+ :)
 declare %private function v:console-page-static(
    $root    as xs:string,
    $page    as xs:string,
    $title   as xs:string,
-   $content as element()+
+   $content as element()+,
+   $codes   as element(h:pre)*
 ) as element(h:html)
 {
    <html xmlns="http://www.w3.org/1999/xhtml">
       <head>
          <link rel="stylesheet" type="text/css" media="screen" href="{ $root }style/screen.css"/>
          <link rel="shortcut icon" type="image/png" href="{ $root }images/expath-icon.png"/>
+         <!-- TODO: Is there any table on this page...? -->
          <script src="{ $root }js/sorttable.js"/>
          <title>{ $title }</title>
       </head>
@@ -130,6 +179,24 @@ declare %private function v:console-page-static(
                }
             </div>
          </div>
+         {
+            if ( fn:exists($codes) ) then (
+               <script src="{ $root }js/ace/ace.js" type="text/javascript" charset="utf-8"/>,
+               for $c at $pos in $codes
+               let $var  := 'ace_editor_' || $pos
+               let $id   := xs:string($c/@id)
+               let $lang := fn:substring-after($c/h:code/@class, 'language-')
+               return
+                  <script>
+                      var { $var } = ace.edit("{ $id }");
+                      { $var }.setReadOnly(true);
+                      { $var }.setTheme("ace/theme/clouds");
+                      { $var }.getSession().setMode("ace/mode/{ $lang }");
+                  </script>
+            )
+            else
+               ()
+         }
       </body>
    </html>
 };
