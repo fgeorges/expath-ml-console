@@ -12,6 +12,9 @@ declare namespace err = "http://www.w3.org/2005/xqt-errors";
 declare variable $path_ := t:optional-field('path', ())[.];
 declare variable $path  := if ( fn:starts-with($path_, '/http://') ) then fn:substring($path_, 2) else $path_;
 
+(:~
+ : The overall page function.
+ :)
 declare function local:page()
    as element()+
 {
@@ -37,14 +40,16 @@ declare function local:page()
                <p>You are being redirected to <a href="{ $relative }">this page</a>...</p>
             )
          else if ( fn:empty($path) ) then
-            <form method="post" action="browse" enctype="multipart/form-data">
-               <span>Choose the root to navigate (e.g. "<code>/</code>" or
-                  "<code>http://example.com/</code>"):</span>
-               <br/>
-               <br/>
-               <input type="text" name="init-path" size="50"/>
-               <input type="submit" value="Browse"/>
-            </form>
+            <p>
+               <form method="post" action="browse" enctype="multipart/form-data">
+                  <span>Choose the root to navigate (e.g. "<code>/</code>" or
+                     "<code>http://example.com/</code>"):</span>
+                  <br/>
+                  <br/>
+                  <input type="text" name="init-path" size="50"/>
+                  <input type="submit" value="Browse"/>
+               </form>
+            </p>
          else if ( fn:starts-with($path, 'http://') ) then
             <p>Go up to the <a href="../../../../browse">browse page</a>.</p>
          else if ( $path eq '/' ) then
