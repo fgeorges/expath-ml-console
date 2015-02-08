@@ -15,6 +15,7 @@ declare namespace err   = "http://www.w3.org/2005/xqt-errors";
 declare namespace mlerr = "http://marklogic.com/xdmp/error";
 declare namespace pkg   = "http://expath.org/ns/pkg";
 declare namespace pp    = "http://expath.org/ns/repo/packages";
+declare namespace mlpkg = "http://marklogic.com/ns/expath-pkg";
 declare namespace xdmp  = "http://marklogic.com/xdmp";
 declare namespace zip   = "xdmp:zip";
 
@@ -974,6 +975,10 @@ declare %private function a:appserver-unregister-modules-impl(
  : either as an XML tree, a text node or a binary node, based on the entry
  : filename).  See http://docs.marklogic.com/xdmp:zip-get.
  :
+ : The entries in the elements /package/exclude/file, in the descriptor
+ : `marklogic.xml`, if any, are excluded from the package, and never extracted
+ : from the ZIP binary.
+ :
  : TODO: Should not we use the same approach as a:load-dir-into-database when
  : unzipping on a database? (i.e. evaluating one query on the database, that
  : itself unzip the XAR, as opposed to unzipping each entry one by one and for
@@ -985,10 +990,14 @@ declare function a:appserver-unzip-into-repo(
    $as     as element(a:appserver)
 ) as empty-sequence()
 {
+   let $entries := xdmp:zip-manifest($zip)/zip:part
+   let $ml-desc := $entries[. eq 'marklogic.xml'] ! xdmp:zip-get($zip, .)/mlpkg:package
    let $dummy   := 
          (: TODO: Throw an error if $part is not a valid URI ref. :)
-         for $part in xdmp:zip-manifest($zip)/zip:part/xs:string(.)
+         for $part in $entries/xs:string(.)
+         let $ref  := fn:substring-after($part, 'content/')
          where fn:not(fn:ends-with($part, '/')) (: skip dir entries :)
+           and fn:not($ref = $ml-desc/mlpkg:exclude/mlpkg:file) (: excluded entries :)
          return
             a:appserver-insert-into-repo(
                $as,
