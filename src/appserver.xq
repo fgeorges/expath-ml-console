@@ -67,14 +67,13 @@ declare function local:page-with-repo($as as element(a:appserver), $pkgs as elem
          <input type="checkbox" name="override" value="true"/>
          <em>Override the package of it already exists</em-->
       </form>
-      <!-- TODO: CXAN support disabled for now, till new CXAN has been released. -->
-      <!--h4>Install from CXAN</h4>
+      <h4>Install from CXAN</h4>
       <p>Install packages and applications directly from CXAN, using a package
          name or a CXAN ID (one or the other), and optionally a version number
          (retrieve the latest version by default).</p>
       <form method="post" action="{ $as/@id }/install-cxan" enctype="multipart/form-data">
          <span>ID:</span>
-         <input type="text" name="id" size="25"/>
+         <input type="text" name="pkg" size="25"/>
          <br/>
          <span> or name:</span>
          <input type="text" name="name" size="50"/>
@@ -83,7 +82,7 @@ declare function local:page-with-repo($as as element(a:appserver), $pkgs as elem
          <input type="text" name="version" size="15"/>
          <br/>
          <input type="submit" value="Install"/>
-      </form-->
+      </form>
       <h4>Nuke the repo</h4>
       <form method="post" action="{ $as/@id }/delete-repo" enctype="multipart/form-data">
          <p>Delete the package repository that has been setup on this app server.</p>
