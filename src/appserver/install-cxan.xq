@@ -20,27 +20,38 @@ declare function local:page()
    as element()+
 {
    (: the app server :)
-   let $id-str   := t:mandatory-field('id')
-   let $id       := xs:unsignedLong($id-str)
-   let $as       := a:get-appserver($id)
+   let $id-str     := t:mandatory-field('id')
+   let $id         := xs:unsignedLong($id-str)
+   let $as         := a:get-appserver($id)
    (: the package (id, name and version) :)
-   let $pkg-id   := t:optional-field('pkg', ())
-   let $name     := t:optional-field('name', ())
-   let $version  := t:optional-field('version', ())
-   let $override := xs:boolean(t:optional-field('override', 'false'))
+   let $pkg-id     := t:optional-field('pkg', ())
+   let $name       := t:optional-field('name', ())
+   let $version    := t:optional-field('version', ())
+   let $override   := xs:boolean(t:optional-field('override', 'false'))
+   let $std-site   := t:optional-field('std-website', 'prod')
+   let $other-site := t:optional-field('other-website', ())
+   let $site       := 
+         if ( fn:ends-with($other-site, '/') ) then
+            $other-site
+         else if ( fn:exists($other-site) ) then
+            $other-site || '/'
+         else if ( $std-site eq 'prod' ) then
+            'http://cxan.org/'
+         else if ( $std-site eq 'dev' ) then
+            'http://dev.cxan.org/'
+         else
+            <p><b>Error</b>: Cannot decide which CXAN website to use (std-website={ $std-site }).</p>
    return (
-      local:install($pkg-id, $name, $version, $as, $override),
+      local:install($pkg-id, $name, $version, $site, $as, $override),
       <p>Back to the app server <a href="../{ $as/@id }">{ $as/xs:string(a:name) }</a>.</p>
    )
 };
-
-(: must end with a slash :)
-declare variable $local:site := 'http://localhost:9070/cxan/';
 
 declare function local:install(
    $id       as xs:string?,
    $name     as xs:string?,
    $version  as xs:string?,
+   $site     as xs:string,
    $as       as element(a:appserver),
    $override as xs:boolean
 ) as element()+
@@ -50,12 +61,12 @@ declare function local:install(
          and '{ $name }'.</p>
    else if ( fn:exists($id[.]) ) then
       local:install-from-uri(
-         $local:site || 'file?id=' || $id || '&amp;version=' || $version,
+         $site || 'file?id=' || $id || '&amp;version=' || $version,
          $as,
          $override)
    else if ( fn:exists($name[.]) ) then
       local:install-from-uri(
-         $local:site || 'file?name=' || $name || '&amp;version=' || $version,
+         $site || 'file?name=' || $name || '&amp;version=' || $version,
          $as,
          $override)
    else

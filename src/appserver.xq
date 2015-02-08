@@ -82,6 +82,15 @@ declare function local:page-with-repo($as as element(a:appserver), $pkgs as elem
          <input type="text" name="version" size="15"/>
          <br/>
          <input type="submit" value="Install"/>
+         <br/>
+         <span>CXAN website to use: </span>
+         <select name="std-website">
+            <option value="prod">http://cxan.org/</option>
+            <option value="dev">http://dev.cxan.org/</option>
+         </select>
+         <br/>
+         <span>Or specific CXAN to use:</span>
+         <input type="text" name="other-website" size="50"/>
       </form>
       <h4>Nuke the repo</h4>
       <form method="post" action="{ $as/@id }/delete-repo" enctype="multipart/form-data">
