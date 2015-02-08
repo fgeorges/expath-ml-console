@@ -44,14 +44,16 @@ declare function local:install(
       let $xar      := $result[2]
       let $code     := $response/xs:integer(http:code)
       return
-         if ( $code eq 404 ) then
+         if ( $code eq 404 ) then (
             <p><b>Error</b>: There is no package at { $uri }.</p>
-         else if ( $code eq 200 ) then
+         )
+         else if ( $code eq 200 ) then (
             if ( r:install-package($xar, $repo) ) then
                <p>Package succesfully installed from { $uri } into { $repo/fn:string(@id) }.</p>
             else
                <p><b>Error</b>: Unknown error installing the package from { $uri }.
                   Does it already exist?</p>
+         )
          else (
             <p><b>Error</b>: CXAN server did not respond 200 Ok for the package
                (at '{ $uri }'):</p>,
@@ -63,8 +65,9 @@ declare function local:install(
          <p><b>Error</b>: Cannot access CXAN.</p>,
          <p>System error: <em>{ $err:description }</em></p>
       )
-      else
+      else (
          <p><b>Error</b>: Unknown error: <em>{ $err:description }</em></p>
+      )
    }
 };
 

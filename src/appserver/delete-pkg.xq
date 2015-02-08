@@ -36,9 +36,8 @@ declare function local:page()
             <p>The package "<code>{ $pkg/xs:string(@dir) }</code>" has been deleted.</p>
          }
          catch c:not-confirmed {
+            <p>{ $err:description }</p>,
             <form method="post" action="delete" enctype="multipart/form-data">
-               <span>{ $err:description }</span>
-               <br/><br/>
                <input type="hidden" name="confirm" value="true"/>
                <input type="submit" value="Confirm"/>
                <a href="../../../{ $as/@id }">Cancel</a>

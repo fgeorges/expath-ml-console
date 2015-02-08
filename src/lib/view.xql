@@ -120,6 +120,10 @@ declare function v:console-page(
  : The return value is the result of calling `$content`.  In case it throws an
  : error, this function returns HTML elements describing the error instead, to
  : be displayed to the user.
+ :
+ : FIXME: In order to be sure the transaction is rolled back in case of failure,
+ : do NOT use try/catch here.  Move the error handling to the error handler
+ : module, set on the appserver.
  :)
 declare %private function v:eval-content(
    $content as function() as element()+
@@ -138,7 +142,7 @@ declare %private function v:eval-content(
 };
 
 (:~
- : Inject the content inot the overall page structure of the console.
+ : Inject the content into the overall page structure of the console.
  :)
 declare %private function v:console-page-static(
    $root    as xs:string,
