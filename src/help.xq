@@ -38,6 +38,9 @@ declare function local:page()
             (depending on the options you selected creating the App Server, it
             could be on its modules database or on the filesystem if you decided
             to store the modules of this App Server on the filesystem)</li>
+         <li>make sure to set the app server URL rewriter field (at the end of
+            the admin console page for the app server) to the value
+            <code>/plumbing/rewriter.xq</code></li>
          <li>the document database linked to the HTTP server will not be used
             by the Console</li>
       </ul>
