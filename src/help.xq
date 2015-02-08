@@ -25,7 +25,9 @@ declare function local:page()
          importing and the imported modules:</p>
       <pre>import module namespace "http://example.org/cool/lib.xql";</pre>
       <p><a href="http://cxan.org/">CXAN</a> is an organized, online source of
-         packages, if you are looking for a specific library or application.</p>
+         packages, if you are looking for a specific library or application.
+         The page to install a package into an app server supports installed
+         straight from CXAN.</p>
       <h4>Installation</h4>
       <p>If you are reading this page, you probably already installed succesfully
          the Console. The installation process is documented here though, for
