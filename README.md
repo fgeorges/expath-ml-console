@@ -23,7 +23,7 @@ for that field.
 That's it!  You can now access the Console by pointing your preferred
 browser to the appropriate App Server (you might need to adapt the
 port number, depending on how you configured your app server):
-http://localhost:8888/.
+[http://localhost:8888/](http://localhost:8888/).
 
 Introduction
 ------------
