@@ -81,11 +81,12 @@ p {margin: 1em 0;}
 }
 
 table:not(.lines) {
-	border-collapse: collapse;
-	background: white;
-	font-size: 12px;
-	line-height: 120%;
-	margin: 20px 0 1em 0;
+    border-collapse: collapse;
+    background: white;
+    font-size: 12px;
+    line-height: 120%;
+    margin: 20px 0 1em 0;
+    width: 100%;
 }
 thead th {
 	/* background: #ECECEC url(/images/bg_table_features_topmiddle.png) center top repeat-x; */
@@ -254,7 +255,7 @@ ol {
 .nocomment #content #main_container:after, #content.subnav:after {clear: both;}
 #container {
 	position: relative;
-	width: 1100px;
+	width: 900px;
 	margin: auto;
 	overflow: hidden;
 }
@@ -267,7 +268,7 @@ ol {
 	z-index: 2;
 }
 #header header, #breadcrumb > div {
-	width: 1070px;
+	width: 870px;
 	margin: auto;
 }
 #header header {
@@ -402,16 +403,16 @@ nav ul {margin: 0;}
 
 #content {
     left: 0;
-	background: #F5F5F5;
-	box-shadow: 0 0 2px rgba(0,0,0,.9);
-	-webkit-box-shadow: 0 0 2px rgba(0,0,0,.9);
-	-moz-box-shadow: 0 0 2px rgba(0,0,0,.9);
-	box-shadow: 0 0 2px rgba(0,0,0,.9);
-	xposition: relative;
-	z-index: 1;
-	padding: 50px;
-	padding-left: 200px;
-	padding-right: 200px;
+    background: #F5F5F5;
+    box-shadow: 0 0 2px rgba(0,0,0,.9);
+    -webkit-box-shadow: 0 0 2px rgba(0,0,0,.9);
+    -moz-box-shadow: 0 0 2px rgba(0,0,0,.9);
+    box-shadow: 0 0 2px rgba(0,0,0,.9);
+    xposition: relative;
+    z-index: 1;
+    padding: 50px;
+    padding-left: 100px;
+    padding-right: 100px;
 }
 #content #main_container {
 	width: 1070px;
