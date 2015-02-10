@@ -16,11 +16,11 @@ declare function local:page()
          goal though is to provide a repository manager and support for
          <a href="http://expath.org/spec/pkg">XAR packages</a>.  A XAR package
          is a collection of XML-related files, like XQuery modules, XSLT
-         stylesheets or XML schemas. The console install one package on a
-         specific app server.</p>
+         stylesheets or XML schemas.  The console helps installing package on
+         specific app servers.</p>
       <p>Once a package has been installed on an app server, other modules
          running in the same app server can import an XQuery modules from the
-         package, just by importing it using the module namespace, without
+         package, just by importing it using the module namespace.  Without
          specifying any "at clause", decoupling dependencies between the
          importing and the imported modules:</p>
       <pre>import module namespace "http://example.org/cool/lib.xql";</pre>
