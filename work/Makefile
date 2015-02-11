@@ -1,4 +1,4 @@
-NAME=expath-ml-console-0.2.0
+NAME=expath-ml-console-0.3.0
 
 ../dist/$(NAME).zip:
 	mkdir $(NAME)
