@@ -1,7 +1,9 @@
-expath-ml-console
-=================
+EXPath Console for MarkLogic
+============================
 
-EXPath Console for MarkLogic.
+Download the latest version from the EXPath [download area](http://expath.org/files).
+
+![Screenshot of the Console](doc/screenshot.png)
 
 Installation
 ------------
