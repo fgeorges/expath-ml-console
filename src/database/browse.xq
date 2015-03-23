@@ -119,9 +119,7 @@ declare function local:display-list($db as xs:unsignedLong, $path as xs:string, 
                 $fun($path, 1)',
                (fn:QName('', 'fun'),  local:get-children#2,
                 fn:QName('', 'path'), $path))
-      order by $p
-      return
-         <li> {
+      let $li :=
             if ( $p eq $path ) then (
             )
             else if ( fn:ends-with($p, '/') ) then (
@@ -132,8 +130,12 @@ declare function local:display-list($db as xs:unsignedLong, $path as xs:string, 
             else (
                $p
             )
-         }
-         </li>
+      order by $p
+      return
+         if ( fn:exists($li) ) then
+            <li>{ $li }</li>
+         else
+            ()
    }
    </ul>
 };
