@@ -246,20 +246,16 @@ declare function a:database-dir-creation($db as element(a:database))
 (: ==== File system tools ======================================================== :)
 
 (:~
- : Get a document from the filesystem.
+ : Get a raw file from the filesystem.
  :
- : The path of the document is the relative `$file` path resolved in the
- : absolute `$dir` (which must end with a '/').  Return the empty sequence if
- : the file does not exist.
+ : Return the empty sequence if the file does not exist.
  :
- : TODO: For now, parse the file, but it should support binaries and text files.
+ : $file the absolute path of the file
  :)
-declare function a:get-from-directory($uri as xs:string)
-   as node()?
+declare function a:get-from-filesystem($file  as xs:string) as xs:string?
 {
    try {
-      xdmp:unquote(
-         xdmp:filesystem-file($uri))
+      xdmp:filesystem-file($file)[fn:true()]
    }
    catch err:FOER0000 {
       (: TODO: Should all this be in a dedicated error module? :)
@@ -285,17 +281,61 @@ declare function a:get-from-directory($uri as xs:string)
 (:~
  : Get a document from the filesystem.
  :
- : The path of the document is the absolute `$uri` path.  Return the empty
- : sequence if the file does not exist.
+ : $file the absolute path of the file
+ : $parse true if the file is XML and must be parsed
  :
- : TODO: For now, parse the file, but it should support binaries and text files.
+ : TODO: Support binary files as well.  Replace $parse by a flag kind of
+ : parameter.  If 'xml', then xdmp:unquote(...), if 'text' then text{...}, and
+ : if 'bin' then binary{...}.
+ :)
+declare function a:get-from-filesystem(
+   $file  as xs:string,
+   $parse as xs:boolean
+) as node()?
+{
+   let $raw := a:get-from-filesystem($file)
+   return
+      if ( fn:empty($raw) ) then
+         ()
+      else if ( $parse ) then
+         xdmp:unquote($raw)
+      else
+         text { $raw }
+};
+
+(:~
+ : Get a document from the filesystem.
+ :
+ : The path of the document is the relative $file path resolved in the
+ : absolute $dir (which must end with a '/').
  :)
 declare function a:get-from-directory(
    $dir  as xs:string,
-   $file as xs:string
+   $file as xs:string,
+   $parse as xs:boolean
 ) as node()?
 {
-   a:get-from-directory($dir || $file)
+   a:get-from-filesystem(
+      fn:concat($dir, $file),
+      $parse)
+};
+
+(:~
+ : Create a document on the filesystem.
+ :
+ : $file the absolute path of the file
+ : $doc the document to save, either a document, an element or a text node
+ :
+ : The return value is the path of the document created.
+ :)
+declare function a:insert-into-filesystem(
+   $file as xs:string,
+   $doc  as node()
+) as xs:string
+{
+   t:ensure-dir(t:dirname($file)),
+   xdmp:save($file, $doc),
+   $file
 };
 
 (:~
@@ -312,13 +352,7 @@ declare function a:insert-into-directory(
    $doc  as node()
 ) as xs:string
 {
-   let $path   := fn:concat($dir, $file)
-   let $parent := t:dirname($path)
-   return (
-      t:ensure-dir($parent),
-      xdmp:save($path, $doc),
-      $path
-   )
+   a:insert-into-filesystem($dir || $file, $doc)
 };
 
 (:~
@@ -451,12 +485,13 @@ declare function a:get-appserver($as as xs:unsignedLong)
             if ( fn:empty($mdb) ) then
                ()
             else if ( $mdb eq 0 ) then
-               a:get-from-directory($root, $repo-root || $packages-file-path)
+               a:get-from-directory($root, $repo-root || $packages-file-path, fn:true())
             else
                a:get-from-database($mdb, $root, $repo-root || $packages-file-path)
    return
       <a:appserver id="{ $as }">
          <a:name>{ admin:appserver-get-name($config, $as) }</a:name>
+         <a:port>{ admin:appserver-get-port($config, $as) }</a:port>
          <a:db id="{ $db }">{ admin:database-get-name($config, $db) }</a:db>
          {
             if ( fn:empty($mdb) ) then
@@ -527,6 +562,24 @@ declare function a:get-appservers($group as element(a:group))
          a:get-appserver($as)
    }
    </a:appservers>
+};
+
+(:~
+ : TODO: ...
+ :)
+declare function a:set-url-rewriter-if-not-yet(
+   $as   as element(a:appserver),
+   $path as xs:string
+) as empty-sequence()
+{
+   let $config := admin:get-configuration()
+   let $id     := xs:unsignedLong($as/@id)
+   return
+      if ( fn:exists(admin:appserver-get-url-rewriter($config, $id)[.]) ) then
+         ()
+      else
+         admin:save-configuration(
+            admin:appserver-set-url-rewriter($config, $id, $path))
 };
 
 (:~
@@ -642,7 +695,7 @@ declare function a:appserver-get-from-repo(
    else if ( a:appserver-modules-in-db($as) ) then
       a:get-from-database($as/a:modules-db/@id, $as/a:repo/a:root, $file)
    else
-      a:get-from-directory($as/a:repo/a:root, $file)
+      a:get-from-directory($as/a:repo/a:root, $file, fn:true())
 };
 
 (:~
@@ -677,7 +730,7 @@ declare function a:appserver-get-packages($as as element(a:appserver))
    else if ( a:appserver-modules-in-db($as) ) then
       a:get-from-database($as/a:modules-db/@id, $as/a:repo/a:packages-file)/*
    else
-      a:get-from-directory($as/a:repo/a:packages-file)/*
+      a:get-from-filesystem($as/a:repo/a:packages-file, fn:true())/*
 };
 
 (:~

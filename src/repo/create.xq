@@ -62,7 +62,7 @@ declare function local:create-repo-in-appserver(
       return
          local:create-repo-in-database($id, $name, $root, $db)
    else
-      t:error('SETUP002', ('How can I have a WebDAV appserver here?!?: ', xdmp:quote($as)))
+      t:error('SETUP002', 'How can I have a WebDAV appserver here?!?: ' || xdmp:quote($as))
 };
 
 (:~

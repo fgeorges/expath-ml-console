@@ -85,10 +85,8 @@ declare namespace xdmp = "http://marklogic.com/xdmp";
 (: TODO: Nothing should depend on this namespace here, move it to repo.xql or similar... :)
 declare namespace pp = "http://expath.org/ns/repo/packages";
 
-declare variable $cfg:config-docname :=
-   "http://expath.org/coll/console/config.xml";
-declare variable $cfg:web-config-docname :=
-   "http://expath.org/coll/webapp/config.xml";
+declare variable $cfg:config-docname     := "http://expath.org/coll/console/config.xml";
+declare variable $cfg:web-config-docname := "http://expath.org/coll/webapp/config.xml";
 
 (: ==== Accessing config ======================================================== :)
 
@@ -111,6 +109,15 @@ declare function cfg:get-config()
 };
 
 (:~
+ : Return one specific config element given its ID.
+ :)
+declare function cfg:get-config-elem($id as xs:string)
+   as element()?
+{
+   cfg:get-config()/c:*[@id eq $id]
+};
+
+(:~
  : Return the list of existing repos.
  :)
 declare function cfg:get-repos()
@@ -126,6 +133,66 @@ declare function cfg:get-repo($id as xs:string)
    as element(c:repo)?
 {
    cfg:get-config()/c:repo[@id eq $id]
+};
+
+(:~
+ : Insert a new config element in the Console config document.
+ :
+ : If the config document does not exist yet, it is created.  The element to
+ : add must have an @id, and no other element with the same ID can exist.
+ :
+ : Throws 'c:config-elem-exists' if an element with the same ID already exists.
+ :
+ : Return the config element itself.
+ :)
+declare %private function cfg:insert-new-config-element($elem as element())
+   as element()
+{
+   if ( fn:exists(cfg:get-config-elem($elem/@id)) ) then
+      t:error('config-elem-exists', 'The config element ''' || $elem/@id || ''' already exists.')
+   else if ( cfg:is-setup() ) then
+      xdmp:node-insert-child(cfg:get-config(), $elem)
+   else
+      xdmp:document-insert(
+         $cfg:config-docname,
+         <config xmlns="http://expath.org/ns/ml/console">
+            <cxan>
+               <site>http://test.cxan.org/</site>
+            </cxan>
+            { $elem }
+         </config>),
+   $elem
+};
+
+(:~
+ : Insert a new config element in the Webapp config document in a specific database.
+ :
+ : If the config document does not exist yet in that database, it is created.
+ : The element to add must have an @id, and no other element with the same ID
+ : can exist.
+ :
+ : Throws 'c:config-elem-exists' if an element with the same ID already exists.
+ :
+ : Return the config element itself.
+ :)
+declare %private function cfg:insert-new-webapp-config-element(
+   $elem as element(),
+   $db   as xs:unsignedLong
+) as element()
+{
+   let $cfg-doc  := a:get-from-database($db, $cfg:web-config-docname, '')
+   let $cfg-elem := ( $cfg-doc/w:config, <config xmlns="http://expath.org/ns/ml/webapp"/> )[1]
+   return
+      if ( fn:exists($cfg-elem/w:*[@id eq $elem/@id]) ) then
+         t:error(
+            'config-elem-exists',
+            'The webapp config element ' || $elem/@id || ' already exists in the database '
+               || xs:string($db) || '.')
+      else
+         let $config := t:add-last-child($cfg-elem, $elem)
+         let $dummy  := a:insert-into-database($db, $cfg:web-config-docname, $config)
+         return
+            $elem
 };
 
 (:~
@@ -157,13 +224,16 @@ declare function cfg:get-appserver-repos($as as element(a:appserver))
  : See cfg:get-appserver-repos().
  :
  : TODO: Should probably use something more complex than starts-with()...
+ : TODO: Canonicalize all the different kinds of roots... (in order to prevent
+ : the special cases "is the as root there?", "is it empty?", "is it '/'?", etc.
  : TODO: Should the repo have been created explicitly for the App Server?
  :)
 declare function cfg:is-repo-in-appserver($repo as element(c:repo), $as as element(a:appserver))
    as xs:boolean
 {
    if ( fn:exists($as/a:modules-db) ) then
-      $repo/c:database/@id eq $as/a:modules-db/@id and fn:starts-with($repo/c:root, $as/a:root)
+      $repo/c:database/@id eq $as/a:modules-db/@id
+         and ( fn:empty($as/a:root[.]) or $as/a:root eq '/' or fn:starts-with($repo/c:root, $as/a:root) )
    else
       fn:starts-with($repo/c:absolute, $as/a:modules-path)
 };
@@ -242,7 +312,7 @@ declare function cfg:create-repo-in-database(
             $repo,
             <packages-doc xmlns="http://expath.org/ns/ml/console">{ $pkg-doc }</packages-doc>)
    return
-      cfg:insert-new-repo($repo)
+      cfg:insert-new-config-element($repo)
 };
 
 (:~
@@ -303,7 +373,7 @@ declare %private function cfg:insert-new-repo($repo as element(c:repo))
    as element(c:repo)
 {
    if ( fn:exists(cfg:get-repo($repo/@id)) ) then
-      t:error('repo-exists', ('The repo ''', $repo/@id, ''' already exists.'))
+      t:error('repo-exists', 'The repo ''' || $repo/@id || ''' already exists.')
    else if ( cfg:is-setup() ) then
       xdmp:node-insert-child(cfg:get-config(), $repo)
    else
@@ -333,9 +403,9 @@ declare function cfg:remove-repo($id as xs:string, $delete as xs:boolean)
    let $repo := cfg:get-repo($id)
    return (
       if ( fn:empty($repo) ) then
-         t:error('repo-not-exist', ('The repo ''', $id, ''' does not exist.'))
+         t:error('repo-not-exist', 'The repo ''' || $id || ''' does not exist.')
       else if ( $delete and r:is-filesystem-repo($repo) ) then
-         t:error('repo-on-disk', ('The repo ''', $id, ''' is on disk, it cannot be deleted.'))
+         t:error('repo-on-disk', 'The repo ''' || $id || ''' is on disk, it cannot be deleted.')
       else if ( $delete ) then
          a:remove-directory($repo/c:database/@id, $repo/c:root)
       else
@@ -402,11 +472,21 @@ declare function cfg:set-cxan-site($site as xs:string)
  : $as the App Server associayed to the container
  : $repo the repo associated to the container
  :
- : Throw 'container-exists' if the container already exists in the config.
+ : Throw 'c:container-exists' if the container already exists in the config.
  :
  : Throw 'c:not-setup' if the console has not been set up yet.
  :
+ : Copy some files needed by EXPath Web.  The files are in ../trunk/expath-web/,
+ : and must be copied to the dir /expath/web/ under the HTTP App Server root.
+ : The file url-rewriter.xq is installed as the URL resolver on the HTTP AS if
+ : and only if the AS does not have a URL resolver yet.
+ :
  : TODO: Return the web container element instead...
+ :
+ : TODO: Check there is no conflicting container (with an ancestor or descendant
+ : web root).
+ :
+ : TODO: Ensure the web root starts with a slash...
  :)
 declare function cfg:create-web-container(
    $id   as xs:string,
@@ -414,44 +494,130 @@ declare function cfg:create-web-container(
    $root as xs:string,
    $as   as element(a:appserver),
    $repo as element(c:repo)
-) as element(c:container)
+) as element(w:container)
 {
+   let $ref       :=
+         <container id="{ $id }" xmlns="http://expath.org/ns/ml/console">
+            <name>{ $name }</name>
+            <db id="{ $as/a:db/fn:string(@id) }">{ $as/fn:string(a:db) }</db>
+         </container>
    let $container :=
          <container id="{ $id }" appserver="{ $as/fn:string(@id) }"
                     xmlns="http://expath.org/ns/ml/webapp">
             <name>{ $name }</name>
             <web-root>{ $root }</web-root>
-            <repo>{ $repo/fn:string(@name) }</repo>
-            <repo-root>{ $repo/fn:string(@root) }</repo-root>
-         </container>
-   let $ref :=
-         <container id="{ $id }" xmlns="http://expath.org/ns/ml/console">
-            <name>{ $name }</name>
+            <repo>{ $repo/fn:string(@id) }</repo>
+            <repo-root>{ $repo/fn:string(c:root) }</repo-root> {
+              if ( fn:exists($repo/c:absolute) ) then
+                <repo-dir>{ $repo/fn:string(c:absolute) }</repo-dir>
+              else
+                ()
+            }
             <db id="{ $as/a:db/fn:string(@id) }">{ $as/fn:string(a:db) }</db>
          </container>
-   let $db   := $as/a:db/xs:unsignedLong(@id)
-   let $doc  := a:get-from-database($db, $cfg:web-config-docname, '')
-   let $conf := cfg:get-repos()
    return
-      if ( fn:not(cfg:is-setup()) ) then
-         (: TODO: This should not be an error, we should be able to create a
-            container without having to create a repo first. :)
-         t:error('not-setup', 'Impossible to create a web container before configuring at least one repo.')
-      else if ( fn:exists($conf/c:container[@id eq $id]) ) then
-         t:error('container-exists', ('The web container already exists: ''', $id, ''''))
+      if ( fn:exists(cfg:get-container-ref($id)) ) then
+         t:error('container-exists', 'The web container already exists: ''' || $id || '''')
       else
-         let $config :=
-                  if ( fn:exists($doc) ) then
-                     t:add-last-child($doc/w:config, $container)
-                  else
-                     <config xmlns="http://expath.org/ns/ml/webapp"> {
-                        $container
-                     }
-                     </config>
-         let $dummy := a:insert-into-database($db, $cfg:web-config-docname, $config)
-         let $dummy := xdmp:node-insert-child(cfg:get-config(), $ref)
+         let $dummy := cfg:install-exapth-web-to-appserver($as)
+         let $dummy := cfg:insert-new-webapp-config-element($container, $as/a:db/xs:unsignedLong(@id))
+         let $dummy := cfg:insert-new-config-element($ref)
          return
-            $ref
+            $container
+};
+
+declare function cfg:install-exapth-web-to-appserver(
+   $as as element(a:appserver)
+) as empty-sequence()
+{
+   (: TODO: How to detect CURRENT appserver modules location? :)
+   let $this-db   := xdmp:modules-database()
+   let $that-db   := $as/a:modules-db/xs:unsignedLong(@id)
+   let $this-root := xdmp:modules-root()
+   let $copy-fn   := if ( fn:exists($that-db) and $this-db eq 0 ) then
+                        cfg:copy-file-fs-to-db(?, ?, $that-db)
+                     else if ( fn:exists($as/a:modules-path) and $this-db eq 0 ) then
+                        cfg:copy-file-fs-to-fs(?, ?, $as/a:modules-path)
+                     else if ( fn:exists($that-db) and $this-db gt 0 ) then
+                        cfg:copy-file-db-to-db(?, $this-db, ?, $that-db)
+                     else if ( fn:exists($as/a:modules-path) and $this-db gt 0 ) then
+                        cfg:copy-file-db-to-fs(?, $this-db, ?, $as/a:modules-path)
+                     else
+                        t:error('internal-error', 'App Server modules neither on DB nor FS?')
+   let $dest  := fn:concat($as/a:root, 'expath/web/')
+   let $trunk := cfg:get-trunk-path($this-root)
+   for $file  in ('binary.xql', 'dispatcher.xql', 'launcher.xq', 'url-rewriter.xq')
+   return
+      $copy-fn(fn:concat($trunk, $file), fn:concat($dest, $file)),
+   a:set-url-rewriter-if-not-yet($as, '/expath/web/url-rewriter.xq')
+};
+
+declare %private function cfg:get-trunk-path($root as xs:string) as xs:string
+{
+   let $path := xdmp:get-invoked-path()
+   (: Handle other cases, like none of them ends (or starts) with a slash... :)
+   let $idx  := if ( fn:ends-with($root, '/') and fn:starts-with($path, '/') ) then 2 else 1
+   return
+      if ( fn:ends-with($path, '/lib/config.xql') ) then
+         fn:concat(
+            $root,
+            fn:substring($path, $idx, fn:string-length($path) - $idx - 13),
+            'trunk/expath-web/')
+      else
+         t:error('internal-error', 'The module config.xql is not at the expected place...!')
+};
+
+declare %private function cfg:copy-file-fs-to-fs(
+   $file as xs:string,
+   $dest as xs:string,
+   $mods as xs:string
+) as empty-sequence()
+{
+   let $dummy := a:insert-into-filesystem(
+                    $dest,
+                    a:get-from-filesystem($file, fn:false()))
+   return
+      ()
+};
+
+declare %private function cfg:copy-file-fs-to-db(
+   $file    as xs:string,
+   $dest    as xs:string,
+   $dest-db as xs:unsignedLong
+) as empty-sequence()
+{
+   let $dummy := a:insert-into-database(
+                    $dest-db,
+                    $dest,
+                    a:get-from-filesystem($file, fn:false()))
+   return
+      ()
+};
+
+declare %private function cfg:copy-file-db-to-fs(
+   $file   as xs:string,
+   $src-db as xs:unsignedLong,
+   $dest   as xs:string,
+   $mods   as xs:string
+) as empty-sequence()
+{
+   t:error(
+      'IMPLEMENT-ME',
+      'Copy file from DB to FS not supported yet: ' || $file || ', ' || $dest || ', ' || $mods
+         || ', please report this to the mailing list.')
+};
+
+declare %private function cfg:copy-file-db-to-db(
+   $file    as xs:string,
+   $src-db  as xs:unsignedLong,
+   $dest    as xs:string,
+   $dest-db as xs:unsignedLong
+) as empty-sequence()
+{
+   t:error(
+      'IMPLEMENT-ME',
+      'Copy file from DB to DB not supported yet: ' || $file || ', ' || $dest
+         || ', please report this to the mailing list.')
 };
 
 (:~
@@ -470,14 +636,15 @@ declare function cfg:remove-container($id as xs:string, $delete as xs:boolean)
    let $ref := cfg:get-container-ref($id)
    return
       if ( fn:empty($ref) ) then
-         t:error('container-not-exist', ('The web container ''', $id, ''' does not exist.'))
+         t:error('container-not-exist', 'The web container ''' || $id || ''' does not exist.')
       else
          let $container := cfg:get-container($ref)
          return
             if ( fn:empty($container) ) then (
                t:error(
                   'config-corrupted',
-                  ('Config file has a reference to container ''', $id, ''' but it does not exist?!?'))
+                  'Config file has a reference to container ''' || $id
+                     || ''' but it does not exist?!?')
             )
             else if ( $delete ) then (
                cfg:remove-repo($container/w:repo, $delete),
@@ -504,4 +671,62 @@ declare %private function cfg:remove-container-from-config(
    let $dummy                    := a:insert-into-database($db-id, $cfg:web-config-docname, $new-doc)
    return
       xdmp:node-delete($ref)
+};
+
+(:~
+ : Insert a new webapp in a given container config element.
+ :
+ : Throw 'c:container-not-exist' if the container does not exist in the webapp
+ : config file in the database associated with this container App Server.
+ :
+ : Throw 'c:webapp-exists' if an application with the same root already exists.
+ :
+ : Return the application element itself.
+ :)
+declare function cfg:container-insert-new-webapp(
+   $app       as element(w:application),
+   $container as element(w:container)
+) as element(w:application)
+{
+   let $db       := $container/w:db/xs:unsignedLong(@id)
+   let $cfg-elem := a:get-from-database($db, $cfg:web-config-docname, '')/w:config
+   let $cfg-cont := $cfg-elem/w:container[@id eq $container/@id]
+   return
+      if ( fn:empty($cfg-cont) ) then
+         t:error(
+            'container-not-exist',
+            'The container ' || $container/@id || ' does not exists in the database '
+               || xs:string($db) || '.')
+      else if ( fn:exists($cfg-cont/w:application[@root eq $app/@root]) ) then
+         t:error(
+            'webapp-exists',
+            'A webapp with root ' || $app/@root || ' already exists in the container '
+                || $container/@id || ' in the database ' || xs:string($db) || '.')
+      else
+         let $config := t:remove-child($cfg-elem, $cfg-cont)
+         let $config := t:add-last-child($config, t:add-last-child($container, $app))
+         let $dummy  := a:insert-into-database($db, $cfg:web-config-docname, $config)
+         return
+            $app
+};
+
+(:~
+ : Remove the webapp element from the config file, in the correct database.
+ :)
+declare function cfg:remove-webapp-from-config(
+   $app as element(w:application)
+) as empty-sequence()
+{
+   let $container as element(w:container) :=
+         t:remove-child($app/.., $app)
+   let $as-id   := $container/xs:unsignedLong(@appserver)
+   let $as      := a:get-appserver($as-id)
+   let $db-id   := $as/a:db/xs:unsignedLong(@id)
+   let $doc as element(w:config) :=
+         a:get-from-database($db-id, $cfg:web-config-docname, '')/*
+   let $wrk-doc := t:remove-child($doc, $doc/w:container[@id eq $container/@id])
+   let $new-doc := t:add-last-child($wrk-doc, $container)
+   let $dummy   := a:insert-into-database($db-id, $cfg:web-config-docname, $new-doc)
+   return
+      ()
 };

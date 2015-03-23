@@ -40,7 +40,7 @@ declare function t:mandatory-field($name as xs:string)
       if ( fn:exists($f) ) then
          $f
       else
-         t:error('TOOLS001', ('Mandatory field not passed: ', $name))
+         t:error('TOOLS001', 'Mandatory field not passed: ' || $name)
 };
 
 (:~
@@ -54,7 +54,7 @@ declare function t:mandatory-field-filename($name as xs:string)
       if ( fn:exists($f) ) then
          $f
       else
-         t:error('TOOLS001', ('Mandatory field filename not passed: ', $name))
+         t:error('TOOLS001', 'Mandatory field filename not passed: ' || $name)
 };
 
 (: ==== XML tools ======================================================== :)
@@ -74,14 +74,21 @@ declare function t:add-last-child($parent as element(), $new-child as element())
 
 (:~
  : Remove an element from its parent element. Return the modified parent.
+ :
+ : Throw 'c:child-not-exist' if $child is not a child of $parent.
  :)
 declare function t:remove-child($parent as element(), $child as element())
    as node()
 {
-   element { fn:node-name($parent) } {
-      $parent/@*,
-      $parent/node() except $child
-   }
+   if ( fn:empty($parent/*[. is $child]) ) then
+      t:error(
+         'child-not-exist',
+         'The child ' || fn:name($child) || ' does not exist in ' || fn:name($parent))
+   else
+      element { fn:node-name($parent) } {
+         $parent/@*,
+         $parent/node() except $child
+      }
 };
 
 (: ==== File and URI tools ======================================================== :)

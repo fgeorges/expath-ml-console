@@ -2,13 +2,15 @@ xquery version "3.0";
 
 module namespace r = "http://expath.org/ns/ml/console/repo";
 
-import module namespace a   = "http://expath.org/ns/ml/console/admin" at "admin.xql";
-import module namespace t   = "http://expath.org/ns/ml/console/tools" at "tools.xql";
+import module namespace a   = "http://expath.org/ns/ml/console/admin"  at "admin.xql";
+import module namespace cfg = "http://expath.org/ns/ml/console/config" at "config.xql";
+import module namespace t   = "http://expath.org/ns/ml/console/tools"  at "tools.xql";
 
 declare namespace c    = "http://expath.org/ns/ml/console";
 declare namespace w    = "http://expath.org/ns/ml/webapp";
 declare namespace pkg  = "http://expath.org/ns/pkg";
 declare namespace pp   = "http://expath.org/ns/repo/packages";
+declare namespace wd   = "http://expath.org/ns/webapp/descriptor";
 declare namespace xdmp = "http://marklogic.com/xdmp";
 declare namespace zip  = "xdmp:zip";
 
@@ -71,8 +73,10 @@ declare function r:unzip-into(
    $repo   as element(c:repo)
 ) as empty-sequence()
 {
-   (: TODO: Binary?  Really?  Even for, say, XSLT stylesheets? :)
-   let $options := <options xmlns="xdmp:zip-get"><format>binary</format></options>
+   (: TODO: Binary?  Really?  Even for, say, XSLT stylesheets?
+        Probably: try the default, then ask binary if parsing fails... :)
+   (: let $options := <options xmlns="xdmp:zip-get"><format>binary</format></options> :)
+   let $options := <options xmlns="xdmp:zip-get"/>
    let $dummy   :=
          (: TODO: Throw an error if $part is not a valid URI ref. :)
          for $part in xdmp:zip-manifest($zip)/zip:part/fn:string(.)
@@ -87,7 +91,7 @@ declare function r:unzip-into(
 };
 
 (:~
- : Get a file from a repository.
+ : Get an XML file from a repository.
  :)
 declare function r:get-from(
    $file as xs:string,
@@ -95,7 +99,7 @@ declare function r:get-from(
 ) as node()?
 {
    if ( r:is-filesystem-repo($repo) ) then
-      a:get-from-directory($repo/c:absolute, $file)
+      a:get-from-directory($repo/c:absolute, $file, fn:true())
    else
       a:get-from-database($repo/c:database/@id, $repo/c:root, $file)
 };
@@ -155,21 +159,24 @@ declare function r:get-package-by-pkgdir(
  : If the package already exists, $override tells what to do: either override
  : or do nothing and return nothing.
  :
+ : Throw 'c:package-exists' if there is already a package with the same name
+ : and same version.
+ :
  : TODO: Overriding an existing package has been disable for now.  Either re
  :)
 declare function r:install-package(
-   $xar     (: as binary() :),
-   $repo     as element(c:repo)
-) as element(pp:package)?
+   $xar (: as binary() :),
+   $repo   as element(c:repo)
+) as element(pp:package)
 (:
 declare function r:install-package(
-   $xar     (: as binary() :),
+   $xar   (: as binary() :),
    $repo     as element(c:repo),
    $override as xs:boolean
-) as element(pp:package)?
+) as element(pp:package)
 :)
 {
-   (: create the package dir name from the package descriptor :)
+   (: get the infos from the package descriptor :)
    let $desc    := xdmp:zip-get($xar, 'expath-pkg.xml')
    let $name    := $desc/pkg:package/fn:string(@name)
    let $abbrev  := $desc/pkg:package/fn:string(@abbrev)
@@ -177,8 +184,10 @@ declare function r:install-package(
    let $pkg     := r:get-package-by-name($name, $version, $repo)
    return
       if ( fn:exists($pkg) ) then
-         (: TODO: Make it an error instead if it already exists and $override is false. :)
-         ()
+         t:error(
+            'package-exists',
+            'The package ' || $name || ' (version ' || $version
+                || ') already exists in repo ' || $repo/@id || '.')
       else
          (: TODO: Validate $pkgdir (no space, it does not exist, etc.) :)
          let $pkgdir := fn:concat($abbrev, '-', $version)
@@ -207,15 +216,18 @@ declare function r:install-package(
 declare function r:delete-package(
    $pkg  as element(pp:package),
    $repo as element(c:repo)
-)
+) as empty-sequence()
 {
    if ( r:is-filesystem-repo($repo) ) then
       (: TODO: Provide a way, in the GUI, for the user to forget one such package
          in to-remove.xml, once he has actually deleted it... :)
-      r:insert-into(
-         '.expath-pkg/to-remove.xml',
-         t:add-last-child(r:get-from('.expath-pkg/to-remove.xml', $repo)/*, $pkg),
-         $repo)
+      let $dummy :=
+            r:insert-into(
+               '.expath-pkg/to-remove.xml',
+               t:add-last-child(r:get-from('.expath-pkg/to-remove.xml', $repo)/*, $pkg),
+               $repo)
+      return
+         ()
    else
       a:remove-directory($repo/c:database/@id, fn:concat($repo/c:root, $pkg/@dir)),
    r:remove-package-from-list($pkg, $repo)
@@ -227,39 +239,68 @@ declare function r:delete-package(
 declare %private function r:remove-package-from-list(
    $pkg  as element(pp:package),
    $repo as element(c:repo)
-)
+) as empty-sequence()
 {
-   r:insert-into(
-      '.expath-pkg/packages.xml',
-      <packages xmlns="http://expath.org/ns/repo/packages"> {
-         r:get-from('.expath-pkg/packages.xml', $repo)/pp:packages/pp:package[fn:not(@dir eq $pkg/@dir)]
-      }
-      </packages>,
-      $repo)
+   let $dummy :=
+         r:insert-into(
+            '.expath-pkg/packages.xml',
+            <packages xmlns="http://expath.org/ns/repo/packages"> {
+               r:get-from('.expath-pkg/packages.xml', $repo)
+                  / pp:packages/pp:package[fn:not(@dir eq $pkg/@dir)]
+            }
+            </packages>,
+            $repo)
+   return
+      ()
 };
 
 (: ==== Managing webapps ======================================================== :)
 
 (:~
  : Install the webapp $xaw in $container (storage in $repo).
- :
- : TODO: Not implemented yet.
  :)
 declare function r:install-webapp(
    $xaw    (: as binary() :),
+   $root      as xs:string?,
    $repo      as element(c:repo),
    $container as element(w:container)
 ) as element(w:application)
 (:
 declare function r:install-webapp(
    $xaw    (: as binary() :),
+   $root      as xs:string?,
    $repo      as element(c:repo),
    $container as element(w:container),
    $override  as xs:boolean
 ) as element(w:application)
 :)
 {
-   t:error(
-      'not-implemented-yet',
-      'The function r:install-webapp($xaw, $repo, $container) is not implemented yet!')
+   let $desc    := xdmp:zip-get($xaw, 'expath-web.xml')
+   let $tmproot := ( $root, $desc/wd:webapp/fn:string(@abbrev) )[1]
+   let $webroot := fn:concat('/'[fn:not(fn:starts-with($tmproot, '/'))], $tmproot, '/'[fn:not(fn:ends-with($tmproot, '/'))])
+   let $pkg     := r:install-package($xaw, $repo)
+   let $cfg     :=
+         <application root="{ $webroot }" xmlns="http://expath.org/ns/ml/webapp">
+            <pkg-name>{ $pkg/fn:string(@name) }</pkg-name>
+            <pkg-version>{ $pkg/fn:string(@version) }</pkg-version>
+            <pkg-dir>{ $pkg/fn:string(@dir) }</pkg-dir>
+            { $desc }
+         </application>
+   return
+      cfg:container-insert-new-webapp($cfg, $container)
+};
+
+(:~
+ : Delete the webapp.
+ :)
+declare function r:delete-webapp(
+   $app as element(w:application)
+) as empty-sequence()
+{
+   let $repo := cfg:get-repo($app/../w:repo)
+   let $pkg  := r:get-package-by-pkgdir($app/w:pkg-dir, $repo)
+   return (
+      r:delete-package($pkg, $repo),
+      cfg:remove-webapp-from-config($app)
+   )
 };

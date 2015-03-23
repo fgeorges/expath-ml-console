@@ -184,7 +184,7 @@ declare function local:get-node($file as node(), $format as xs:string)
       else
          t:error('INSERT003', 'XML file is neither parsed nor a document node with an element, please report this to the mailing list')
    else
-      t:error('INSERT004', fn:concat('Format not known: "', $format, '"'))
+      t:error('INSERT004', 'Format not known: "' || $format || '"')
 };
 
 v:console-page('../', 'tools', 'Tools', local:page#0)
