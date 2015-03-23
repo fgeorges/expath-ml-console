@@ -12,6 +12,8 @@ declare namespace err  = "http://www.w3.org/2005/xqt-errors";
 declare namespace h    = "http://www.w3.org/1999/xhtml";
 declare namespace xdmp = "http://marklogic.com/xdmp";
 
+declare option xdmp:update "true";
+
 (:~
  : TODO: ...
  :

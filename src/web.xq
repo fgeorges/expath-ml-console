@@ -46,20 +46,22 @@ declare function local:page()
                            <a href="web/show?container={ $escaped }">{ $id }</a>
                         </td>
                         <td>{ $name }</td>
-                        <td>{ fn:string($appserver/a:name) }</td>
+                        <td>{ fn:string($appserver/a:name) } (:{ fn:string($appserver/a:port) })</td>
                         <td>{ fn:string($container/w:web-root) }</td>
                         <td>
                            <a href="repo/show?repo={ $repo-esc }">{ $repo-name }</a>
                         </td>
                         <td>
                            <a href="web/delete?container={ $escaped }">remove</a> {
-                           if ( fn:exists($repo/c:database) ) then (
-                              <span>, </span>,
-                              <a href="web/delete?container={ $escaped }&amp;delete=true">delete</a>
-                           )
-                           else (
-                           )
-                        }
+                              if ( fn:exists($repo/c:database) ) then (
+                                 <span>, </span>,
+                                 <a href="web/delete?container={ $escaped }&amp;delete=true">delete</a>
+                              )
+                              else (
+                              )
+                           }
+                           <span>, </span>
+                           <a href="web/upgrade?container={ $escaped }">upgrade</a>
                         </td>
                      </tr>
                }
@@ -69,7 +71,8 @@ declare function local:page()
                console. It does not delete the associated repo and all its content
                (installed packages and webapps). Deleting a web container does delete
                the associated repo and all its content (not available for on-disk
-               repos).</em></p>
+               repos). Upgrading a web container means installing the EXPath Web
+               implementation again (into the associated App Server).</em></p>
             )
          }
          <h4>Create a web container</h4>

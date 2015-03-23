@@ -21,30 +21,26 @@ declare function local:page()
    let $xaw       := t:mandatory-field('xaw')
    let $filename  := t:mandatory-field-filename('xaw')
    let $stored    := r:save-in-attic($xaw, $filename, $repo)
+   let $root      := t:optional-field('root', ())
    (:
    let $override  := xs:boolean(t:optional-field('override', 'false'))
    let $app       := r:install-webapp($xaw, $repo, $container, $override)
    :)
    return (
-      local:install-webapp($xaw, $repo, $container, $filename),
+      local:install-webapp($xaw, $root, $repo, $container, $filename),
       <p>Back to the <a href="show?container={ $id }">web container</a>.</p>
    )
 };
 
-declare function local:install-webapp($xaw, $repo, $container, $filename)
+declare function local:install-webapp($xaw, $root, $repo, $container, $filename)
    as element(p)
 {
-   try {
-      let $app := r:install-webapp($xaw, $repo, $container)
-      return
-         <p>Webapp '{ $filename }' successfully installed into the container
-            '{ $container/fn:string(@id) }', in its repository
-            '{ $repo/fn:string(@id) }', within the package directory
-            '{ $app/fn:string(w:pkg-dir) }'.</p>
-   }
-   catch c:* {
-      <p><b>Error</b>: { $err:description }</p>
-   }
+   let $app := r:install-webapp($xaw, $root, $repo, $container)
+   return
+      <p>Webapp '{ $filename }' successfully installed into the container
+         '{ $container/fn:string(@id) }', in its repository
+         '{ $repo/fn:string(@id) }', within the package directory
+         '{ $app/fn:string(w:pkg-dir) }'.</p>
 };
 
 v:console-page('../', 'web', 'Install webapp', local:page#0)

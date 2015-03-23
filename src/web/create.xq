@@ -13,6 +13,15 @@ declare namespace xdmp = "http://marklogic.com/xdmp";
 
 declare option xdmp:update "true";
 
+(:
+ : TODO: For the validation of the $repo params, use the submit buttons.  There
+ : are 2 different buttons (select and create), so we know in which case we are
+ : (to which case we have to comply...)!
+ :)
+
+(:~
+ : TODO: ...
+ :)
 declare function local:page()
    as element()+
 {
@@ -28,23 +37,45 @@ declare function local:page()
    let $repo-id   := t:optional-field('repo-id', ())
    let $repo-name := t:optional-field('repo-name', ())
    let $repo-root := t:optional-field('repo-root', ())
+   let $dummey    := local:check-repo-params($repo, $repo-id, $repo-name, $repo-root)
    return (
-      (: TODO: Any of those errors MUST prevent going any further...! :)
-      if ( fn:exists($repo) and fn:exists(($repo-id, $repo-name, $repo-root)) ) then
-         <p><b>Error</b>: The param 'repo' is exclusive with 'repo-id', 'repo-name'
-            and 'repo-root'. Values passed resp.: '{ $repo }', '{ $repo-id }',
-            '{ $repo-name }' and '{ $repo-root }'.</p>
-      else if ( fn:empty(($repo, $repo-id, $repo-name, $repo-root)) ) then
-         <p><b>Error</b>: You have to either select an existing repository
-            or to create a new one.</p>
-      else if ( fn:empty($repo) and ( fn:empty($repo-id) or fn:empty($repo-name) or fn:empty($repo-root) ) ) then
-         <p><b>Error</b>: The params 'repo-id', 'repo-name' and 'repo-root'
-            must all be set to create a new repository. Values passed resp.:
-            '{ $repo-id }', '{ $repo-name }' and '{ $repo-root }'.</p>
-      else
-         local:create-container($id, $name, $root, $appserver, $repo, $repo-id, $repo-name, $repo-root),
+      local:create-container($id, $name, $root, $appserver, $repo, $repo-id, $repo-name, $repo-root),
       <p>Back to <a href="../web">web containers</a>.</p>
    )
+};
+
+(:~
+ : Check the 4 repo params from the request are consistent.
+ :)
+declare function local:check-repo-params(
+   $repo      as xs:string?,
+   $repo-id   as xs:string?,
+   $repo-name as xs:string?,
+   $repo-root as xs:string?
+) as empty-sequence()
+{
+   if ( fn:exists($repo) and fn:exists(($repo-id, $repo-name, $repo-root)) ) then
+      local:repo-params-error('The param repo is exclusive with repo-id, repo-name and repo-root.', $repo, $repo-id, $repo-name, $repo-root)
+   else if ( fn:empty(($repo, $repo-id, $repo-name, $repo-root)) ) then
+      local:repo-params-error('You have to either select an existing repository or to create a new one.', $repo, $repo-id, $repo-name, $repo-root)
+   else if ( fn:empty($repo) and ( fn:empty($repo-id) or fn:empty($repo-name) or fn:empty($repo-root) ) ) then
+      local:repo-params-error('The params repo-id, repo-name and repo-root must all be set to create a new repository.', $repo, $repo-id, $repo-name, $repo-root)
+   else
+      ()
+};
+
+declare function local:repo-params-error(
+   $msg       as xs:string,
+   $repo      as xs:string?,
+   $repo-id   as xs:string?,
+   $repo-name as xs:string?,
+   $repo-root as xs:string?
+) as empty-sequence()
+{
+   t:error(
+      'wrong-params',
+      $msg || ' Values passed: repo=' || $repo || ', repo-id=' || $repo-id
+         || ', repo-name=' || $repo-name || ' and repo-root=' || $repo-root || '.')
 };
 
 (:~
@@ -61,20 +92,14 @@ declare function local:create-container(
    $repo-root as xs:string?
 ) as element(h:p)
 {
-   try {
-      let $repo :=
-            if ( fn:exists($repo) ) then
-               cfg:get-repo($repo)
-            else
-               local:create-repo-in-appserver($repo-id, $repo-name, $repo-root, $appserver)
-      let $container := cfg:create-web-container($id, $name, $root, $appserver, $repo)
-      return
-         <p>Web container '{ $name }' has been successfuly created.</p>
-   }
-   (: TODO: Make it generic for c:* errors, they all contain a proper message.:)
-   catch c:repo-exists {
-      <p><b>Error</b>: Error creating the repository '{ $repo-id }', it already exists.</p>
-   }
+   let $repo as element(c:repo) :=
+         if ( fn:exists($repo) ) then
+            cfg:get-repo($repo)
+         else
+            local:create-repo-in-appserver($repo-id, $repo-name, $repo-root, $appserver)
+   let $container := cfg:create-web-container($id, $name, $root, $appserver, $repo)
+   return
+      <p>Web container '{ $name }' has been successfuly created.</p>
 };
 
 (:~
@@ -100,7 +125,9 @@ declare function local:create-repo-in-appserver(
       return
          cfg:create-repo-in-database($id, $name, $root, $db-id, $db/fn:string(a:name))
    else
-      t:error('SETUP002', ('How can I have a WebDAV appserver here?!?: ', xdmp:quote($as)))
+      t:error(
+         'invalid-appserver',
+         'How can I have a WebDAV appserver here?!?: ' || xdmp:quote($as))
 };
 
 v:console-page('../', 'web', 'Web containers', local:page#0)

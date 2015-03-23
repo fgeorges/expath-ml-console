@@ -30,8 +30,6 @@ declare function local:page()
          else
             <table class="sortable">
                <thead>
-                  <td>ID</td>
-                  <td>Name</td>
                   <td>Root</td>
                   <td>Dir</td>
                   <td>Action</td>
@@ -47,12 +45,17 @@ declare function local:page()
          }
          <h4>Install from file</h4>
          <p>Install web applications from your filesystem, using a package
-            file (usually a *.xaw file).</p>
+            file (usually a *.xaw file). The webapp root is the URI path
+            segment used for the root of this webapp (relative to the web
+            container root). It is optional and defaults to the webapp's abbrev
+            from the XAW file.</p>
          <form method="post" action="install-app" enctype="multipart/form-data">
+            <span>Webapp root (optional): </span>
+            <input type="text" name="root" size="25"/>
+            <br/>
             <input type="file" name="xaw"/>
             <input type="submit" value="Install"/>
-            <!--br/><br/>
-            <input type="checkbox" name="override" value="true"/>
+            <!--input type="checkbox" name="override" value="true"/>
             <em>Override the package of it already exists</em-->
             <input type="hidden" name="container" value="{ $id }"/>
          </form>
@@ -62,6 +65,9 @@ declare function local:page()
             or a CXAN ID (one or the other), and optionally a version number
             (retrieve the latest version by default).</p>
          <form method="post" action="../cxan/install" enctype="multipart/form-data">
+            <span>Webapp root (optional): </span>
+            <input type="text" name="root" size="25"/>
+            <br/>
             <span>ID:</span>
             <input type="text" name="id" size="25"/>
             <span>Name:</span>
@@ -78,12 +84,10 @@ declare function local:app-row($app as element(w:application))
    as element(tr)
 {
    <tr>
-      <td>{ $app/fn:string(@id) }</td>
-      <td>{ $app/fn:string(w:name) }</td>
-      <td>{ $app/fn:string(w:root) }</td>
+      <td>{ $app/fn:string(@root) }</td>
       <td>{ $app/fn:string(w:pkg-dir) }</td>
       <td>
-         <a href="delete-app?container={ $app/../@id }&amp;webapp={ $app/fn:string(@id) }">delete</a>
+         <a href="delete-app?container={ $app/../@id }&amp;webapp={ $app/fn:string(@root) }">delete</a>
       </td>
    </tr>
 };

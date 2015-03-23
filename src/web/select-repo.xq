@@ -32,6 +32,7 @@ declare function local:page()
          <p>Select an existing repository to associate to the web container:</p>
          <form method="post" action="create" enctype="multipart/form-data">
             { local:repo-options($appserver) }
+            <br/>
             <input name="select" type="submit" value="Select"/>
             <input type="hidden" name="id" value="{ $id }"/>
             <input type="hidden" name="name" value="{ $name }"/>
@@ -47,7 +48,7 @@ declare function local:page()
             <span>The repo name (any string):</span><br/>
             <input type="text" name="repo-name" size="50"/><br/>
             <span>The repo root (relative to the app server root):</span><br/>
-            <input type="text" name="repo-root" size="50"/><br/><br/>
+            <input type="text" name="repo-root" size="50"/><br/>
             <input name="create" type="submit" value="Create"/>
             <input type="hidden" name="id" value="{ $id }"/>
             <input type="hidden" name="name" value="{ $name }"/>
