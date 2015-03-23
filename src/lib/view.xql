@@ -97,22 +97,21 @@ declare function v:display-xml(
  :
  : TODO: Shouldn't it set the response MIME type and HTTP code?
  :)
-(: TODO: Start by refactoring the view! :)
 declare function v:console-page(
    $root    as xs:string,
    $page    as xs:string,
    $title   as xs:string,
-   $content as function() as element()+
+   $content as function() as element(h:wrapper)
 ) as element(h:html)
 {
-   let $c := v:eval-content($content)
+   let $w := v:eval-content($content)
    return
       v:console-page-static(
          $root,
          $page,
          $title,
-         $c,
-         $c/descendant-or-self::h:pre[fn:starts-with(h:code/@class, 'language-')])
+         $w,
+         $w//h:pre[fn:starts-with(h:code/@class, 'language-')])
 };
 
 (:~
@@ -127,8 +126,8 @@ declare function v:console-page(
  : module, set on the appserver.
  :)
 declare %private function v:eval-content(
-   $content as function() as element()+
-) as element()+
+   $content as function() as element(h:wrapper)
+) as element(h:wrapper)
 {
    try {
       $content()
@@ -149,7 +148,7 @@ declare %private function v:console-page-static(
    $root    as xs:string,
    $page    as xs:string,
    $title   as xs:string,
-   $content as element()+,
+   $content as element(h:wrapper),
    $codes   as element(h:pre)*
 ) as element(h:html)
 {
@@ -180,7 +179,7 @@ declare %private function v:console-page-static(
             <div id="content">
                <h1>{ $title }</h1>
                {
-                  $content
+                  $content/*
                }
             </div>
          </div>
