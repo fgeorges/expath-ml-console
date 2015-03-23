@@ -97,7 +97,6 @@ declare function v:display-xml(
  :
  : TODO: Shouldn't it set the response MIME type and HTTP code?
  :)
-(: TODO: Start by refactoring the view! :)
 declare function v:console-page(
    $root    as xs:string,
    $page    as xs:string,
@@ -111,8 +110,7 @@ declare function v:console-page(
          $root,
          $page,
          $title,
-         $c,
-         $c/descendant-or-self::h:pre[fn:starts-with(h:code/@class, 'language-')])
+         $c)
 };
 
 (:~
@@ -149,16 +147,16 @@ declare %private function v:console-page-static(
    $root    as xs:string,
    $page    as xs:string,
    $title   as xs:string,
-   $content as element()+,
-   $codes   as element(h:pre)*
+   $content as element()+
 ) as element(h:html)
 {
    <html xmlns="http://www.w3.org/1999/xhtml">
       <head>
          <link rel="stylesheet" type="text/css" media="screen" href="{ $root }style/screen.css"/>
          <link rel="shortcut icon" type="image/png" href="{ $root }images/expath-icon.png"/>
-         <!-- TODO: Is there any table on this page...? -->
-         <script src="{ $root }js/sorttable.js"/>
+         {
+            v:add-header-extra($root, $content)
+         }
          <title>{ $title }</title>
       </head>
       <body>
@@ -185,23 +183,58 @@ declare %private function v:console-page-static(
             </div>
          </div>
          {
-            if ( fn:exists($codes) ) then (
-               <script src="{ $root }js/ace/ace.js" type="text/javascript" charset="utf-8"/>,
-               for $c at $pos in $codes
-               let $var  := 'ace_editor_' || $pos
-               let $id   := xs:string($c/@id)
-               let $lang := fn:substring-after($c/h:code/@class, 'language-')
-               return
-                  <script>
-                      var { $var } = ace.edit("{ $id }");
-                      { $var }.setReadOnly(true);
-                      { $var }.setTheme("ace/theme/clouds");
-                      { $var }.getSession().setMode("ace/mode/{ $lang }");
-                  </script>
-            )
-            else
-               ()
+            v:add-footer-extra($root, $content)
          }
       </body>
    </html>
+};
+
+(:~
+ : Inject extra elements in the head, to support sorttable.
+ :
+ : TODO: Add specific CSS for jQuery File Upload?
+ :)
+declare %private function v:add-header-extra(
+   $root    as xs:string,
+   $content as element()+
+) as element(h:script)*
+{
+   (: TODO: The test "@class eq '...'" is not perfect, as a class attribute
+      can contain several classes, but for now it is OK, as all usages in
+      the code base use exactly class="sortable". :)
+   if ( fn:exists($content/descendant-or-self::h:table[@class eq 'sortable']) ) then
+      <script src="{ $root }js/sorttable.js" xmlns="http://www.w3.org/1999/xhtml"/>
+   else
+      ()
+};
+
+(:~
+ : Inject extra elements at the end of the body.
+ :
+ : The extra elements are to support ACE code editors.
+ :)
+declare %private function v:add-footer-extra(
+   $root    as xs:string,
+   $content as element()+
+) as element(h:script)*
+{
+   let $codes := $content/descendant-or-self::h:pre[fn:starts-with(h:code/@class, 'language-')]
+   return
+      if ( fn:exists($codes) ) then (
+         <script src="{ $root }js/ace/ace.js" type="text/javascript" charset="utf-8"
+                 xmlns="http://www.w3.org/1999/xhtml"/>,
+         for $c at $pos in $codes
+         let $var  := 'ace_editor_' || $pos
+         let $id   := xs:string($c/@id)
+         let $lang := fn:substring-after($c/h:code/@class, 'language-')
+         return
+            <script xmlns="http://www.w3.org/1999/xhtml">
+                var { $var } = ace.edit("{ $id }");
+                { $var }.setReadOnly(true);
+                { $var }.setTheme("ace/theme/clouds");
+                { $var }.getSession().setMode("ace/mode/{ $lang }");
+            </script>
+      )
+      else (
+      )
 };
