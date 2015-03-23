@@ -97,6 +97,7 @@ declare function v:display-xml(
  :
  : TODO: Shouldn't it set the response MIME type and HTTP code?
  :)
+(: TODO: Start by refactoring the view! :)
 declare function v:console-page(
    $root    as xs:string,
    $page    as xs:string,
