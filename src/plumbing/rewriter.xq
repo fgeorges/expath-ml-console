@@ -30,6 +30,10 @@ declare variable $matches :=
       <match match="^/tools/config$"         replace="/tools/config.xq"/>
       <match match="^/tools/delete$"         replace="/tools/delete.xq"/>
       <match match="^/tools/docs$"           replace="/tools/docs.xq"/>
+      <match match="^/tools/doc-upload$"     replace="/tools/doc-upload.xq"/>
+
+      <match match="^/tools/doc-upload.sjs$"                                           replace="/tools/doc-upload.sjs"/>
+
       <match match="^/tools/insert$"         replace="/tools/insert.xq"/>
       <match match="^/tools/browse-db$"      replace="/tools/browse-db.xq"/>
       <match match="^/web$"                  replace="/web.xq"/>
