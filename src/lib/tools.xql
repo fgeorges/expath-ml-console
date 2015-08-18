@@ -100,7 +100,7 @@ declare function t:make-string($str as xs:string, $n as xs:integer)
    as xs:string?
 {
    if ( $n gt 0 ) then
-      $str || local:make-str($str, $n - 1)
+      $str || t:make-string($str, $n - 1)
    else
       ()
 };
