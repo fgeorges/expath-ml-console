@@ -18,7 +18,7 @@ declare variable $path := local:get-param-path();
  : The page, in case the DB does not exist.
  :)
 declare function local:get-param-path()
-   as xs:string
+   as xs:string?
 {
    let $path := t:optional-field('path', ())[.]
    return
@@ -136,7 +136,13 @@ declare function local:page--doc()
    </table>,
 
    <h4>Content</h4>,
-   v:edit-xml(fn:doc($path)/*),
+   let $doc := fn:doc($path)/*
+   let $id  := fn:generate-id($doc)
+   let $up  := t:make-string('../', fn:count(fn:tokenize($path, '/')))
+   return (
+      v:edit-xml($doc, $id, $path, $up || 'save-doc'),
+      <button onclick='saveDoc("{ $id }");'>Save</button>
+   ),
 
    <h4>Properties</h4>,
    let $props := xdmp:document-properties($path)

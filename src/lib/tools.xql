@@ -91,6 +91,20 @@ declare function t:remove-child($parent as element(), $child as element())
       }
 };
 
+(: ==== String tools ======================================================== :)
+
+(:~
+ : Build a string by repeating `$str`, `$n` times.
+ :)
+declare function t:make-string($str as xs:string, $n as xs:integer)
+   as xs:string?
+{
+   if ( $n gt 0 ) then
+      $str || local:make-str($str, $n - 1)
+   else
+      ()
+};
+
 (: ==== File and URI tools ======================================================== :)
 
 (:~

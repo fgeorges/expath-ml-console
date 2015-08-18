@@ -71,31 +71,40 @@ declare variable $serial-options :=
  : $elem: the element to serialize and display in a `pre` (with syntax highlighted)
  :)
 declare function v:display-xml(
-   $elem as element()?
+   $elem as element()
 ) as element(h:pre)
 {
-   v:ace-editor-xml($elem, 'code', ())
+   v:ace-editor-xml($elem, 'code', (), (), (), ())
 };
 
 (:~
  : Format a `pre` element containing some XML, and turn it into an editor.
  :
  : $elem: the element to serialize and display in the editor
+ : $uri: the URI (in the database) of the document being edited
+ : $endpoint: the endpoint on MarkLogic to save the document (must accept POST
+ :     requests, with a field "uri" for the doc URI and "doc" for the content)
  :)
 declare function v:edit-xml(
-   $elem as element()?
+   $elem     as element(),
+   $id       as xs:string,
+   $uri      as xs:string,
+   $endpoint as xs:string
 ) as element(h:pre)
 {
-   v:ace-editor-xml($elem, 'editor', '250pt')
+   v:ace-editor-xml($elem, 'editor', $id, $uri, $endpoint, '250pt')
 };
 
 (:~
  : Common implementation of `v:display-xml()` and `v:edit-xml()`.
  :)
 declare %private function v:ace-editor-xml(
-   $elem   as element()?,
-   $class  as xs:string,
-   $height as xs:string
+   $elem     as element(),
+   $class    as xs:string,
+   $id       as xs:string?,
+   $uri      as xs:string?,
+   $endpoint as xs:string?,
+   $height   as xs:string?
 ) as element(h:pre)
 {
    let $serialized := xdmp:quote($elem, $serial-options)
@@ -107,7 +116,10 @@ declare %private function v:ace-editor-xml(
            ace-theme="ace/theme/pastel_on_dark"
            ace-gutter="true">
       {
-         attribute { 'style' } { 'height: ' || $height }[fn:exists($height)],
+         attribute { 'id'           } { $id }[fn:exists($id)],
+         attribute { 'ace-uri'      } { $uri }[fn:exists($uri)],
+         attribute { 'ace-endpoint' } { $endpoint }[fn:exists($endpoint)],
+         attribute { 'style'        } { 'height: ' || $height }[fn:exists($height)],
          $serialized
       }
       </pre>
@@ -213,14 +225,19 @@ declare %private function v:console-page-static(
          </div>
          {
             if ( $codes ) then (
+               <script src="{ $root }js/jquery.js"  type="text/javascript"/>,
                <script src="{ $root }js/ace/ace.js" type="text/javascript" charset="utf-8"/>,
                <script src="{ $root }js/ace/ext-static_highlight.js" type="text/javascript"/>,
                <script type="text/javascript">
+
                   var high = ace.require("ace/ext/static_highlight");
                   var dom = ace.require("ace/lib/dom");
+
+                  // TODO: Replace by jQuery?
                   function qsa(sel) {{
                      return Array.apply(null, document.querySelectorAll(sel));
                   }}
+
                   qsa(".code").forEach(function (code) {{
                      high(
                         code,
@@ -234,15 +251,48 @@ declare %private function v:console-page-static(
                         function (highlighted) {{
                         }});
                   }});
+
+                  // contains all editors on the page, by ID
+                  var editors = {{}};
+
                   qsa(".editor").forEach(function (edElm) {{
-                     var editor = ace.edit(edElm);
-                     var theme  = edElm.getAttribute("ace-theme");
-                     var mode   = edElm.getAttribute("ace-mode");
-                     var gutter = edElm.getAttribute("ace-gutter");
-                     editor.setTheme(theme);
-                     editor.getSession().setMode(mode);
-                     editor.showGutter(gutter);
+                     var e = {{}};
+                     e.id       = edElm.getAttribute("id");
+                     e.uri      = edElm.getAttribute("ace-uri");
+                     e.endpoint = edElm.getAttribute("ace-endpoint");
+                     e.theme    = edElm.getAttribute("ace-theme");
+                     e.mode     = edElm.getAttribute("ace-mode");
+                     e.editor   = ace.edit(edElm);
+                     e.editor.setTheme(e.theme);
+                     e.editor.getSession().setMode(e.mode);
+                     editors[e.id] = e;
                   }});
+
+                  function saveDoc(id)
+                  {{
+                     // get the ACE doc
+                     var info = editors[id];
+                     var session = info.editor.getSession();
+                     var doc = session.getDocument();
+                     // the request content
+                     var fd = new FormData();
+                     fd.append("doc", doc.getValue());
+                     fd.append("uri", info.uri);
+                     // the request itself
+                     $.ajax({{
+                        url: info.endpoint,
+                        method: "POST",
+                        data: fd,
+                        dataType: "text",
+                        processData: false,
+                        contentType: false,
+                        success: function(data) {{
+                           alert("Success: " + data);
+                        }},
+                        error: function(xhr, status, error) {{
+                           alert("Error: " + status + " (" + error + ")\n\nSee logs for details.");
+                        }}}});
+                  }};
                </script>
             )
             else
