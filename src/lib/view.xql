@@ -74,14 +74,40 @@ declare function v:display-xml(
    $elem as element()?
 ) as element(h:pre)
 {
+   v:ace-editor-xml($elem, 'code', ())
+};
+
+(:~
+ : Format a `pre` element containing some XML, and turn it into an editor.
+ :
+ : $elem: the element to serialize and display in the editor
+ :)
+declare function v:edit-xml(
+   $elem as element()?
+) as element(h:pre)
+{
+   v:ace-editor-xml($elem, 'editor', '250pt')
+};
+
+(:~
+ : Common implementation of `v:display-xml()` and `v:edit-xml()`.
+ :)
+declare %private function v:ace-editor-xml(
+   $elem   as element()?,
+   $class  as xs:string,
+   $height as xs:string
+) as element(h:pre)
+{
    let $serialized := xdmp:quote($elem, $serial-options)
    let $lines      := fn:count(fn:tokenize($serialized, '&#10;'))
    return
       <pre xmlns="http://www.w3.org/1999/xhtml"
-           class="code"
+           class="{ $class }"
            ace-mode="ace/mode/xml"
-           ace-theme="ace/theme/clouds"
-           ace-gutter="true"> {
+           ace-theme="ace/theme/pastel_on_dark"
+           ace-gutter="true">
+      {
+         attribute { 'style' } { 'height: ' || $height }[fn:exists($height)],
          $serialized
       }
       </pre>
@@ -106,7 +132,7 @@ declare function v:console-page(
 {
    let $c     := v:eval-content($content)
    let $pres  := $c/descendant-or-self::h:pre
-   let $codes := $pres[fn:tokenize(@class, '\s+') = 'code']
+   let $codes := $pres[fn:tokenize(@class, '\s+') = ('code', 'editor')]
    return
       v:console-page-static(
          $root,
@@ -207,6 +233,15 @@ declare %private function v:console-page-static(
                         }},
                         function (highlighted) {{
                         }});
+                  }});
+                  qsa(".editor").forEach(function (edElm) {{
+                     var editor = ace.edit(edElm);
+                     var theme  = edElm.getAttribute("ace-theme");
+                     var mode   = edElm.getAttribute("ace-mode");
+                     var gutter = edElm.getAttribute("ace-gutter");
+                     editor.setTheme(theme);
+                     editor.getSession().setMode(mode);
+                     editor.showGutter(gutter);
                   }});
                </script>
             )

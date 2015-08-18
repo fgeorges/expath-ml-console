@@ -114,7 +114,7 @@ declare function local:page--doc()
       </thead>
       <tbody>
          <tr>
-            <td>URI</td>
+            <td>Document URI</td>
             <td>{ $path }</td>
          </tr>
          <tr>
@@ -136,7 +136,7 @@ declare function local:page--doc()
    </table>,
 
    <h4>Content</h4>,
-   v:display-xml(fn:doc($path)/*),
+   v:edit-xml(fn:doc($path)/*),
 
    <h4>Properties</h4>,
    let $props := xdmp:document-properties($path)
@@ -146,7 +146,7 @@ declare function local:page--doc()
       else
          <p>This document does not have any property.</p>,
 
-   <h4>Permissions:</h4>,
+   <h4>Permissions</h4>,
    let $perms := xdmp:document-get-permissions($path)
    return
       if ( fn:exists($perms) ) then
