@@ -52,24 +52,27 @@ declare function local:page--init-path($init as xs:string)
 
 (:~
  : The page content, in case of an empty path.
+ : 
+ : TODO: Displays only "/" and "http://*/" for now.  Find anything else that
+ : ends with a "/" as well.  Maybe even "urn:*:" URIs?
  :)
 declare function local:page--empty-path($id as xs:unsignedLong)
    as element()+
 {
+   <p>Go up to <a href="../../tools">tools</a>.</p>,
    <p>Choose the root to navigate:</p>,
    <ul> {
-      for $a in
-            a:eval-on-database(
-               $id,
-               'declare variable $fun  external;
-                <a href="browse/">/</a>[fn:exists($fun("/", 1))],
-                $fun("http://", 1) ! <a href="browse/{ . }">{ . }</a>',
-               (fn:QName('', 'fun'),  local:get-children#2))
-      return
-         <li>{ $a }</li>
+      a:eval-on-database(
+         $id,
+         'declare variable $fun  external;
+          <li>
+             <a href="browse/">/</a>
+             (quite short link, innit?, <a href="browse/">click here to go to /</a>)
+          </li>[fn:exists($fun("/", 1))],
+          $fun("http://", 1) ! <li><a href="browse/{ . }">{ . }</a></li>',
+         (fn:QName('', 'fun'),  local:get-children#2))
    }
-   </ul>,
-   <p>Go up to <a href="../../tools">tools</a>.</p>
+   </ul>
 };
 
 (:~
@@ -78,17 +81,21 @@ declare function local:page--empty-path($id as xs:unsignedLong)
 declare function local:page--root($id as xs:unsignedLong, $up as xs:string)
    as element()+
 {
-   local:display-list($id, $path, fn:false()),
-   <p>Go up to the <a href="{ $up }">browse page</a>.</p>
+   <p>Go up to the <a href="{ $up }">browse page</a>.</p>,
+   local:display-list($id, $path)
 };
 
 (:~
  : The page content, in case of displaying a (non-root) dir.
+ : 
+ : TODO: Display whether the directory exists per se in MarkLogic (and its
+ : properties if it has any, etc.)
  :)
 declare function local:page--dir($id as xs:unsignedLong)
    as element()+
 {
-   local:display-list($id, $path, fn:true())
+   local:up-to-browse($path),
+   local:display-list($id, $path)
 };
 
 (:~
@@ -97,15 +104,8 @@ declare function local:page--dir($id as xs:unsignedLong)
 declare function local:page--doc()
    as element()+
 {
-   <p><b>TODO</b>: Editing document not supported yet...</p>,
-   <p>Go up to the parent directory: {
-      let $toks := fn:tokenize($path, '/')
-      return (
-         fn:string-join($toks[fn:position() lt fn:last() - 1], '/') || '/',
-         <a href=".">{ $toks[fn:last() -1 ] }</a>,
-         '/'
-      )
-   }.</p>,
+   local:up-to-browse($path),
+   <p>In directory { local:uplinks($path, fn:false()) }.</p>,
 
    <table class="sortable">
       <thead>
@@ -136,9 +136,10 @@ declare function local:page--doc()
    </table>,
 
    <h4>Content</h4>,
-   let $doc := fn:doc($path)/*
-   let $id  := fn:generate-id($doc)
-   let $up  := t:make-string('../', fn:count(fn:tokenize($path, '/')))
+   let $doc   := fn:doc($path)/*
+   let $id    := fn:generate-id($doc)
+   let $count := fn:count(fn:tokenize($path, '/')) - (1[fn:starts-with($path, '/')], 0)[1]
+   let $up    := t:make-string('../', $count)
    return (
       v:edit-xml($doc, $id, $path, $up || 'save-doc'),
       <button onclick='saveDoc("{ $id }");'>Save</button>
@@ -235,15 +236,13 @@ declare function local:get-children(
  : should be a problem with large databases, with a shit loads of documents.
  : TODO: The details of how to retrieve the children must be in lib/admin.xql.
  :)
-declare function local:display-list($db as xs:unsignedLong, $path as xs:string, $parent as xs:boolean)
+declare function local:display-list($db as xs:unsignedLong, $path as xs:string)
    as element()+
 {
-   <p>Content of "{ $path }".</p>,
+   (: display $path, with each part being a link :)
+   <p>Content of { local:uplinks($path, fn:true()) }:</p>,
+   (: display the list of children themselves :)
    <ul> {
-      if ( $parent ) then
-         <li><a href="../">..</a>/</li>
-      else
-         (),
       for $p in 
             a:eval-on-database(
                $db,
@@ -258,13 +257,11 @@ declare function local:display-list($db as xs:unsignedLong, $path as xs:string, 
             )
             (: subdir :)
             else if ( fn:ends-with($p, '/') ) then (
-               $path,
                fn:tokenize($p, '/')[fn:last() - 1] ! <a href="{ . }/">{ . }</a>,
                '/'
             )
             (: file children :)
             else (
-               $path,
                fn:tokenize($p, '/')[fn:last()] ! <a href="{ . }">{ . }</a>
             )
       order by $p
@@ -275,6 +272,81 @@ declare function local:display-list($db as xs:unsignedLong, $path as xs:string, 
             ()
    }
    </ul>
+};
+
+(:~
+ : The "Go up to the browse page" link.  From a dir or file, "/" or "http://".
+ :)
+declare function local:up-to-browse($path as xs:string)
+   as element(h:p)
+{
+   let $toks  := fn:tokenize($path, '/')
+   let $count := fn:count($toks) - (1[fn:starts-with($path, '/')], 0)[1]
+   return
+      <p>Go up to the <a href="{ t:make-string('../', $count) }browse">browse page</a>.</p>
+};
+
+(:~
+ : Display the current directory, with each part being a link up to it.
+ : 
+ : Display the current directory (the parent directory when displaying a file).
+ : Each part of the directory is clickable to go up to it in the browser (when
+ : displaying a directory, the last part is not clickable, as it is the current
+ : dir).
+ :
+ : The path is within quotes `"`, and contains appropriate text after (and a
+ : link up to "/" when the path starts with "/", as it is not convenient to
+ : click on such a short text).
+ :)
+declare function local:uplinks($path as xs:string, $isdir as xs:boolean)
+   as node()+
+{
+   (: The 3 cases must be handled in slightly different ways, because "go up to root"
+      is not necessary with "http" URIs (just click on the domain name part), while
+      it is necessary for "/" URIs (clicking on the "/" is just no an option).
+      TODO: Find a better way than the "go to /" link.  Maybe a button? :)
+   if ( $path eq '/' ) then (
+      text { '"/"' }
+   )
+   else if ( fn:starts-with($path, '/') ) then (
+      let $toks := fn:tokenize($path, '/')[.]
+      return (
+         text { '"/' },
+         local:uplinks-1($toks[fn:position() lt fn:last()], ('../'[$isdir], './')[1]),
+         text { $toks[fn:last()] || '/' }[$isdir],
+         text { '" (' },
+         <a href="{ t:make-string('../', fn:count($toks) - (0[$isdir], 1)[1]) }">go to /</a>,
+         text { ', or click on a part to travel up the directories' }[fn:exists($toks[2])],
+         text { ')' }
+      )
+   )
+   else if ( fn:starts-with($path, 'http://') ) then (
+      let $toks := fn:remove(fn:tokenize($path, '/')[.], 1)
+      return (
+         text { '"http://' },
+         local:uplinks-1($toks[fn:position() lt fn:last()], ('../'[$isdir], './')[1]),
+         text { $toks[fn:last()] || '/' }[$isdir],
+         text { '"' },
+         text { ' (click on a part to travel up the directories)' }[fn:exists($toks[2])]
+      )
+   )
+   else (
+      text { '(' },
+      <a href="../">go up</a>,
+      text { ') "' || $path || '"' }
+   )
+};
+
+declare function local:uplinks-1($toks as xs:string*, $up as xs:string?)
+   as node()*
+{
+   if ( fn:empty($toks) ) then (
+   )
+   else (
+      local:uplinks-1($toks[fn:position() lt fn:last()], '../' || $up),
+      <a href="{ $up }">{ $toks[fn:last()] }</a>,
+      text { '/' }
+   )
 };
 
 (:
