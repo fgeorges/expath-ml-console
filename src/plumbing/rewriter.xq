@@ -4,7 +4,6 @@ declare namespace xdmp = "http://marklogic.com/xdmp";
 
 declare variable $matches :=
    <matches>
-      <error match=".xq$"                    message="Not allowed to invoke modules directly"/>
       <match match="^/$"                     replace="/home.xq"/>
       <match match="^/appserver/([0-9]+)$"   replace="/appserver.xq?id=$1"/>
       <match match="^/appserver/([0-9]+)/init-repo$"          replace="/appserver/init-repo.xq?id=$1"/>
@@ -41,6 +40,7 @@ declare variable $matches :=
       <match match="^/web/show$"             replace="/web/show.xq"/>
       <match match="^/xproject$"             replace="/xproject.xq"/>
       <match match="^/xspec$"                replace="/xspec.xq"/>
+      <error match=".xq$"                    message="Not allowed to invoke modules directly"/>
    </matches>;
 
 declare function local:replace($url as xs:string, $matches as element()*)
