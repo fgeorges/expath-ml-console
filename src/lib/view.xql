@@ -69,21 +69,21 @@ declare variable $serial-options :=
  : Format a `pre` element containing some XML.
  :
  : $elem: the element to serialize and display in a `pre` (with syntax highlighted)
- : $id: a unique ID to be used on the `pre` element
  :)
 declare function v:display-xml(
-   $elem as element()?,
-   $id   as xs:string
+   $elem as element()?
 ) as element(h:pre)
 {
    let $serialized := xdmp:quote($elem, $serial-options)
    let $lines      := fn:count(fn:tokenize($serialized, '&#10;'))
    return
-      <pre id="{ $id }" style="height: { $lines * 12 - 4 }pt" xmlns="http://www.w3.org/1999/xhtml">
-         <code class="language-xml"> {
-            $serialized
-         }
-         </code>
+      <pre xmlns="http://www.w3.org/1999/xhtml"
+           class="code"
+           ace-mode="ace/mode/xml"
+           ace-theme="ace/theme/clouds"
+           ace-gutter="true"> {
+         $serialized
+      }
       </pre>
 };
 
@@ -104,14 +104,16 @@ declare function v:console-page(
    $content as function() as element()+
 ) as element(h:html)
 {
-   let $c := v:eval-content($content)
+   let $c     := v:eval-content($content)
+   let $pres  := $c/descendant-or-self::h:pre
+   let $codes := $pres[fn:tokenize(@class, '\s+') = 'code']
    return
       v:console-page-static(
          $root,
          $page,
          $title,
          $c,
-         $c/descendant-or-self::h:pre[fn:starts-with(h:code/@class, 'language-')])
+         fn:exists($codes))
 };
 
 (:~
@@ -137,7 +139,7 @@ declare %private function v:eval-content(
    }
    catch * {
       <p><b>SYSTEM ERROR</b> (please report this to the mailing list): { $err:description }</p>,
-      v:display-xml($err:additional, 'error')
+      v:display-xml($err:additional)
    }
 };
 
@@ -149,7 +151,7 @@ declare %private function v:console-page-static(
    $page    as xs:string,
    $title   as xs:string,
    $content as element()+,
-   $codes   as element(h:pre)*
+   $codes   as xs:boolean
 ) as element(h:html)
 {
    <html xmlns="http://www.w3.org/1999/xhtml">
@@ -184,19 +186,29 @@ declare %private function v:console-page-static(
             </div>
          </div>
          {
-            if ( fn:exists($codes) ) then (
+            if ( $codes ) then (
                <script src="{ $root }js/ace/ace.js" type="text/javascript" charset="utf-8"/>,
-               for $c at $pos in $codes
-               let $var  := 'ace_editor_' || $pos
-               let $id   := xs:string($c/@id)
-               let $lang := fn:substring-after($c/h:code/@class, 'language-')
-               return
-                  <script>
-                      var { $var } = ace.edit("{ $id }");
-                      { $var }.setReadOnly(true);
-                      { $var }.setTheme("ace/theme/clouds");
-                      { $var }.getSession().setMode("ace/mode/{ $lang }");
-                  </script>
+               <script src="{ $root }js/ace/ext-static_highlight.js" type="text/javascript"/>,
+               <script type="text/javascript">
+                  var high = ace.require("ace/ext/static_highlight");
+                  var dom = ace.require("ace/lib/dom");
+                  function qsa(sel) {{
+                     return Array.apply(null, document.querySelectorAll(sel));
+                  }}
+                  qsa(".code").forEach(function (code) {{
+                     high(
+                        code,
+                        {{
+                           mode: code.getAttribute("ace-mode"),
+                           theme: code.getAttribute("ace-theme"),
+                           startLineNumber: 1,
+                           showGutter: code.getAttribute("ace-gutter"),
+                           trim: false
+                        }},
+                        function (highlighted) {{
+                        }});
+                  }});
+               </script>
             )
             else
                ()

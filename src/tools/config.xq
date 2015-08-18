@@ -26,12 +26,12 @@ declare function local:page()
       <p>The existing App Servers in this MarkLogic Server instance, as
          returned by the admin.xql library (and as used and manipulated all
          around the code of the Console):</p>
-      { v:display-xml(a:get-appservers(), 'asxml') }
+      { v:display-xml(a:get-appservers()) }
       <h4>Databases</h4>
       <p>The existing databases in this MarkLogic Server instance, as returned
          by the admin.xql library (and as used and manipulated all around the
          code of the Console):</p>
-      { v:display-xml(a:get-databases(), 'dbxml') }
+      { v:display-xml(a:get-databases()) }
    </wrapper>/*
 };
 
