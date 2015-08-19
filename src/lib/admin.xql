@@ -27,15 +27,48 @@ declare variable $attic-path := '.expath-pkg/attic/';
 (: ==== Database tools ======================================================== :)
 
 (:~
+ : Return a database ID.
+ :
+ : If `$db` is an xs:unsignedLong, it is returned as is.  If it is an a:database
+ : element, its `@id` is returned.  Any other type of input is an error.
+ :)
+declare function a:database-id($db as item()) as xs:unsignedLong
+{
+   if ( $db instance of element(a:database) ) then
+      xs:unsignedLong($db/@id)
+   else if ( $db castable as xs:unsignedLong ) then
+      xs:unsignedLong($db)
+   else
+      t:error('not-db', 'The parameter is neither a database ID nor a database element.', $db)
+};
+
+(:~
+ : Eval the query on the given database, with the given parameters.
+ :)
+declare function a:eval-on-database(
+   $db     as item(),
+   $query  as xs:string,
+   $params as item()*
+) as item()*
+{
+   xdmp:eval(
+      $query,
+      $params,
+      <options xmlns="xdmp:eval">
+         <database>{ a:database-id($db) }</database>
+      </options>)
+};
+
+(:~
  : Check whether `$doc` is available on the database `$db`.
  :)
 declare function a:exists-on-database(
-   $db  as xs:unsignedLong,
+   $db  as item(),
    $doc as xs:string
 ) as xs:boolean
 {
    a:eval-on-database(
-      $db,
+      a:database-id($db),
       'declare variable $doc external;
        fn:doc-available($doc)',
       (xs:QName('doc'), $doc))
@@ -47,12 +80,12 @@ declare function a:exists-on-database(
  : The URI of the document is the absolute URI `$uri`.
  :)
 declare function a:get-from-database(
-   $db  as xs:unsignedLong,
+   $db  as item(),
    $uri as xs:string
 ) as node()?
 {
    a:eval-on-database(
-      $db,
+      a:database-id($db),
       'declare variable $uri external;
        fn:doc($uri)',
       (xs:QName('uri'), $uri))
@@ -65,7 +98,7 @@ declare function a:get-from-database(
  : absolute URI `$root` (which must end with a '/').
  :)
 declare function a:get-from-database(
-   $db   as xs:unsignedLong,
+   $db   as item(),
    $root as xs:string,
    $file as xs:string
 ) as node()?
@@ -83,13 +116,13 @@ declare function a:get-from-database(
  : The solution is to ensure all parents exist or create them.
  :)
 declare function a:insert-into-database(
-   $db-id as xs:unsignedLong,
-   $uri   as xs:string,
-   $doc   as node()
+   $db  as item(),
+   $uri as xs:string,
+   $doc as node()
 ) as xs:string
 {
    a:eval-on-database(
-      $db-id,
+      $db,
       'declare namespace xdmp = "http://marklogic.com/xdmp";
        declare variable $uri external;
        declare variable $doc external;
@@ -103,7 +136,7 @@ declare function a:insert-into-database(
  : The return value is the URI of the directory inserted.
  :)
 declare function a:load-dir-into-database(
-   $db-id   as xs:unsignedLong,
+   $db      as item(),
    $uri     as xs:string,
    $path    as xs:string,
    $include as xs:string?,
@@ -111,7 +144,7 @@ declare function a:load-dir-into-database(
 ) as xs:string
 {
    a:eval-on-database(
-      $db-id,
+      $db,
       'declare namespace dir  = "http://marklogic.com/xdmp/directory";
        declare namespace xdmp = "http://marklogic.com/xdmp";
        declare variable $uri     external;
@@ -152,13 +185,13 @@ declare function a:load-dir-into-database(
  : The return value is the URI of the directory inserted.
  :)
 declare function a:load-zipdir-into-database(
-   $db-id  as xs:unsignedLong,
+   $db     as item(),
    $uri    as xs:string,
    $zip (: as binary() :)
 ) as xs:string
 {
    a:eval-on-database(
-      $db-id,
+      $db,
       'declare namespace xdmp = "http://marklogic.com/xdmp";
        declare namespace zip  = "xdmp:zip";
        declare variable $uri external;
@@ -179,42 +212,13 @@ declare function a:load-zipdir-into-database(
       (xs:QName('uri'), $uri, xs:QName('zip'), $zip))
 };
 
-declare function a:eval-on-database(
-   $db     as item(),
-   $query  as xs:string,
-   $params as item()*
-) as item()*
-{
-   xdmp:eval(
-      $query,
-      $params,
-      <options xmlns="xdmp:eval">
-         <database>{ a:database-id($db) }</database>
-      </options>)
-};
-
-(:~
- : Return a database ID.
- :
- : If `$db` is an xs:unsignedLong, it is returned as is.  If it is an a:database
- : element, its `@id` is returned.  Any other type of input is an error.
- :)
-declare function a:database-id($db as item()) as xs:unsignedLong
-{
-   typeswitch ( $db )
-      case xs:unsignedLong     return $db
-      case element(a:database) return xs:unsignedLong($db/@id)
-      default return
-         t:error('not-db', 'The parameter is neither a database ID nor a database element.', $db)
-};
-
 (:~
  : Remove a document on a database.
  :)
-declare function a:remove-doc($db-id as xs:unsignedLong, $uri as xs:string)
+declare function a:remove-doc($db as item(), $uri as xs:string)
 {
    a:eval-on-database(
-      $db-id,
+      $db,
       'declare namespace xdmp = "http://marklogic.com/xdmp";
        declare variable $uri external;
        xdmp:document-delete($uri)',
@@ -231,11 +235,11 @@ declare function a:remove-doc($db-id as xs:unsignedLong, $uri as xs:string)
  : the documents.  Is it possible to remove directories as well? (with their
  : property document, everything...)
  :)
-declare function a:remove-directory($db-id as xs:unsignedLong, $dir as xs:string)
+declare function a:remove-directory($db as item(), $dir as xs:string)
 {
    if ( fn:ends-with($dir, '/') ) then
       a:eval-on-database(
-         $db-id,
+         $db,
          'declare namespace xdmp = "http://marklogic.com/xdmp";
           declare variable $dir external;
           xdmp:directory($dir, "infinity")/xdmp:document-delete(fn:document-uri(.))',
@@ -250,12 +254,12 @@ declare function a:remove-directory($db-id as xs:unsignedLong, $dir as xs:string
  : TODO: Add the flag to the element `a:database`, as it is used somewhere in
  : the application?
  :)
-declare function a:database-dir-creation($db as element(a:database))
+declare function a:database-dir-creation($db as item())
    as xs:string
 {
    admin:database-get-directory-creation(
       admin:get-configuration(),
-      $db/@id)
+      a:database-id($db))
 };
 
 (: ==== File system tools ======================================================== :)
@@ -852,7 +856,7 @@ declare function a:appserver-nuke-repo(
 
 declare %private function a:appserver-nuke-repo-db(
    $as  as element(a:appserver),
-   $db  as xs:unsignedLong,
+   $db  as item(),
    $dir as xs:string
 ) as empty-sequence()
 {
@@ -1117,7 +1121,7 @@ declare function a:appserver-delete-package(
 
 declare %private function a:appserver-delete-package-db(
    $as     as element(a:appserver),
-   $db     as xs:unsignedLong,
+   $db     as item(),
    $dir    as xs:string,
    $pkgdir as xs:string
 ) as empty-sequence()
