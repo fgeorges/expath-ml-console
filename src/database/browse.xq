@@ -11,6 +11,7 @@ declare namespace c    = "http://expath.org/ns/ml/console";
 declare namespace err  = "http://www.w3.org/2005/xqt-errors";
 declare namespace cts  = "http://marklogic.com/cts";
 declare namespace xdmp = "http://marklogic.com/xdmp";
+declare namespace map  = "http://marklogic.com/xdmp/map";
 
 declare variable $path := local:get-param-path();
 
@@ -31,10 +32,10 @@ declare function local:get-param-path()
 (:~
  : The page content, in case the DB does not exist.
  :)
-declare function local:page--no-db($id-str as xs:string)
+declare function local:page--no-db($id as xs:unsignedLong)
    as element(h:p)
 {
-   <p><b>Error</b>: The database "<code>{ $id-str }</code>" does not exist.</p>
+   <p><b>Error</b>: The database "<code>{ $id }</code>" does not exist.</p>
 };
 
 (:~
@@ -56,33 +57,40 @@ declare function local:page--init-path($init as xs:string)
  : TODO: Displays only "/" and "http://*/" for now.  Find anything else that
  : ends with a "/" as well.  Maybe even "urn:*:" URIs?
  :)
-declare function local:page--empty-path($id as xs:unsignedLong)
+declare function local:page--empty-path($db as xs:string)
    as element()+
 {
-   <p>Go up to <a href="../../tools">tools</a>.</p>,
-   <p>Choose the root to navigate:</p>,
-   <ul> {
-      a:eval-on-database(
-         $id,
-         'declare variable $fun  external;
-          <li>
-             <a href="browse/">/</a>
-             (quite short link, innit?, <a href="browse/">click here to go to /</a>)
-          </li>[fn:exists($fun("/", 1))],
-          $fun("http://", 1) ! <li><a href="browse/{ . }">{ . }</a></li>',
-         (fn:QName('', 'fun'),  local:get-children#2))
-   }
-   </ul>
+   <p>Database: "{ $db }".  Go up to <a href="../../tools">tools</a>.</p>,
+   let $items := (
+         <li>
+            <a href="browse/">/</a>
+            (quite short link, innit?, <a href="browse/">click here to go to /</a>)
+         </li>[fn:exists(local:get-children("/", 1))],
+         local:get-children("http://", 1) ! <li>http://<a href="browse/{ . }"> {
+            fn:substring(., 8, fn:string-length(.) - 8)
+         }</a>/</li>
+      )
+   return
+      if ( fn:exists($items) ) then (
+         <p>Choose the root to navigate:</p>,
+         <ul> {
+            $items
+         }
+         </ul>
+      )
+      else (
+         <p>The database is empty.</p>
+      )
 };
 
 (:~
  : The page content, in case of displaying a root dir (like '/' or 'http://example.org/'.)
  :)
-declare function local:page--root($id as xs:unsignedLong, $up as xs:string)
+declare function local:page--root($db as xs:string, $up as xs:string)
    as element()+
 {
-   <p>Go up to the <a href="{ $up }">browse page</a>.</p>,
-   local:display-list($id, $path)
+   <p>Database: "{ $db }".  Go up to the <a href="{ $up }">browse page</a>.</p>,
+   local:display-list($path)
 };
 
 (:~
@@ -91,20 +99,20 @@ declare function local:page--root($id as xs:unsignedLong, $up as xs:string)
  : TODO: Display whether the directory exists per se in MarkLogic (and its
  : properties if it has any, etc.)
  :)
-declare function local:page--dir($id as xs:unsignedLong)
+declare function local:page--dir($db as xs:string)
    as element()+
 {
-   local:up-to-browse($path),
-   local:display-list($id, $path)
+   local:up-to-browse($db, $path),
+   local:display-list($path)
 };
 
 (:~
  : The page content, in case of displaying a document.
  :)
-declare function local:page--doc()
+declare function local:page--doc($db as xs:string)
    as element()+
 {
-   local:up-to-browse($path),
+   local:up-to-browse($db, $path),
    <p>In directory { local:uplinks($path, fn:false()) }.</p>,
 
    <table class="sortable">
@@ -169,7 +177,11 @@ declare function local:page--doc()
    let $perms := xdmp:document-get-permissions($path)
    return
       if ( fn:exists($perms) ) then
-         v:display-xml(<permissions xmlns="">{ $perms }</permissions>)
+         v:display-xml(
+            <sec:permissions xmlns:sec="http://marklogic.com/xdmp/security"> {
+               $perms
+            }
+            </sec:permissions>)
       else
          <p>This document does not have any permission.</p>
 };
@@ -177,37 +189,32 @@ declare function local:page--doc()
 (:~
  : The overall page function.
  :)
-declare function local:page()
+declare function local:page($id as xs:unsignedLong, $path as xs:string?, $init as xs:string?)
    as element()+
 {
-   (: the database :)
-   let $id-str := t:mandatory-field('id')
-   let $id     := xs:unsignedLong($id-str)
-   let $db     := a:get-database($id)
-   (: the init-path field :)
-   let $init   := t:optional-field('init-path', ())[.]
+   let $db := a:get-database($id)
    return
       (: TODO: In this case, we should NOT return "200 OK". :)
       if ( fn:empty($db) ) then (
-         local:page--no-db($id-str)
+         local:page--no-db($id)
       )
       else if ( fn:exists($init) ) then (
          local:page--init-path($init)
       )
       else if ( fn:empty($path) ) then (
-         local:page--empty-path($id)
+         local:page--empty-path($db/a:name)
       )
       else if ( fn:matches($path, '^http://[^/]+/$') ) then (
-         local:page--root($id, '../../../../browse')
+         local:page--root($db/a:name, '../../../../browse')
       )
       else if ( $path eq '/' ) then (
-         local:page--root($id, '../browse')
+         local:page--root($db/a:name, '../browse')
       )
       else if ( fn:ends-with($path, '/') ) then (
-         local:page--dir($id)
+         local:page--dir($db/a:name)
       )
       else (
-         local:page--doc()
+         local:page--doc($db/a:name)
       )
 };
 
@@ -248,21 +255,14 @@ declare function local:get-children(
  : should be a problem with large databases, with a shit loads of documents.
  : TODO: The details of how to retrieve the children must be in lib/admin.xql.
  :)
-declare function local:display-list($db as xs:unsignedLong, $path as xs:string)
+declare function local:display-list($path as xs:string)
    as element()+
 {
    (: display $path, with each part being a link :)
    <p>Content of { local:uplinks($path, fn:true()) }:</p>,
    (: display the list of children themselves :)
    <ul> {
-      for $p in 
-            a:eval-on-database(
-               $db,
-               'declare variable $fun  external;
-                declare variable $path external;
-                $fun($path, 1)',
-               (fn:QName('', 'fun'),  local:get-children#2,
-                fn:QName('', 'path'), $path))
+      for $p in local:get-children($path, 1)
       let $li :=
             (: current dir :)
             if ( $p eq $path ) then (
@@ -289,13 +289,14 @@ declare function local:display-list($db as xs:unsignedLong, $path as xs:string)
 (:~
  : The "Go up to the browse page" link.  From a dir or file, "/" or "http://".
  :)
-declare function local:up-to-browse($path as xs:string)
+declare function local:up-to-browse($db as xs:string, $path as xs:string)
    as element(h:p)
 {
    let $toks  := fn:tokenize($path, '/')
    let $count := fn:count($toks) - (1[fn:starts-with($path, '/')], 0)[1]
    return
-      <p>Go up to the <a href="{ t:make-string('../', $count) }browse">browse page</a>.</p>
+      <p>Database: "{ $db }".  Go up to the
+         <a href="{ t:make-string('../', $count) }browse">browse page</a>.</p>
 };
 
 (:~
@@ -371,5 +372,23 @@ browse/http://example.com/ -> 6
 
 let $slashes := if ( fn:empty($path) ) then 0 else fn:count(fn:tokenize($path, '/'))
 let $root    := fn:string-join(for $i in 1 to $slashes + 2 return '..', '/') || '/'
+let $db-str  := t:mandatory-field('id')
+let $db      := xs:unsignedLong($db-str)
+let $init    := t:optional-field('init-path', ())[.]
+let $params  := 
+      map:new((
+         map:entry(xdmp:key-from-QName(fn:QName('', 'db')),   $db),
+         map:entry(xdmp:key-from-QName(fn:QName('', 'path')), $path),
+         map:entry(xdmp:key-from-QName(fn:QName('', 'init')), $init),
+         map:entry(xdmp:key-from-QName(fn:QName('', 'fun')),  local:page#3)))
 return
-   v:console-page($root, 'tools', 'Browse database', local:page#0)
+   v:console-page($root, 'tools', 'Browse database', function() {
+      a:eval-on-database(
+         $db,
+         'declare variable $db   external;
+          declare variable $path external := ();
+          declare variable $init external := ();
+          declare variable $fun  external;
+          $fun($db, $path, $init)',
+         $params)
+   })

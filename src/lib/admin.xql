@@ -180,7 +180,7 @@ declare function a:load-zipdir-into-database(
 };
 
 declare function a:eval-on-database(
-   $db-id  as xs:unsignedLong,
+   $db     as item(),
    $query  as xs:string,
    $params as item()*
 ) as item()*
@@ -189,8 +189,23 @@ declare function a:eval-on-database(
       $query,
       $params,
       <options xmlns="xdmp:eval">
-         <database>{ $db-id }</database>
+         <database>{ a:database-id($db) }</database>
       </options>)
+};
+
+(:~
+ : Return a database ID.
+ :
+ : If `$db` is an xs:unsignedLong, it is returned as is.  If it is an a:database
+ : element, its `@id` is returned.  Any other type of input is an error.
+ :)
+declare function a:database-id($db as item()) as xs:unsignedLong
+{
+   typeswitch ( $db )
+      case xs:unsignedLong     return $db
+      case element(a:database) return xs:unsignedLong($db/@id)
+      default return
+         t:error('not-db', 'The parameter is neither a database ID nor a database element.', $db)
 };
 
 (:~

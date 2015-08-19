@@ -8,14 +8,26 @@ declare namespace xdmp = "http://marklogic.com/xdmp";
 (: ==== Error handling ======================================================== :)
 
 (:~
- : TODO: Return an HTTP error instead...
+ : TODO: Return an HTTP error instead... (or rather create a proper error handler?)
  :)
 declare function t:error($code as xs:string, $msg as xs:string)
    as empty-sequence()
 {
    fn:error(
-      fn:QName('http://expath.org/ns/ml/console', fn:concat('c:', $code)),
+      fn:QName('http://expath.org/ns/ml/console', 'c:' || $code),
       $msg)
+};
+
+(:~
+ : TODO: Return an HTTP error instead... (or rather create a proper error handler?)
+ :)
+declare function t:error($code as xs:string, $msg as xs:string, $info as item()*)
+   as empty-sequence()
+{
+   fn:error(
+      fn:QName('http://expath.org/ns/ml/console', 'c:' || $code),
+      $msg,
+      $info)
 };
 
 (: ==== HTTP request fields ======================================================== :)
