@@ -51,21 +51,27 @@ declare function local:page()
          }
          </li>
          <li>"expath-pkg" AS module DB: {
+            'Disabled for now...'
+            (:
             let $config := admin:get-configuration()
             let $groupid := admin:group-get-id($config, "Default")
             return
                admin:appserver-get-modules-database(
                   $config,
                   admin:appserver-get-id($config, $groupid, "expath-pkg"))
+            :)
          }
          </li>
          <li>"expath-pkg" AS root: {
+            'Disabled for now...'
+            (:
             let $config := admin:get-configuration()
             let $groupid := admin:group-get-id($config, "Default")
             return
                admin:appserver-get-root(
                   $config,
                   admin:appserver-get-id($config, $groupid, "expath-pkg"))
+            :)
          }
          </li>
       </ul>
