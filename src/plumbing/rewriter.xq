@@ -14,6 +14,7 @@ declare variable $matches :=
       <match match="^/db/([0-9]+)/browse$"      replace="/database/browse.xq?id=$1"/>
       <match match="^/db/([0-9]+)/browse(/.*)$" replace="/database/browse.xq?id=$1&amp;path=$2"/>
       <match match="^/db/([0-9]+)/save-doc$"    replace="/database/save-doc.xq?id=$1"/>
+      <match match="^/db/([0-9]+)/save-text$"   replace="/database/save-doc.xq?id=$1&amp;text=true"/>
       <match match="^/cxan$"                 replace="/cxan.xq"/>
       <match match="^/cxan/change$"          replace="/cxan/change.xq"/>
       <match match="^/cxan/install$"         replace="/cxan/install.xq"/>

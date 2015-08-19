@@ -74,7 +74,7 @@ declare function v:display-xml(
    $elem as element()
 ) as element(h:pre)
 {
-   v:ace-editor-xml($elem, 'code', (), (), (), ())
+   v:ace-editor-xml($elem, 'code', 'xml', (), (), (), ())
 };
 
 (:~
@@ -92,27 +92,42 @@ declare function v:edit-xml(
    $endpoint as xs:string
 ) as element(h:pre)
 {
-   v:ace-editor-xml($elem, 'editor', $id, $uri, $endpoint, '250pt')
+   v:ace-editor-xml($elem, 'editor', 'xml', $id, $uri, $endpoint, '250pt')
+};
+
+(:~
+ : Like v:edit-xml(), but for text.  $mode is an ACE mode, e.g. "xquery".
+ :)
+declare function v:edit-text(
+   $elem     as text(),
+   $mode     as xs:string,
+   $id       as xs:string,
+   $uri      as xs:string,
+   $endpoint as xs:string
+) as element(h:pre)
+{
+   v:ace-editor-xml($elem, 'editor', $mode, $id, $uri, $endpoint, '250pt')
 };
 
 (:~
  : Common implementation of `v:display-xml()` and `v:edit-xml()`.
  :)
 declare %private function v:ace-editor-xml(
-   $elem     as element(),
+   $node     as node(),
    $class    as xs:string,
+   $mode     as xs:string,
    $id       as xs:string?,
    $uri      as xs:string?,
    $endpoint as xs:string?,
    $height   as xs:string?
 ) as element(h:pre)
 {
-   let $serialized := xdmp:quote($elem, $serial-options)
+   let $serialized := xdmp:quote($node, $serial-options)
    let $lines      := fn:count(fn:tokenize($serialized, '&#10;'))
    return
       <pre xmlns="http://www.w3.org/1999/xhtml"
            class="{ $class }"
-           ace-mode="ace/mode/xml"
+           ace-mode="ace/mode/{ $mode }"
            ace-theme="ace/theme/pastel_on_dark"
            ace-gutter="true">
       {

@@ -136,14 +136,26 @@ declare function local:page--doc()
    </table>,
 
    <h4>Content</h4>,
-   let $doc   := fn:doc($path)/*
+   let $doc   := fn:doc($path)/node()
    let $id    := fn:generate-id($doc)
    let $count := fn:count(fn:tokenize($path, '/')) - (1[fn:starts-with($path, '/')], 0)[1]
    let $up    := t:make-string('../', $count)
-   return (
-      v:edit-xml($doc, $id, $path, $up || 'save-doc'),
-      <button onclick='saveDoc("{ $id }");'>Save</button>
-   ),
+   return
+      typeswitch ( $doc )
+         case element() return (
+            v:edit-xml($doc, $id, $path, $up || 'save-doc'),
+            <button onclick='saveDoc("{ $id }");'>Save</button>
+         )
+         case text() return (
+            let $mode := ('xquery'[fn:matches($path, '\.xq[ylm]?$')], 'text')[1]
+            return (
+               v:edit-text($doc, $mode, $id, $path, $up || 'save-text'),
+               <button onclick='saveDoc("{ $id }");'>Save</button>
+            )
+         )
+         default return (
+            <p>Binary document display not supported.</p>
+         ),
 
    <h4>Properties</h4>,
    let $props := xdmp:document-properties($path)
