@@ -211,8 +211,10 @@ declare %private function v:console-page-static(
       <head>
          <link rel="stylesheet" type="text/css" media="screen" href="{ $root }style/screen.css"/>
          <link rel="shortcut icon" type="image/png" href="{ $root }images/expath-icon.png"/>
-         <!-- TODO: Is there any table on this page...? -->
-         <script src="{ $root }js/sorttable.js"/>
+         {
+            <script src="{ $root }js/sorttable.js"/> [
+               $content/descendant-or-self::h:table/@class/fn:tokenize(., '\s+') = 'sortable' ]
+         }
          <title>{ $title }</title>
       </head>
       <body>
