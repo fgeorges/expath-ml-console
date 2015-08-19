@@ -15,8 +15,7 @@ Installation
   to store the modules of this App Server on the filesystem).
 - Make sure to set the app server URL rewriter field (at the end of
   the admin console page for the app server) to the value
-  `/plumbing/rewriter.xq` the document database linked to the HTTP
-  server will not be used by the Console.
+  `/plumbing/rewriter.xq`.
 
 The document database linked to the HTTP server will not be used by
 the EXPath Console for MarkLogic.  So use whetever database you want
