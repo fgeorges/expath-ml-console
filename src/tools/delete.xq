@@ -28,26 +28,31 @@ declare function local:page()
 {
    (: TODO: Check the params are there, and validate them... :)
    let $db-id := xs:unsignedLong(t:mandatory-field('database'))
+   let $db    := a:get-database($db-id)
    let $doc   := t:optional-field('doc', ())
    let $dir   := t:optional-field('dir', ())
    let $count := fn:count(($doc, $dir))
    return
-      if ( $count ne 1 ) then
-         <p><b>Error</b>: Exactly 1 parameter out of 'doc' and 'dir' should be
-            provided. Got { $count } of them.  Doc is '{ $doc }' and dir is
-            '{ $dir }'.</p>
-      else if ( fn:exists($doc) ) then
-         if ( a:exists-on-database($db-id, $doc) ) then (
-            a:remove-doc($db-id, $doc),
+      if ( $count ne 1 ) then (
+         <p><b>Error</b>: Exactly 1 parameter out of "doc" and "dir" should be
+            provided. Got { $count } of them.  Doc is "{ $doc }" and dir is
+            "{ $dir }".</p>
+      )
+      else if ( fn:exists($doc) ) then (
+         if ( a:exists-on-database($db, $doc) ) then (
+            a:remove-doc($db, $doc),
             <p>Document successfully deleted from { $doc }.</p>
          )
-         else
-            <p><b>Error</b>: The document '{ $doc }' does not exist on the
-               database '{ $db-id }'.</p>
-      else (
-         a:remove-directory($db-id, $dir),
-         <p>Directory successfully deleted from { $dir }.</p>
+         else (
+            <p><b>Error</b>: The document "{ $doc }" does not exist on the
+               database "{ xs:string($db/a:name) }".</p>
+         )
       )
+      else (
+         a:remove-directory($db, $dir),
+         <p>Directory successfully deleted from { $dir }.</p>
+      ),
+   <p>Back to <a href="docs">document manager</a>.</p>
 };
 
 v:console-page('../', 'tools', 'Tools', local:page#0)

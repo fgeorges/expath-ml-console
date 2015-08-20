@@ -38,8 +38,34 @@ declare function local:page--no-db($id as xs:unsignedLong)
    <p><b>Error</b>: The database "<code>{ $id }</code>" does not exist.</p>
 };
 
+(:
+(:~
+ : The page content, in case of a `create` param.
+ :)
+declare function local:page--create($create as xs:string)
+   as element(h:p)
+{
+   let $uri := $path || $create
+   return
+      if ( fn:doc-available($uri) ) then
+         <p>Document <code>{ $uri }</code> already exists.</p>
+      else (
+         (: TODO: FIXME:
+            This is the only update in this module, requiring it to be in update
+            mode, even though this is more of a special case.  It would be better
+            to externalize it in another module, or to evaluate it in another
+            transaction in update mode... :)
+         xdmp:document-insert($uri, <hello>World!</hello>),
+         v:redirect($create),
+         <p>You are being redirected to <a href="{ $create }">the new document</a>...</p>
+      )
+};
+:)
+
 (:~
  : The page content, in case of an init-path param.
+ :
+ : TODO: Is it still used?
  :)
 declare function local:page--init-path($init as xs:string)
    as element(h:p)
@@ -86,11 +112,11 @@ declare function local:page--empty-path($db as xs:string)
 (:~
  : The page content, in case of displaying a root dir (like '/' or 'http://example.org/'.)
  :)
-declare function local:page--root($db as xs:string, $up as xs:string)
+declare function local:page--root($db as element(a:database), $up as xs:string)
    as element()+
 {
-   <p>Database: "{ $db }".  Go up to the <a href="{ $up }">browse page</a>.</p>,
-   local:display-list($path)
+   <p>Database: "{ xs:string($db/a:name) }".  Go up to the <a href="{ $up }">browse page</a>.</p>,
+   local:display-list($db, $path)
 };
 
 (:~
@@ -99,11 +125,11 @@ declare function local:page--root($db as xs:string, $up as xs:string)
  : TODO: Display whether the directory exists per se in MarkLogic (and its
  : properties if it has any, etc.)
  :)
-declare function local:page--dir($db as xs:string)
+declare function local:page--dir($db as element(a:database))
    as element()+
 {
-   local:up-to-browse($db, $path),
-   local:display-list($path)
+   local:up-to-browse($db/a:name, $path),
+   local:display-list($db, $path)
 };
 
 (:~
@@ -115,7 +141,8 @@ declare function local:page--doc($db as xs:string)
    local:up-to-browse($db, $path),
    <p>In directory { local:uplinks($path, fn:false()) }.</p>,
 
-   <table class="sortable">
+   <h3>Summary</h3>,
+   <table class="table table-bordered">
       <thead>
          <th>Name</th>
          <th>Value</th>
@@ -143,7 +170,7 @@ declare function local:page--doc($db as xs:string)
       </tbody>
    </table>,
 
-   <h4>Content</h4>,
+   <h3>Content</h3>,
    let $doc   := fn:doc($path)/node()
    let $id    := fn:generate-id($doc)
    let $count := fn:count(fn:tokenize($path, '/')) - (1[fn:starts-with($path, '/')], 0)[1]
@@ -165,7 +192,7 @@ declare function local:page--doc($db as xs:string)
             <p>Binary document display not supported.</p>
          ),
 
-   <h4>Properties</h4>,
+   <h3>Properties</h3>,
    let $props := xdmp:document-properties($path)
    return
       if ( fn:exists($props) ) then
@@ -173,7 +200,7 @@ declare function local:page--doc($db as xs:string)
       else
          <p>This document does not have any property.</p>,
 
-   <h4>Permissions</h4>,
+   <h3>Permissions</h3>,
    let $perms := xdmp:document-get-permissions($path)
    return
       if ( fn:exists($perms) ) then
@@ -189,8 +216,11 @@ declare function local:page--doc($db as xs:string)
 (:~
  : The overall page function.
  :)
-declare function local:page($id as xs:unsignedLong, $path as xs:string?, $init as xs:string?)
-   as element()+
+declare function local:page(
+   $id     as xs:unsignedLong,
+   $path   as xs:string?,
+   $init   as xs:string?
+) as element()+
 {
    let $db := a:get-database($id)
    return
@@ -205,13 +235,13 @@ declare function local:page($id as xs:unsignedLong, $path as xs:string?, $init a
          local:page--empty-path($db/a:name)
       )
       else if ( fn:matches($path, '^http://[^/]+/$') ) then (
-         local:page--root($db/a:name, '../../../../browse')
+         local:page--root($db, '../../../../browse')
       )
       else if ( $path eq '/' ) then (
-         local:page--root($db/a:name, '../browse')
+         local:page--root($db, '../browse')
       )
       else if ( fn:ends-with($path, '/') ) then (
-         local:page--dir($db/a:name)
+         local:page--dir($db)
       )
       else (
          local:page--doc($db/a:name)
@@ -255,33 +285,36 @@ declare function local:get-children(
  : should be a problem with large databases, with a shit loads of documents.
  : TODO: The details of how to retrieve the children must be in lib/admin.xql.
  :)
-declare function local:display-list($path as xs:string)
+declare function local:display-list($db as element(a:database), $path as xs:string)
    as element()+
 {
+   let $toks  := fn:tokenize($path, '/')
+   let $count := fn:count($toks) + (1[fn:starts-with($path, '/')], 2)[1]
+   return
+      v:form(t:make-string('../', $count) || 'tools/insert', (
+         v:input-text('uri', 'Create document', 'Document URI (relative to this directory)'),
+         v:input-hidden('prefix',   $path),
+         v:input-hidden('format',   'xml'),
+         v:input-hidden('database', $db/@id),
+         v:input-hidden('redirect', 'true'),
+         v:input-hidden('file',     '&lt;hello&gt;World!&lt;/hello&gt;'),
+         v:submit('Create'))),
    (: display $path, with each part being a link :)
    <p>Content of { local:uplinks($path, fn:true()) }:</p>,
    (: display the list of children themselves :)
    <ul> {
       for $p in local:get-children($path, 1)
-      let $li :=
-            (: current dir :)
-            if ( $p eq $path ) then (
-            )
-            (: subdir :)
-            else if ( fn:ends-with($p, '/') ) then (
-               fn:tokenize($p, '/')[fn:last() - 1] ! <a href="{ . }/">{ . }</a>,
-               '/'
-            )
-            (: file children :)
-            else (
-               fn:tokenize($p, '/')[fn:last()] ! <a href="{ . }">{ . }</a>
-            )
       order by $p
       return
-         if ( fn:exists($li) ) then
-            <li>{ $li }</li>
-         else
+         (: current dir :)
+         if ( $p eq $path ) then
             ()
+         (: subdir :)
+         else if ( fn:ends-with($p, '/') ) then
+            <li>{ fn:tokenize($p, '/')[fn:last() - 1] ! <a href="{ . }/">{ . }</a> }/</li>
+         (: file children :)
+         else
+            <li>{ fn:tokenize($p, '/')[fn:last()] ! <a href="{ . }">{ . }</a> }</li>
    }
    </ul>
 };
@@ -328,7 +361,7 @@ declare function local:uplinks($path as xs:string, $isdir as xs:boolean)
          local:uplinks-1($toks[fn:position() lt fn:last()], ('../'[$isdir], './')[1]),
          text { $toks[fn:last()] || '/' }[$isdir],
          text { '" (' },
-         <a href="{ t:make-string('../', fn:count($toks) - (0[$isdir], 1)[1]) }">go to /</a>,
+         <a href="./{ t:make-string('../', fn:count($toks) - (0[$isdir], 1)[1]) }">go to /</a>,
          text { ', or click on a part to travel up the directories' }[fn:exists($toks[2])],
          text { ')' }
       )

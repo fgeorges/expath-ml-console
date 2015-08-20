@@ -4,12 +4,14 @@ xquery version "3.0";
  : Insert a document or a directory into a specific database.
  :
  : Accept the following request fields for a file (all mandatory except
- : override):
+ : prefix, override and redirect):
  :   - database: the ID of the target database
  :   - uri: the target URI where to insert the file
+ :   - prefix: concatenated to $uri if present, to get the entire doc URI
  :   - file: the file itself
  :   - format: the format of the file (either 'xml', 'text' or 'binary')
  :   - override: allow overriding an existing file (false by default)
+ :   - redirect: display the doc on the "browse" area (false by default)
  :
  : Accept the following request fields for a directory (all mandatory except
  : filter):
@@ -50,34 +52,43 @@ declare function local:page()
    let $count  := fn:count(($file, $dir, $zipdir))
    return
       if ( $count ne 1 ) then
-         <p><b>Error</b>: Exactly 1 parameter out of 'file', 'dir' and 'zipdir'
-            should be provided. Got { $count } of them.  File is '{ $file }', dir
-            is '{ $dir }' and zipdir is '{ $zipdir }'.</p>
+         <p><b>Error</b>: Exactly 1 parameter out of "file", "dir" and "zipdir"
+            should be provided. Got { $count } of them.  File is "{ $file }", dir
+            is "{ $dir }" and zipdir is "{ $zipdir }".</p>
       else if ( fn:exists($file) ) then
          local:handle-file($file)
       else if ( fn:exists($dir) ) then
          local:handle-dir($dir)
       else
-         local:handle-zipdir($zipdir)
+         local:handle-zipdir($zipdir),
+   <p>Back to <a href="docs">document manager</a>.</p>
 };
 
 (:~
  : Handle the case "insert a file".
  :)
-declare function local:handle-file($file as node())
+declare function local:handle-file($file as item())
 {
    let $db-id    := xs:unsignedLong(t:mandatory-field('database'))
    let $uri      := t:mandatory-field('uri')
    let $format   := t:mandatory-field('format')
+   let $prefix   := t:optional-field('prefix', ())[.]
    let $override := xs:boolean(t:optional-field('override', 'false'))
+   let $redirect := xs:boolean(t:optional-field('redirect', 'false'))
+   let $doc-uri  := if ( fn:exists($prefix) ) then $prefix || $uri else $uri
    return
-      if ( fn:doc-available($uri) and fn:not($override) ) then
-         <p><b>Error</b>: File already exists at { $uri }.</p>
+      if ( fn:doc-available($doc-uri) and fn:not($override) ) then
+         <p><b>Error</b>: File already exists at "{ $doc-uri }".</p>
       else
          let $node   := local:get-node($file, $format)
-         let $result := a:insert-into-database($db-id, $uri, $node)
+         let $result := a:insert-into-database($db-id, $doc-uri, $node)
          return
-            <p>File succesfully inserted at { $result } as { $format }.</p>
+            if ( $redirect ) then
+               v:redirect(
+                  '../db/' || $db-id || '/browse'
+                  || '/'[fn:not(fn:starts-with($doc-uri, '/'))] || $doc-uri)
+            else
+               <p>File succesfully inserted at "{ $result }" as "{ $format }".</p>
 };
 
 (:~
@@ -98,15 +109,15 @@ declare function local:dir-exists($uri as xs:string)
    let $props := xdmp:document-properties($uri)
    return
       if ( fn:not(fn:ends-with($uri, '/')) ) then
-         <p><b>Error</b>: Directory name must end with a slash, but you provided '{ $uri }'.</p>
+         <p><b>Error</b>: Directory name must end with a slash, but you provided "{ $uri }".</p>
       else if ( fn:exists($props/prop:properties/prop:directory) ) then
-         <p><b>Error</b>: Directory already exists at '{ $uri }'.</p>
+         <p><b>Error</b>: Directory already exists at "{ $uri }".</p>
       else if ( fn:exists($props) ) then
-         <p><b>Error</b>: Directory already exists at '{ $uri }'.</p>
+         <p><b>Error</b>: Directory already exists at "{ $uri }".</p>
       else if ( fn:doc-available($uri) ) then
-         <p><b>Error</b>: Directory already exists at '{ $uri }'.</p>
+         <p><b>Error</b>: Directory already exists at "{ $uri }".</p>
       else if ( fn:exists(xdmp:directory($uri, 'infinity')) ) then
-         <p><b>Error</b>: Directory already exists at '{ $uri }'.</p>
+         <p><b>Error</b>: Directory already exists at "{ $uri }".</p>
       else
          ()
 };
@@ -127,7 +138,7 @@ declare function local:handle-dir($dir as xs:string)
       else
          let $result := a:load-dir-into-database($db-id, $uri, $dir, $include, $exclude)
          return
-            <p>Directory succesfully uploaded at '{ $result }' from '{ $dir }'.</p>
+            <p>Directory succesfully uploaded at "{ $result }" from "{ $dir }".</p>
 };
 
 (:~
@@ -144,7 +155,7 @@ declare function local:handle-zipdir($zip (: as binary() :))
       else
          let $result := a:load-zipdir-into-database($db-id, $uri, $zip)
          return
-            <p>Directory succesfully uploaded at '{ $result }' from ZIP file.</p>
+            <p>Directory succesfully uploaded at "{ $result }" from ZIP file.</p>
 };
 
 (:~
@@ -158,11 +169,13 @@ declare function local:handle-zipdir($zip (: as binary() :))
  :   a doc node, in which case it is parsed. (TODO: What if it is binary?
  :   Probably decode it then parse it...)
  :)
-declare function local:get-node($file as node(), $format as xs:string)
+declare function local:get-node($file as item(), $format as xs:string)
    as node()
 {
    if ( $format eq 'text' ) then
-      if ( $file instance of document-node() and fn:exists($file/text()) ) then
+      if ( $file instance of xs:string ) then
+         text { $file }
+      else if ( $file instance of document-node() and fn:exists($file/text()) ) then
          $file
       else if ( b:is-binary($file) ) then
          text { xdmp:binary-decode($file, 'utf-8') }
@@ -174,7 +187,9 @@ declare function local:get-node($file as node(), $format as xs:string)
       else
          t:error('INSERT002', 'Binary file is not a binary node, please report this to the mailing list')
    else if ( $format eq 'xml' ) then
-      if ( $file instance of document-node() and fn:exists($file/*) ) then
+      if ( $file instance of xs:string ) then
+         xdmp:unquote($file)
+      else if ( $file instance of document-node() and fn:exists($file/*) ) then
          $file
       else if ( $file instance of document-node() and fn:exists($file/text()) ) then
          xdmp:unquote($file)
