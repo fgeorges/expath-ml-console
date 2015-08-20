@@ -27,7 +27,7 @@ declare function local:page()
          if ( fn:empty($packages/pp:package|$to-remove/pp:package) ) then
             ()
          else
-            <table class="sortable">
+            <table class="table">
                <thead>
                   <td>Name</td>
                   <td>Dir</td>

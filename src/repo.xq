@@ -40,14 +40,14 @@ declare function local:page()
 declare function local:appservers-table($grp as element(a:group))
    as element(table)
 {
-   <table class="sortable">
+   <table class="table table-striped">
       <thead>
          <th>Name</th>
          <th>Modules</th>
-         <th align="center">Repo?</th>
+         <th>Repo?</th>
       </thead>
       <tbody> {
-         for $as in a:get-appservers($grp)/a:appserver
+         for $as   in a:get-appservers($grp)/a:appserver
          let $id   := $as/fn:string(@id)
          let $name := $as/fn:string(a:name)
          order by $name
@@ -63,7 +63,7 @@ declare function local:appservers-table($grp as element(a:group))
                      fn:string($as/a:modules-path)
                }
                </td>
-               <td align="center"> {
+               <td> {
                   if ( fn:exists(a:appserver-get-packages($as)) ) then (
                      attribute { 'style' } { 'color: green' }, (:'&#x2611;':) '&#x2713;'
                   )

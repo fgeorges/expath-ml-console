@@ -9,13 +9,17 @@ declare function local:page()
 {
    (: <img class="left" src="images/machine.jpg" alt="Machine"/> :)
    <wrapper>
-      <p><em>(: Managing your Portable XQuery Extensions, Packages and Web
-         Applications :)</em></p>
+      <div class="jumbotron">
+         <h1>EXPath Console</h1>
+         <p><em>(: Managing your portable Extensions, Packages and Web
+            Applications :)</em></p>
+      </div>
+      <p>You will find the following sections in the Console:</p>
       <ul> {
-         for $p in $v:pages/*[not(@name eq 'home')]
+         for $p in $v:pages/*[fn:not(@name eq 'home')]
          return
             <li>
-               <a href="{ $p/string(@name) }">{ $p/string(@title) }</a>
+               <a href="{ $p/xs:string(@name) }">{ $p/xs:string(@title) }</a>
            </li>
       }
       </ul>

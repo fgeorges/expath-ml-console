@@ -28,7 +28,7 @@ declare function local:page()
          if ( fn:empty($container/w:application) ) then
             ()
          else
-            <table class="sortable">
+            <table class="table">
                <thead>
                   <td>Root</td>
                   <td>Dir</td>

@@ -19,7 +19,7 @@ declare function local:page()
          if ( fn:empty($container-refs) ) then
             ()
          else (
-            <table class="sortable">
+            <table class="table">
                <thead>
                   <td>ID</td>
                   <td>Name</td>

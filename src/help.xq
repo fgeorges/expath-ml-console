@@ -11,7 +11,7 @@ declare function local:page()
    as element()+
 {
    <wrapper>
-      <h4>Introduction</h4>
+      <h3>Introduction</h3>
       <p>The EXPath Console for MarkLogic comes with several tools. The main
          goal though is to provide a repository manager and support for
          <a href="http://expath.org/spec/pkg">XAR packages</a>.  A XAR package
@@ -23,12 +23,12 @@ declare function local:page()
          package, just by importing it using the module namespace.  Without
          specifying any "at clause", decoupling dependencies between the
          importing and the imported modules:</p>
-      <pre>import module namespace "http://example.org/cool/lib.xql";</pre>
+      <pre>import module namespace "http://example.org/cool/lib";</pre>
       <p><a href="http://cxan.org/">CXAN</a> is an organized, online source of
          packages, if you are looking for a specific library or application.
          The page to install a package into an app server supports installed
          straight from CXAN.</p>
-      <h4>Installation</h4>
+      <h3>Installation</h3>
       <p>If you are reading this page, you probably already installed succesfully
          the Console. The installation process is documented here though, for
          comprehensiveness.</p>
@@ -48,7 +48,7 @@ declare function local:page()
          the appropriate App Server (you might need to adapt the port number,
          depending on how you configured your app server):
          <a href="http://localhost:8888/">http://localhost:8888/</a>.</p>
-      <h4>Pages</h4>
+      <h3>Pages</h3>
       <p>Every page should be self-explaining. If one page does not contain
          enough help for you to understand what to do, please report it to the
          EXPath <a href="http://expath.org/lists">mailing list</a>. The top-level

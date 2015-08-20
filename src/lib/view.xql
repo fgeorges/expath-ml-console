@@ -5,6 +5,7 @@ xquery version "3.0";
  :)
 module namespace v = "http://expath.org/ns/ml/console/view";
 
+import module namespace a   = "http://expath.org/ns/ml/console/admin"  at "admin.xql";
 import module namespace cfg = "http://expath.org/ns/ml/console/config" at "config.xql";
 
 declare namespace c    = "http://expath.org/ns/ml/console";
@@ -51,6 +52,15 @@ declare function v:console-page-menu($page as xs:string, $root as xs:string)
    for $p in $v:pages/page
    return
       <li xmlns="http://www.w3.org/1999/xhtml"> {
+         attribute { 'class' } { 'active' }[$p/@name eq $page],
+         <a href="{ $root }{ $p/(@href, @name)[1] }" title="{ $p/@title }"> {
+            $p/fn:string(@label)
+         }
+         </a>
+      }
+      </li>
+(:
+      <li xmlns="http://www.w3.org/1999/xhtml"> {
          attribute { 'class' } { 'current' }[$p/@name eq $page],
          <a class="stip" href="{ $root }{ $p/(@href, @name)[1] }" title="{ $p/@title }"> {
             $p/fn:string(@label)
@@ -58,6 +68,7 @@ declare function v:console-page-menu($page as xs:string, $root as xs:string)
          </a>
       }
       </li>
+:)
 };
 
 declare variable $serial-options :=
@@ -207,42 +218,49 @@ declare %private function v:console-page-static(
    $codes   as xs:boolean
 ) as element(h:html)
 {
-   <html xmlns="http://www.w3.org/1999/xhtml">
+   <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
       <head>
-         <link rel="stylesheet" type="text/css" media="screen" href="{ $root }style/screen.css"/>
-         <link rel="shortcut icon" type="image/png" href="{ $root }images/expath-icon.png"/>
-         {
-            <script src="{ $root }js/sorttable.js"/> [
-               $content/descendant-or-self::h:table/@class/fn:tokenize(., '\s+') = 'sortable' ]
-         }
+         <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+         <meta name="viewport" content="width=device-width, initial-scale=1"/>
+         <meta name="ml.time"  content="{ xdmp:elapsed-time() }"/>
          <title>{ $title }</title>
+         <link href="{ $root }style/bootstrap.css"       rel="stylesheet"/>
+         <link href="{ $root }style/bootstrap-theme.css" rel="stylesheet"/>
+         <link href="{ $root }style/expath-theme.css"    rel="stylesheet"/>
+         <link href="{ $root }images/expath-icon.png"    rel="shortcut icon" type="image/png"/>
       </head>
       <body>
-         <div id="container">
-            <div id="header">
-               <header>
-                  <h1>
-                     <a href="/">EXPath Console</a>
-                  </h1>
-                  <nav>
-                     <ul> {
-                        v:console-page-menu($page, $root)
-                     }
-                     </ul>
-                  </nav>
-               </header>
+         <nav class="navbar navbar-inverse navbar-fixed-top">
+            <div class="container">
+               <div class="navbar-header">
+                  <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                          data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                     <span class="sr-only">Toggle navigation</span>
+                     <span class="icon-bar"/>
+                     <span class="icon-bar"/>
+                     <span class="icon-bar"/>
+                  </button>
+                  <a class="navbar-brand" href="/">EXPath Console</a>
+               </div>
+               <div id="navbar" class="navbar-collapse collapse">
+                  <ul class="nav navbar-nav"> {
+                     v:console-page-menu($page, $root)
+                  }
+                  </ul>
+                  <p class="navbar-text navbar-right">User: { xdmp:get-current-user() }</p>
+               </div>
             </div>
-            <div id="header-bottom-bar"/>
-            <div id="content">
-               <h1>{ $title }</h1>
-               {
-                  $content
-               }
-            </div>
+         </nav>
+         <div class="container theme-showcase" role="main">
+         {
+            <h1>{ $title }</h1>[fn:empty($content[@class = 'jumbotron'])],
+            $content
+         }
          </div>
+         <script src="{ $root }js/jquery.js"    type="text/javascript"/>
+         <script src="{ $root }js/bootstrap.js" type="text/javascript"/>
          {
             if ( $codes ) then (
-               <script src="{ $root }js/jquery.js"  type="text/javascript"/>,
                <script src="{ $root }js/ace/ace.js" type="text/javascript" charset="utf-8"/>,
                <script src="{ $root }js/ace/ext-static_highlight.js" type="text/javascript"/>,
                <script type="text/javascript">
@@ -317,4 +335,111 @@ declare %private function v:console-page-static(
          }
       </body>
    </html>
+};
+
+declare function v:form($action as xs:string, $content as element()+)
+   as element(h:form)
+{
+   <form xmlns="http://www.w3.org/1999/xhtml"
+         method="post"
+         action="{ $action }"
+         enctype="multipart/form-data"
+         class="form-horizontal"> {
+      $content
+   }
+   </form>
+};
+
+declare function v:inline-form($action as xs:string, $content as element()+)
+   as element(h:form)
+{
+   <form xmlns="http://www.w3.org/1999/xhtml"
+         method="post"
+         action="{ $action }"
+         enctype="multipart/form-data"
+         class="form-inline"
+         style="height: 12pt"> {
+      $content
+   }
+   </form>
+};
+
+declare function v:input-text($id as xs:string, $label as xs:string, $placeholder as xs:string)
+   as element(h:div)
+{
+   <div xmlns="http://www.w3.org/1999/xhtml" class="form-group">
+      <label for="{ $id }" class="col-sm-2 control-label">{ $label }</label>
+      <div class="col-sm-10">
+         <input type="text" name="{ $id }" class="form-control" placeholder="{ $placeholder }"/>
+      </div>
+   </div>
+};
+
+declare function v:submit($label as xs:string)
+   as element(h:div)
+{
+   <div xmlns="http://www.w3.org/1999/xhtml" class="form-group">
+      <div class="col-sm-offset-2 col-sm-10">
+         <button type="submit" class="btn btn-default">{ $label }</button>
+      </div>
+   </div>
+};
+
+declare function v:input-select($id as xs:string, $label as xs:string, $options as element(h:option)+)
+   as element(h:div)
+{
+   <div xmlns="http://www.w3.org/1999/xhtml" class="form-group">
+      <label for="{ $id }" class="col-sm-2 control-label">{ $label }</label>
+      <div class="col-sm-10">
+         <select name="{ $id }" class="form-control"> {
+            $options
+         }
+         </select>
+      </div>
+   </div>
+};
+
+declare function v:input-option($val as xs:string, $label as xs:string)
+   as element(h:option)
+{
+   <option xmlns="http://www.w3.org/1999/xhtml" value="{ $val }">{ $label }</option>
+};
+
+declare function v:input-select-databases($id as xs:string, $label as xs:string)
+   as element(h:div)
+{
+   v:input-select($id, $label,
+      for $db in a:get-databases()/a:database
+      order by $db/a:name
+      return
+         v:input-option($db/@id, $db/fn:string(a:name)))
+};
+
+declare function v:input-file($id as xs:string, $label as xs:string)
+   as element(h:div)
+{
+   <div xmlns="http://www.w3.org/1999/xhtml" class="form-group">
+      <label for="{ $id }" class="col-sm-2 control-label">{ $label }</label>
+      <div class="col-sm-10">
+         <input type="file" name="{ $id }"/>
+      </div>
+   </div>
+};
+
+declare function v:input-checkbox($id as xs:string, $label as xs:string, $checked as xs:string)
+   as element(h:div)
+{
+   <div xmlns="http://www.w3.org/1999/xhtml" class="form-group">
+      <label for="{ $id }" class="col-sm-2 control-label">{ $label }</label>
+      <div class="col-sm-10">
+         <input type="checkbox" name="{ $id }" checked="{ $checked }"/>
+      </div>
+   </div>
+};
+
+declare function v:input-hidden($id as xs:string, $val as xs:string)
+   as element(h:input)
+{
+   <input xmlns="http://www.w3.org/1999/xhtml"
+          type="hidden" name="{ $id }" value="{ $val }"/>
 };
