@@ -27,6 +27,8 @@ declare function local:page()
          represented within the code of the Console using XML elements at:
          <a href="tools/config">config</a>.</p>
       <h3>Browse a database</h3>
+      <p>Provide a way to browse the content of a database , in a hierarchical
+         kind of way (based on the directory "structure").</p>
       <!--p><b>TODO</b>: Provide a way to browse a database content, in a
          hierarchical kind of way (based on the directory "structure").
          Provide a "delete" button for each of them, as well as an "update"

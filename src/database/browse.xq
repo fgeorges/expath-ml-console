@@ -149,6 +149,16 @@ declare function local:page--doc($db as xs:string)
       </thead>
       <tbody>
          <tr>
+            <td>Type</td>
+            <td> {
+               typeswitch ( fn:doc($path)/node() )
+                  case element() return 'XML'
+                  case text()    return 'Text'
+                  default        return 'Binary'
+            }
+            </td>
+         </tr>
+         <tr>
             <td>Document URI</td>
             <td>{ $path }</td>
          </tr>
@@ -179,13 +189,14 @@ declare function local:page--doc($db as xs:string)
       typeswitch ( $doc )
          case element() return (
             v:edit-xml($doc, $id, $path, $up || 'save-doc'),
-            <button onclick='saveDoc("{ $id }");'>Save</button>
+            <button class="btn btn-default" onclick='saveDoc("{ $id }");'>Save</button>
          )
          case text() return (
+            (: TODO: Use the internal MarkLogic way to recognize XQuery modules? :)
             let $mode := ('xquery'[fn:matches($path, '\.xq[ylm]?$')], 'text')[1]
             return (
                v:edit-text($doc, $mode, $id, $path, $up || 'save-text'),
-               <button onclick='saveDoc("{ $id }");'>Save</button>
+               <button class="btn btn-default" onclick='saveDoc("{ $id }");'>Save</button>
             )
          )
          default return (
@@ -293,8 +304,11 @@ declare function local:display-list($db as element(a:database), $path as xs:stri
    return
       v:form(t:make-string('../', $count) || 'tools/insert', (
          v:input-text('uri', 'Create document', 'Document URI (relative to this directory)'),
+         v:input-select('format', 'Format', (
+            v:input-option('xml',    'XML'),
+            v:input-option('text',   'Text'),
+            v:input-option('binary', 'Binary'))),
          v:input-hidden('prefix',   $path),
-         v:input-hidden('format',   'xml'),
          v:input-hidden('database', $db/@id),
          v:input-hidden('redirect', 'true'),
          v:input-hidden('file',     '&lt;hello&gt;World!&lt;/hello&gt;'),
@@ -311,10 +325,10 @@ declare function local:display-list($db as element(a:database), $path as xs:stri
             ()
          (: subdir :)
          else if ( fn:ends-with($p, '/') ) then
-            <li>{ fn:tokenize($p, '/')[fn:last() - 1] ! <a href="{ . }/">{ . }</a> }/</li>
+            <li>{ fn:tokenize($p, '/')[fn:last() - 1] ! <a href="{ fn:encode-for-uri(.) }/">{ . }</a> }/</li>
          (: file children :)
          else
-            <li>{ fn:tokenize($p, '/')[fn:last()] ! <a href="{ . }">{ . }</a> }</li>
+            <li>{ fn:tokenize($p, '/')[fn:last()] ! <a href="{ fn:encode-for-uri(.) }">{ . }</a> }</li>
    }
    </ul>
 };
