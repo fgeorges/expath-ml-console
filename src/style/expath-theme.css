@@ -3,6 +3,10 @@ body {
   padding-bottom: 30px;
 }
 
+table {
+  font-size: 14px;
+}
+
 .theme-dropdown .dropdown-menu {
   position: static;
   display: block;
