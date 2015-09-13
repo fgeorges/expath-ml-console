@@ -383,7 +383,78 @@ declare function a:file-exists($path as xs:string)
    xdmp:filesystem-file-exists($path)
 };
 
+(: ==== Security tools ======================================================== :)
+
+(:~
+ : Evaluate a query on the security database of the current database.
+ :
+ : This is needed by most functions in the MarkLogic sec:* library.
+ :)
+declare function a:eval-on-security-db(
+   $query  as xs:string,
+   $params as item()*
+) as item()*
+{
+   a:eval-on-database(
+      xdmp:security-database(),
+      $query,
+      $params)
+};
+
+(:~
+ : Evaluate a query on the security database of the `$db` database.
+ :
+ : This is needed by most functions in the MarkLogic sec:* library.
+ :)
+declare function a:eval-on-security-db(
+   $db     as item(),
+   $query  as xs:string,
+   $params as item()*
+) as item()*
+{
+   a:eval-on-database(
+      xdmp:security-database(a:database-id($db)),
+      $query,
+      $params)
+};
+
+(:~
+ : Return the name of a role, given its ID.  The scope is the current database.
+ :)
+declare function a:role-name($role as xs:unsignedLong)
+   as xs:string
+{
+   a:eval-on-security-db(
+      'import module namespace sec = "http://marklogic.com/xdmp/security"
+          at "/MarkLogic/security.xqy";
+       declare variable $role as xs:unsignedLong external;
+       sec:get-role-names($role)',
+      (xs:QName('role'), $role))
+};
+
 (: ==== Admin entities ======================================================== :)
+
+(:~
+ : Return the roles on the current database.
+ :)
+declare function a:get-roles()
+   as element(a:roles)
+{
+   <a:roles> {
+      a:eval-on-security-db(
+         'import module namespace sec = "http://marklogic.com/xdmp/security"
+             at "/MarkLogic/security.xqy";
+          declare namespace a = "http://expath.org/ns/ml/console/admin";
+          let $ids  := sec:get-role-ids()
+          for $name at $pos in sec:get-role-names($ids)
+          return
+             <a:role id="{ $ids[$pos] }">
+                <a:name>{ $name }</a:name>
+             </a:role>',
+         ())
+   }
+   </a:roles>
+};
 
 (:~
  : Return a specific group.  The result is an element looking like:
@@ -607,6 +678,8 @@ declare function a:set-url-rewriter-if-not-yet(
  :     <database id="123" xmlns="http://expath.org/ns/ml/console/admin">
  :        <name>Admin</name>
  :     </databases>
+ :
+ : TODO: What if $db does not exists?
  :)
 declare function a:get-database($db as xs:unsignedLong)
    as element(a:database)

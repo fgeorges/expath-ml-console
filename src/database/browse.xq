@@ -12,11 +12,14 @@ declare namespace err  = "http://www.w3.org/2005/xqt-errors";
 declare namespace cts  = "http://marklogic.com/cts";
 declare namespace xdmp = "http://marklogic.com/xdmp";
 declare namespace map  = "http://marklogic.com/xdmp/map";
+declare namespace sec  = "http://marklogic.com/xdmp/security";
 
 declare variable $path := local:get-param-path();
 
+declare variable $root := local:get-root($path);
+
 (:~
- : The page, in case the DB does not exist.
+ : The param "path", if any.
  :)
 declare function local:get-param-path()
    as xs:string?
@@ -27,6 +30,21 @@ declare function local:get-param-path()
          fn:substring($path, 2)
       else
          $path
+};
+
+(:~
+ : The path to the webapp root, relative to current $path.
+ :)
+declare function local:get-root($path as xs:string)
+   as xs:string
+{
+   if ( fn:empty($path) ) then
+      './'
+   else
+      let $toks  := fn:tokenize($path, '/')
+      let $count := fn:count($toks) + (1[fn:starts-with($path, '/')], 2)[1]
+      return
+         t:make-string('../', $count)
 };
 
 (:~
@@ -124,6 +142,10 @@ declare function local:page--root($db as element(a:database), $up as xs:string)
  : 
  : TODO: Display whether the directory exists per se in MarkLogic (and its
  : properties if it has any, etc.)
+ :
+ : TODO: Is there a way to detect whether there is a URI Privilege for a specific
+ : directory?  A way to say "the creation of docujments in this directory is
+ : protected by privilege xyz..."
  :)
 declare function local:page--dir($db as element(a:database))
    as element()+
@@ -135,10 +157,10 @@ declare function local:page--dir($db as element(a:database))
 (:~
  : The page content, in case of displaying a document.
  :)
-declare function local:page--doc($db as xs:string)
+declare function local:page--doc($db as element(a:database))
    as element()+
 {
-   local:up-to-browse($db, $path),
+   local:up-to-browse($db/a:name, $path),
    <p>In directory { local:uplinks($path, fn:false()) }.</p>,
 
    <h3>Summary</h3>,
@@ -214,14 +236,64 @@ declare function local:page--doc($db as xs:string)
    <h3>Permissions</h3>,
    let $perms := xdmp:document-get-permissions($path)
    return
-      if ( fn:exists($perms) ) then
-         v:display-xml(
-            <sec:permissions xmlns:sec="http://marklogic.com/xdmp/security"> {
-               $perms
-            }
-            </sec:permissions>)
-      else
+      if ( fn:empty($perms) ) then
          <p>This document does not have any permission.</p>
+      else
+         <table class="table table-bordered">
+            <thead>
+               <th>Capability</th>
+               <th>Role</th>
+               <th>Remove</th>
+            </thead>
+            <tbody> {
+               for $perm       in $perms
+               let $capability := xs:string($perm/sec:capability)
+               let $role       := a:role-name($perm/sec:role-id)
+               return
+                  <tr>
+                     <td>{ $capability }</td>
+                     <td>{ $role }</td>
+                     <td> {
+                        v:inline-form($root || 'tools/del-perm', (
+                           <input type="hidden" name="capability" value="{ $capability }"/>,
+                           <input type="hidden" name="role"       value="{ $role }"/>,
+                           <input type="hidden" name="uri"        value="{ $path }"/>,
+                           <input type="hidden" name="database"   value="{ $db/@id }"/>,
+                           <input type="hidden" name="redirect"   value="true"/>,
+                           (: TODO: Replace with a Bootstrap character icon... :)
+                           v:submit('Remove')))
+                     }
+                     </td>
+                  </tr>
+            }
+            </tbody>
+         </table>,
+   <p>Add a permission:</p>,
+   <form class="form-inline" action="{ $root }tools/add-perm" method="post">
+      <div class="form-group">
+         <label for="capability">Capability&#160;&#160;</label>
+         <select name="capability" class="form-control">
+            <option value="read">Read</option>
+            <option value="update">Update</option>
+            <option value="insert">Insert</option>
+            <option value="execute">Execute</option>
+         </select>
+      </div>
+      <div class="form-group">
+         <label for="role">&#160;&#160;&#160;&#160;Role&#160;&#160;</label>
+         <select name="role" class="form-control"> {
+            for $role in a:get-roles()/a:role/a:name
+            order by $role
+            return
+               <option value="{ $role }">{ $role }</option>
+         }
+         </select>
+      </div>
+      <input type="hidden" name="uri"      value="{ $path }"/>
+      <input type="hidden" name="database" value="{ $db/@id }"/>
+      <input type="hidden" name="redirect" value="true"/>
+      <button type="submit" class="btn btn-default">Add</button>
+   </form>
 };
 
 (:~
@@ -255,7 +327,7 @@ declare function local:page(
          local:page--dir($db)
       )
       else (
-         local:page--doc($db/a:name)
+         local:page--doc($db)
       )
 };
 
@@ -302,7 +374,7 @@ declare function local:display-list($db as element(a:database), $path as xs:stri
    let $toks  := fn:tokenize($path, '/')
    let $count := fn:count($toks) + (1[fn:starts-with($path, '/')], 2)[1]
    return
-      v:form(t:make-string('../', $count) || 'tools/insert', (
+      v:form($root || 'tools/insert', (
          v:input-text('uri', 'Create document', 'Document URI (relative to this directory)'),
          v:input-select('format', 'Format', (
             v:input-option('xml',    'XML'),
