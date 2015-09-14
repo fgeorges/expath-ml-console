@@ -1,0 +1,135 @@
+<rewriter xmlns="http://marklogic.com/xdmp/rewriter">
+   <match-path matches="^/$">
+      <dispatch>/home.xq</dispatch>
+   </match-path>
+   <match-path matches="^/appserver/([0-9]+)$">
+      <add-query-param name="id">$1</add-query-param>
+      <dispatch>/appserver.xq</dispatch>
+   </match-path>
+   <match-path matches="^/appserver/([0-9]+)/init-repo$">
+      <add-query-param name="id">$1</add-query-param>
+      <dispatch>/appserver/init-repo.xq</dispatch>
+   </match-path>
+   <match-path matches="^/appserver/([0-9]+)/delete-repo$">
+      <add-query-param name="id">$1</add-query-param>
+      <dispatch>/appserver/delete-repo.xq</dispatch>
+   </match-path>
+   <match-path matches="^/appserver/([0-9]+)/install-pkg$">
+      <add-query-param name="id">$1</add-query-param>
+      <dispatch>/appserver/install-pkg.xq</dispatch>
+   </match-path>
+   <match-path matches="^/appserver/([0-9]+)/install-cxan$">
+      <add-query-param name="id">$1</add-query-param>
+      <dispatch>/appserver/install-cxan.xq</dispatch>
+   </match-path>
+   <match-path matches="^/appserver/([0-9]+)/pkg/([^/]+)/delete$">
+      <add-query-param name="id">$1</add-query-param>
+      <add-query-param name="pkg">$2</add-query-param>
+      <dispatch>/appserver/delete-pkg.xq</dispatch>
+   </match-path>
+   <match-path matches="^/db/([0-9]+)/browse$">
+      <add-query-param name="id">$1</add-query-param>
+      <dispatch>/database/browse.xq</dispatch>
+   </match-path>
+   <match-path matches="^/db/([0-9]+)/browse(/.*)$">
+      <add-query-param name="id">$1</add-query-param>
+      <add-query-param name="path">$2</add-query-param>
+      <dispatch>/database/browse.xq</dispatch>
+   </match-path>
+   <match-path matches="^/db/([0-9]+)/save-doc$">
+      <add-query-param name="id">$1</add-query-param>
+      <dispatch>/database/save-doc.xq</dispatch>
+   </match-path>
+   <match-path matches="^/db/([0-9]+)/save-text$">
+      <add-query-param name="id">$1</add-query-param>
+      <add-query-param name="text">true</add-query-param>
+      <dispatch>/database/save-doc.xq</dispatch>
+   </match-path>
+   <match-path matches="^/cxan$">
+      <dispatch>/cxan.xq</dispatch>
+   </match-path>
+   <match-path matches="^/cxan/change$">
+      <dispatch>/cxan/change.xq</dispatch>
+   </match-path>
+   <match-path matches="^/cxan/install$">
+      <dispatch>/cxan/install.xq</dispatch>
+   </match-path>
+   <match-path matches="^/devel$">
+      <dispatch>/devel.xq</dispatch>
+   </match-path>
+   <match-path matches="^/help$">
+      <dispatch>/help.xq</dispatch>
+   </match-path>
+   <match-path matches="^/(images|js|style)/.+$">
+      <dispatch>$0</dispatch>
+   </match-path>
+   <match-path matches="^/pkg$">
+      <dispatch>/repo.xq</dispatch>
+   </match-path>
+   <match-path matches="^/repo/create$">
+      <dispatch>/repo/create.xq</dispatch>
+   </match-path>
+   <match-path matches="^/repo/delete-pkg$">
+      <dispatch>/repo/delete-pkg.xq</dispatch>
+   </match-path>
+   <match-path matches="^/repo/delete$">
+      <dispatch>/repo/delete.xq</dispatch>
+   </match-path>
+   <match-path matches="^/repo/install-pkg$">
+      <dispatch>/repo/install-pkg.xq</dispatch>
+   </match-path>
+   <match-path matches="^/repo/show$">
+      <dispatch>/repo/show.xq</dispatch>
+   </match-path>
+   <match-path matches="^/tools$">
+      <dispatch>/tools.xq</dispatch>
+   </match-path>
+   <match-path matches="^/tools/config$">
+      <dispatch>/tools/config.xq</dispatch>
+   </match-path>
+   <match-path matches="^/tools/delete$">
+      <dispatch>/tools/delete.xq</dispatch>
+   </match-path>
+   <match-path matches="^/tools/docs$">
+      <dispatch>/tools/docs.xq</dispatch>
+   </match-path>
+   <match-path matches="^/tools/insert$">
+      <dispatch>/tools/insert.xq</dispatch>
+   </match-path>
+   <match-path matches="^/tools/browse-db$">
+      <dispatch>/tools/browse-db.xq</dispatch>
+   </match-path>
+   <match-path matches="^/tools/add-perm$">
+      <dispatch>/tools/add-perm.xq</dispatch>
+   </match-path>
+   <match-path matches="^/tools/del-perm$">
+      <dispatch>/tools/del-perm.xq</dispatch>
+   </match-path>
+   <match-path matches="^/web$">
+      <dispatch>/web.xq</dispatch>
+   </match-path>
+   <match-path matches="^/web/create$">
+      <dispatch>/web/create.xq</dispatch>
+   </match-path>
+   <match-path matches="^/web/delete$">
+      <dispatch>/web/delete.xq</dispatch>
+   </match-path>
+   <match-path matches="^/web/install-pkg$">
+      <dispatch>/web/install-pkg.xq</dispatch>
+   </match-path>
+   <match-path matches="^/web/select-repo$">
+      <dispatch>/web/select-repo.xq</dispatch>
+   </match-path>
+   <match-path matches="^/web/show$">
+      <dispatch>/web/show.xq</dispatch>
+   </match-path>
+   <match-path matches="^/xproject$">
+      <dispatch>/xproject.xq</dispatch>
+   </match-path>
+   <match-path matches="^/xspec$">
+      <dispatch>/xspec.xq</dispatch>
+   </match-path>
+   <match-path matches=".xq$">
+      <error>Not allowed to invoke modules directly</error>
+   </match-path>
+</rewriter>
