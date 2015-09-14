@@ -18,6 +18,9 @@ declare variable $path := local:get-param-path();
 
 declare variable $root := local:get-root($path);
 
+(: Fixed page size for now. :)
+declare variable $page-size := 100;
+
 (:~
  : The param "path", if any.
  :)
@@ -109,8 +112,9 @@ declare function local:page--empty-path($db as xs:string)
          <li>
             <a href="browse/">/</a>
             (quite short link, innit?, <a href="browse/">click here to go to /</a>)
-         </li>[fn:exists(local:get-children("/", 1))],
-         local:get-children("http://", 1) ! <li>http://<a href="browse/{ . }"> {
+         </li>[fn:exists(local:get-children("/", 1, 1))],
+         (: TODO: Display in case there are more roots than $page-size! :)
+         local:get-children("http://", 1, 1) ! <li>http://<a href="browse/{ . }"> {
             fn:substring(., 8, fn:string-length(.) - 8)
          }</a>/</li>
       )
@@ -130,11 +134,11 @@ declare function local:page--empty-path($db as xs:string)
 (:~
  : The page content, in case of displaying a root dir (like '/' or 'http://example.org/'.)
  :)
-declare function local:page--root($db as element(a:database), $up as xs:string)
+declare function local:page--root($db as element(a:database), $up as xs:string, $start as xs:integer)
    as element()+
 {
    <p>Database: "{ xs:string($db/a:name) }".  Go up to the <a href="{ $up }">browse page</a>.</p>,
-   local:display-list($db, $path)
+   local:display-list($db, $path, $start)
 };
 
 (:~
@@ -147,11 +151,11 @@ declare function local:page--root($db as element(a:database), $up as xs:string)
  : directory?  A way to say "the creation of docujments in this directory is
  : protected by privilege xyz..."
  :)
-declare function local:page--dir($db as element(a:database))
+declare function local:page--dir($db as element(a:database), $start as xs:integer)
    as element()+
 {
    local:up-to-browse($db/a:name, $path),
-   local:display-list($db, $path)
+   local:display-list($db, $path, $start)
 };
 
 (:~
@@ -302,7 +306,8 @@ declare function local:page--doc($db as element(a:database))
 declare function local:page(
    $id     as xs:unsignedLong,
    $path   as xs:string?,
-   $init   as xs:string?
+   $init   as xs:string?,
+   $start  as xs:integer
 ) as element()+
 {
    let $db := a:get-database($id)
@@ -318,13 +323,13 @@ declare function local:page(
          local:page--empty-path($db/a:name)
       )
       else if ( fn:matches($path, '^http://[^/]+/$') ) then (
-         local:page--root($db, '../../../../browse')
+         local:page--root($db, '../../../../browse', $start)
       )
       else if ( $path eq '/' ) then (
-         local:page--root($db, '../browse')
+         local:page--root($db, '../browse', $start)
       )
       else if ( fn:ends-with($path, '/') ) then (
-         local:page--dir($db)
+         local:page--dir($db, $start)
       )
       else (
          local:page--doc($db)
@@ -333,7 +338,8 @@ declare function local:page(
 
 declare function local:get-children(
    $base  as xs:string,
-   $level as item()
+   $level as item(),
+   $start as xs:integer
 ) as xs:string*
 {
    let $uri-match :=
@@ -359,8 +365,10 @@ declare function local:get-children(
    let $regex :=
          '^(' || $regex-base || '([^/]*/)' || $depth || ')' || $remainder || ''
    return
-      distinct-values(
-         cts:uri-match($uri-match) ! replace(., $regex, '$1'))
+      (: TODO: Why is distinct-valus needed?  Any way to get rid of it? :)
+      fn:distinct-values(
+         cts:uri-match($uri-match) ! fn:replace(., $regex, '$1'))
+         [fn:position() ge $start and fn:position() lt $start + $page-size]
 };
 
 (:~
@@ -368,8 +376,11 @@ declare function local:get-children(
  : should be a problem with large databases, with a shit loads of documents.
  : TODO: The details of how to retrieve the children must be in lib/admin.xql.
  :)
-declare function local:display-list($db as element(a:database), $path as xs:string)
-   as element()+
+declare function local:display-list(
+   $db    as element(a:database),
+   $path  as xs:string,
+   $start as xs:integer
+) as element()+
 {
    let $toks  := fn:tokenize($path, '/')
    let $count := fn:count($toks) + (1[fn:starts-with($path, '/')], 2)[1]
@@ -385,24 +396,35 @@ declare function local:display-list($db as element(a:database), $path as xs:stri
          v:input-hidden('redirect', 'true'),
          v:input-hidden('file',     '&lt;hello&gt;World!&lt;/hello&gt;'),
          v:submit('Create'))),
-   (: display $path, with each part being a link :)
-   <p>Content of { local:uplinks($path, fn:true()) }:</p>,
-   (: display the list of children themselves :)
-   <ul> {
-      for $p in local:get-children($path, 1)
-      order by $p
-      return
-         (: current dir :)
-         if ( $p eq $path ) then
-            ()
-         (: subdir :)
-         else if ( fn:ends-with($p, '/') ) then
-            <li>{ fn:tokenize($p, '/')[fn:last() - 1] ! <a href="{ fn:encode-for-uri(.) }/">{ . }</a> }/</li>
-         (: file children :)
-         else
-            <li>{ fn:tokenize($p, '/')[fn:last()] ! <a href="{ fn:encode-for-uri(.) }">{ . }</a> }</li>
-   }
-   </ul>
+   (: Do we really need to filter out "$path"?  Can't we get rid of it in get-children()? :)
+   let $children := local:get-children($path, 1, $start)[. ne $path]
+   let $count    := fn:count($children)
+   let $to       := $start + $count - 1
+   return (
+      (: display $path, with each part being a link :)
+      <p>
+         Content of { local:uplinks($path, fn:true()) },
+         results { $start } to { $to }{
+            t:cond($start gt 1,
+               (', ', <a href="./?start={ $start - $page-size }">previous page</a>)),
+            t:cond($count eq $page-size,
+               (', ', <a href="./?start={ $start + $count }">next page</a>))
+         }:
+      </p>,
+      (: display the list of children themselves :)
+      <ul> {
+         for $c in $children
+         order by $c
+         return
+            (: subdir :)
+            if ( fn:ends-with($c, '/') ) then
+               <li>{ fn:tokenize($c, '/')[fn:last() - 1] ! <a href="{ fn:encode-for-uri(.) }/">{ . }</a> }/</li>
+            (: file children :)
+            else
+               <li>{ fn:tokenize($c, '/')[fn:last()] ! <a href="{ fn:encode-for-uri(.) }">{ . }</a> }</li>
+      }
+      </ul>
+   )
 };
 
 (:~
@@ -494,20 +516,23 @@ let $root    := fn:string-join(for $i in 1 to $slashes + 2 return '..', '/') || 
 let $db-str  := t:mandatory-field('id')
 let $db      := xs:unsignedLong($db-str)
 let $init    := t:optional-field('init-path', ())[.]
+let $start   := xs:integer(t:optional-field('start', 1)[.])
 let $params  := 
       map:new((
-         map:entry(xdmp:key-from-QName(fn:QName('', 'db')),   $db),
-         map:entry(xdmp:key-from-QName(fn:QName('', 'path')), $path),
-         map:entry(xdmp:key-from-QName(fn:QName('', 'init')), $init),
-         map:entry(xdmp:key-from-QName(fn:QName('', 'fun')),  local:page#3)))
+         map:entry(xdmp:key-from-QName(fn:QName('', 'db')),    $db),
+         map:entry(xdmp:key-from-QName(fn:QName('', 'path')),  $path),
+         map:entry(xdmp:key-from-QName(fn:QName('', 'init')),  $init),
+         map:entry(xdmp:key-from-QName(fn:QName('', 'start')), $start),
+         map:entry(xdmp:key-from-QName(fn:QName('', 'fun')),  local:page#4)))
 return
    v:console-page($root, 'tools', 'Browse database', function() {
       a:eval-on-database(
          $db,
-         'declare variable $db   external;
-          declare variable $path external := ();
-          declare variable $init external := ();
-          declare variable $fun  external;
-          $fun($db, $path, $init)',
+         'declare variable $db    external;
+          declare variable $start external;
+          declare variable $path  external := ();
+          declare variable $init  external := ();
+          declare variable $fun   external;
+          $fun($db, $path, $init, $start)',
          $params)
    })

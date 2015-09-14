@@ -5,6 +5,20 @@ module namespace t = "http://expath.org/ns/ml/console/tools";
 declare namespace c    = "http://expath.org/ns/ml/console";
 declare namespace xdmp = "http://marklogic.com/xdmp";
 
+(: ==== Simple tools ======================================================== :)
+
+(:~
+ : If $pred is true, return $content, if not, return the empty sequence.
+ :)
+declare function t:cond($pred as xs:boolean, $content as item()*)
+   as item()*
+{
+   if ( $pred ) then
+      $content
+   else
+      ()
+};
+
 (: ==== Error handling ======================================================== :)
 
 (:~
