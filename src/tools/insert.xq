@@ -75,7 +75,13 @@ declare function local:handle-file($file as item())
    let $prefix   := t:optional-field('prefix', ())[.]
    let $override := xs:boolean(t:optional-field('override', 'false'))
    let $redirect := xs:boolean(t:optional-field('redirect', 'false'))
-   let $doc-uri  := if ( fn:exists($prefix) ) then $prefix || $uri else $uri
+   let $doc-uri  :=
+         if ( fn:starts-with($uri, '/') or fn:starts-with($uri, 'http://') ) then
+            $uri
+         else if ( fn:exists($prefix) ) then
+            $prefix || $uri
+         else
+            $uri
    return
       if ( fn:doc-available($doc-uri) and fn:not($override) ) then
          <p><b>Error</b>: File already exists at "{ $doc-uri }".</p>

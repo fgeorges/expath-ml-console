@@ -59,30 +59,6 @@ declare function local:page--no-db($id as xs:unsignedLong)
    <p><b>Error</b>: The database "<code>{ $id }</code>" does not exist.</p>
 };
 
-(:
-(:~
- : The page content, in case of a `create` param.
- :)
-declare function local:page--create($create as xs:string)
-   as element(h:p)
-{
-   let $uri := $path || $create
-   return
-      if ( fn:doc-available($uri) ) then
-         <p>Document <code>{ $uri }</code> already exists.</p>
-      else (
-         (: TODO: FIXME:
-            This is the only update in this module, requiring it to be in update
-            mode, even though this is more of a special case.  It would be better
-            to externalize it in another module, or to evaluate it in another
-            transaction in update mode... :)
-         xdmp:document-insert($uri, <hello>World!</hello>),
-         v:redirect($create),
-         <p>You are being redirected to <a href="{ $create }">the new document</a>...</p>
-      )
-};
-:)
-
 (:~
  : The page content, in case of an init-path param.
  :
