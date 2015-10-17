@@ -408,8 +408,18 @@ declare function v:input-option($val as xs:string, $label as xs:string)
 declare function v:input-select-databases($id as xs:string, $label as xs:string)
    as element(h:div)
 {
+   v:input-select-databases($id, $label, function($db) { fn:true() })
+};
+
+declare function v:input-select-databases(
+   $id     as xs:string,
+   $label  as xs:string,
+   $filter as function(element(a:database)) as xs:boolean
+) as element(h:div)
+{
    v:input-select($id, $label,
       for $db in a:get-databases()/a:database
+      where $filter($db)
       order by $db/a:name
       return
          v:input-option($db/@id, $db/fn:string(a:name)))
