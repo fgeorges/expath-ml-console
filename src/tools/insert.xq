@@ -73,8 +73,8 @@ declare function local:handle-file($file as item())
    let $uri      := t:mandatory-field('uri')
    let $format   := t:mandatory-field('format')
    let $prefix   := t:optional-field('prefix', ())[.]
-   let $override := xs:boolean(t:optional-field('override', 'false'))
-   let $redirect := xs:boolean(t:optional-field('redirect', 'false'))
+   let $override := fn:not(t:optional-field('override', 'false') eq 'false')
+   let $redirect := fn:not(t:optional-field('redirect', 'false') eq 'false')
    let $doc-uri  := if ( fn:exists($prefix) ) then $prefix || $uri else $uri
    return
       if ( fn:doc-available($doc-uri) and fn:not($override) ) then
