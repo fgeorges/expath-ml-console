@@ -33,6 +33,27 @@ declare function local:page()
             v:input-checkbox('override', 'Override', 'true'),
             v:submit('Insert')))
       }
+      <h3>Insert triples</h3>
+      <p>Insert managed triples into a specific database.  Only databases with
+         the triple index enabled are elligeable.</p>
+      {
+         v:form('insert-triples', (
+            v:input-file('file', 'Triples file'),
+            v:input-select-databases(
+               'database',
+               'Target database',
+               function($db) { $db/xs:boolean(a:triple-index) }),
+            v:input-select('format', 'Format', (
+               v:input-option('triplexml', 'MarkLogic sem:triples'),
+               v:input-option('ntriple',   'N-Triples'),
+               v:input-option('nquad',     'N-Quads'),
+               v:input-option('turtle',    'Turtle'),
+               v:input-option('rdfxml',    'RDF/XML'),
+               v:input-option('n3',        'N3'),
+               v:input-option('trig',      'TriG'),
+               v:input-option('rdfjson',   'RDF/JSON'))),
+            v:submit('Insert')))
+      }
       <h3>Insert a directory</h3>
       <p>Insert a directory recursively at some specific place into a
          specific database.  The optional filters are regex expressions (like
