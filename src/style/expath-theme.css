@@ -4,7 +4,8 @@ body {
 }
 
 table {
-  font-size: 14px;
+  font-size: 13px;
+  font-family: "Lucida Grande", Verdana, Arial, Helvetica, sans-serif;
 }
 
 .theme-dropdown .dropdown-menu {
