@@ -688,6 +688,7 @@ declare function a:get-database($db as xs:unsignedLong)
    return
       <a:database id="{ $db }">
          <a:name>{ admin:database-get-name($config, $db) }</a:name>
+         <a:triple-index>{ admin:database-get-triple-index($config, $db) }</a:triple-index>
       </a:database>
 };
 
