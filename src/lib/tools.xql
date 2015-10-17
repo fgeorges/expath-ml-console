@@ -19,6 +19,15 @@ declare function t:cond($pred as xs:boolean, $content as item()*)
       ()
 };
 
+(:~
+ : Ignore its parameter and always return the empty sequence.
+ :)
+declare function t:ignore($seq as item()*)
+   as empty-sequence()
+{
+   ()
+};
+
 (: ==== Error handling ======================================================== :)
 
 (:~
