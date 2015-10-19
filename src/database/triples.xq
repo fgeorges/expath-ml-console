@@ -111,8 +111,7 @@ declare function local:page--browse($db as xs:string, $start as xs:integer)
          t:cond($count eq $page-size,
             (', ', <a href="triples?start={ $start + $count }">next page</a>)),
          ':',
-         (: TODO: Escape the resource URI, to be embedded in the URL! :)
-         $res ! map:get(., 's') ! <li><a href="triples?rsrc={ encode-for-uri(xs:string(.)) }">{ . }</a></li>
+         $res ! map:get(., 's') ! <li><a href="triples?rsrc={ fn:encode-for-uri(.) }">{ . }</a></li>
       )
    }
    </p>
@@ -134,6 +133,7 @@ declare function local:page--rsrc($db as xs:string, $rsrc as xs:string)
       <thead>
          <th>Property</th>
          <th>Object</th>
+         <th>Type</th>
       </thead>
       <tbody> {
          (: TODO: Support windowing, in case one single resources has thousands of triples. :)
@@ -142,16 +142,44 @@ declare function local:page--rsrc($db as xs:string, $rsrc as xs:string)
                    <' || $rsrc || '> ?p ?o
                 }
                 ORDER BY ?p'
-         let $res   := sem:sparql($query)
-         return (
+         for $r     in sem:sparql($query)
+         return
             (: TODO: Abbreviate properties, based on configured prefixes (or well-known?) :)
-            (: TODO: Change the format of values, to show type, language, etc. :)
-            (: TODO: If the object is a resource itself, make it a link. :)
-            $res ! <tr><td>{ map:get(., 'p') }</td><td>{ map:get(., 'o') }</td></tr>
-         )
+            <tr>
+               <td>{ local:display-value(map:get($r, 'p')) }</td>
+               <td>{ local:display-value(map:get($r, 'o')) }</td>
+               <td>{ local:display-type(map:get($r, 'o')) }</td>
+            </tr>
       }
       </tbody>
    </table>
+};
+
+declare function local:display-value($v as xs:anyAtomicType)
+   as element()
+{
+   if ( sem:isIRI($v) ) then
+      (: TODO: Display the link only when the resource exists (that is, there is
+         at least one triple with that IRI as subkect). :)
+      <a href="triples?rsrc={ fn:encode-for-uri($v) }">{ $v }</a>
+   else
+      <span>{ $v }</span>
+};
+
+declare function local:display-type($v as xs:anyAtomicType)
+   as element()
+{
+   (: TODO: Return a different class instead per case, and display it graphically
+      rather than using a string. :)
+   if ( sem:isIRI($v) ) then
+      <span>IRI</span>
+   else if ( sem:isNumeric($v) ) then
+      <span>Num</span>
+   else if ( sem:lang($v) ) then
+      <span>Str ({ sem:lang($v) })</span>
+   else
+      (: Assuming a string? :)
+      <span>Str</span>
 };
 
 let $slashes := if ( fn:empty($path) ) then 0 else fn:count(fn:tokenize($path, '/'))
