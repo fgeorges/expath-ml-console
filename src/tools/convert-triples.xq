@@ -16,12 +16,12 @@ declare namespace xdmp = "http://marklogic.com/xdmp";
 declare variable $extensions :=
    <exts>
       <ext format="triplexml">xml</ext>
-      <ext format="ntriple">???</ext>
-      <ext format="nquad">???</ext>
+      <ext format="ntriple">nt</ext>
+      <ext format="nquad">nq</ext>
       <ext format="turtle">ttl</ext>
-      <ext format="rdfxml">xml</ext>
-      <ext format="n3">???</ext>
-      <ext format="trig">???</ext>
+      <ext format="rdfxml">rdf.xml</ext>
+      <ext format="n3">n3</ext>
+      <ext format="trig">trig</ext>
       <ext format="rdfjson">json</ext>
    </exts>;
 
