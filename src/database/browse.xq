@@ -198,7 +198,7 @@ declare function local:page--doc($db as element(a:database))
          )
          case text() return (
             (: TODO: Use the internal MarkLogic way to recognize XQuery modules? :)
-            let $mode := ('xquery'[fn:matches($path, '\.xq[ylm]?$')], 'text')[1]
+            let $mode := ('xquery'[fn:matches($path, '\.xq[ylm]?$')], 'javascript'[fn:ends-with($path, '.sjs')], 'text')[1]
             return (
                v:edit-text($doc, $mode, $id, $path, $up || 'save-text'),
                <button class="btn btn-default" onclick='saveDoc("{ $id }");'>Save</button>
