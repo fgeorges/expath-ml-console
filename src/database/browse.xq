@@ -38,7 +38,7 @@ declare function local:get-param-path()
 (:~
  : The path to the webapp root, relative to current $path.
  :)
-declare function local:get-root($path as xs:string)
+declare function local:get-root($path as xs:string?)
    as xs:string
 {
    if ( fn:empty($path) ) then
@@ -58,30 +58,6 @@ declare function local:page--no-db($id as xs:unsignedLong)
 {
    <p><b>Error</b>: The database "<code>{ $id }</code>" does not exist.</p>
 };
-
-(:
-(:~
- : The page content, in case of a `create` param.
- :)
-declare function local:page--create($create as xs:string)
-   as element(h:p)
-{
-   let $uri := $path || $create
-   return
-      if ( fn:doc-available($uri) ) then
-         <p>Document <code>{ $uri }</code> already exists.</p>
-      else (
-         (: TODO: FIXME:
-            This is the only update in this module, requiring it to be in update
-            mode, even though this is more of a special case.  It would be better
-            to externalize it in another module, or to evaluate it in another
-            transaction in update mode... :)
-         xdmp:document-insert($uri, <hello>World!</hello>),
-         v:redirect($create),
-         <p>You are being redirected to <a href="{ $create }">the new document</a>...</p>
-      )
-};
-:)
 
 (:~
  : The page content, in case of an init-path param.
@@ -104,14 +80,17 @@ declare function local:page--init-path($init as xs:string)
  : TODO: Displays only "/" and "http://*/" for now.  Find anything else that
  : ends with a "/" as well.  Maybe even "urn:*:" URIs?
  :)
-declare function local:page--empty-path($db as xs:string)
+declare function local:page--empty-path($db as element(a:database))
    as element()+
 {
-   <p>Database: "{ $db }".  Go up to <a href="../../tools">tools</a>.</p>,
+   <p>Database: "{ xs:string($db/a:name) }".  Go up to <a href="../../tools">tools</a>.</p>,
+   local:create-doc-form($db, ()),
    let $items := (
          <li>
-            <a href="browse/">/</a>
-            (quite short link, innit?, <a href="browse/">click here to go to /</a>)
+            <a href="browse/">
+               <span class="glyphicon glyphicon-collapse-down" aria-hidden="true"/>
+            </a>
+            /
          </li>[fn:exists(local:get-children("/", 1, 1))],
          (: TODO: Display in case there are more roots than $page-size! :)
          local:get-children("http://", 1, 1) ! <li>http://<a href="browse/{ . }"> {
@@ -320,7 +299,7 @@ declare function local:page(
          local:page--init-path($init)
       )
       else if ( fn:empty($path) ) then (
-         local:page--empty-path($db/a:name)
+         local:page--empty-path($db)
       )
       else if ( fn:matches($path, '^http://[^/]+/$') ) then (
          local:page--root($db, '../../../../browse', $start)
@@ -372,6 +351,27 @@ declare function local:get-children(
 };
 
 (:~
+ : Create the "create document" form.
+ :)
+declare function local:create-doc-form(
+   $db   as element(a:database),
+   $path as xs:string?
+) as element(h:form)
+{
+   v:form($root || 'tools/insert', (
+      v:input-text('uri', 'Create document', 'Document URI (relative to this directory)'),
+      v:input-select('format', 'Format', (
+         v:input-option('xml',    'XML'),
+         v:input-option('text',   'Text'),
+         v:input-option('binary', 'Binary'))),
+      if ( fn:exists($path) ) then v:input-hidden('prefix', $path) else (),
+      v:input-hidden('database', $db/@id),
+      v:input-hidden('redirect', 'true'),
+      v:input-hidden('file',     '&lt;hello&gt;World!&lt;/hello&gt;'),
+      v:submit('Create')))
+};
+
+(:~
  : TODO: Document... (especially the fact it accesses the entire URI index,
  : should be a problem with large databases, with a shit loads of documents.
  : TODO: The details of how to retrieve the children must be in lib/admin.xql.
@@ -382,20 +382,7 @@ declare function local:display-list(
    $start as xs:integer
 ) as element()+
 {
-   let $toks  := fn:tokenize($path, '/')
-   let $count := fn:count($toks) + (1[fn:starts-with($path, '/')], 2)[1]
-   return
-      v:form($root || 'tools/insert', (
-         v:input-text('uri', 'Create document', 'Document URI (relative to this directory)'),
-         v:input-select('format', 'Format', (
-            v:input-option('xml',    'XML'),
-            v:input-option('text',   'Text'),
-            v:input-option('binary', 'Binary'))),
-         v:input-hidden('prefix',   $path),
-         v:input-hidden('database', $db/@id),
-         v:input-hidden('redirect', 'true'),
-         v:input-hidden('file',     '&lt;hello&gt;World!&lt;/hello&gt;'),
-         v:submit('Create'))),
+   local:create-doc-form($db, $path),
    (: Do we really need to filter out "$path"?  Can't we get rid of it in get-children()? :)
    let $children := local:get-children($path, 1, $start)[. ne $path]
    let $count    := fn:count($children)
@@ -455,23 +442,23 @@ declare function local:up-to-browse($db as xs:string, $path as xs:string)
 declare function local:uplinks($path as xs:string, $isdir as xs:boolean)
    as node()+
 {
-   (: The 3 cases must be handled in slightly different ways, because "go up to root"
-      is not necessary with "http" URIs (just click on the domain name part), while
-      it is necessary for "/" URIs (clicking on the "/" is just no an option).
-      TODO: Find a better way than the "go to /" link.  Maybe a button? :)
+   (: The 3 cases must be handled in slightly different ways, because the "go back
+      to root" button is not necessary with "http" URIs (just click on the domain
+      name part), while it is necessary for "/" URIs (clicking on the "/" is just
+      no an option). :)
    if ( $path eq '/' ) then (
       text { '"/"' }
    )
    else if ( fn:starts-with($path, '/') ) then (
       let $toks := fn:tokenize($path, '/')[.]
       return (
-         text { '"/' },
+         text { '" ' },
+         <a href="./{ t:make-string('../', fn:count($toks) - (0[$isdir], 1)[1]) }">
+            <span class="glyphicon glyphicon-collapse-up" aria-hidden="true"/>
+         </a>,
+         text { ' /' },
          local:uplinks-1($toks[fn:position() lt fn:last()], ('../'[$isdir], './')[1]),
-         text { $toks[fn:last()] || '/' }[$isdir],
-         text { '" (' },
-         <a href="./{ t:make-string('../', fn:count($toks) - (0[$isdir], 1)[1]) }">go to /</a>,
-         text { ', or click on a part to travel up the directories' }[fn:exists($toks[2])],
-         text { ')' }
+         text { $toks[fn:last()] || '/' }[$isdir]
       )
    )
    else if ( fn:starts-with($path, 'http://') ) then (
