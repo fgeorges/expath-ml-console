@@ -26,6 +26,25 @@ declare variable $v:pages as element(pages) :=
       <!--page name="devel"    title="Devel's evil"                 label="Devel"/-->
    </pages>;
 
+declare variable $v:semantic-prefixes :=
+   <declarations>
+      <decl prefix="dc">http://purl.org/dc/terms/</decl>
+      <decl prefix="doap">http://usefulinc.com/ns/doap#</decl>
+      <decl prefix="foaf">http://xmlns.com/foaf/0.1/</decl>
+      <decl prefix="frbr">http://purl.org/vocab/frbr/core</decl>
+      <decl prefix="org">http://www.w3.org/ns/org#</decl>
+      <decl prefix="owl">http://www.w3.org/2002/07/owl#</decl>
+      <decl prefix="time">http://www.w3.org/2006/time#</decl>
+      <decl prefix="prov">http://www.w3.org/ns/prov#</decl>
+      <decl prefix="rdf">http://www.w3.org/1999/02/22-rdf-syntax-ns#</decl>
+      <decl prefix="rdfs">http://www.w3.org/2000/01/rdf-schema#</decl>
+      <decl prefix="skos">http://www.w3.org/2004/02/skos/core#</decl>
+      <decl prefix="vcard">http://www.w3.org/2006/vcard/ns#</decl>
+      <decl prefix="xsd">http://www.w3.org/2001/XMLSchema#</decl>
+   </declarations>;
+
+(: ==== Generic view tools ======================================================== :)
+
 (:~
  : Redirect to `$url`, using a 302 HTTP status code.
  :
@@ -59,96 +78,6 @@ declare function v:console-page-menu($page as xs:string, $root as xs:string)
          </a>
       }
       </li>
-(:
-      <li xmlns="http://www.w3.org/1999/xhtml"> {
-         attribute { 'class' } { 'current' }[$p/@name eq $page],
-         <a class="stip" href="{ $root }{ $p/(@href, @name)[1] }" title="{ $p/@title }"> {
-            $p/fn:string(@label)
-         }
-         </a>
-      }
-      </li>
-:)
-};
-
-declare variable $serial-options :=
-   <options xmlns="xdmp:quote">
-      <indent-untyped>yes</indent-untyped>
-   </options>;
-
-(:~
- : Format a `pre` element containing some XML.
- :
- : $elem: the element to serialize and display in a `pre` (with syntax highlighted)
- :)
-declare function v:display-xml(
-   $elem as element()
-) as element(h:pre)
-{
-   v:ace-editor-xml($elem, 'code', 'xml', (), (), (), ())
-};
-
-(:~
- : Format a `pre` element containing some XML, and turn it into an editor.
- :
- : $elem: the element to serialize and display in the editor
- : $uri: the URI (in the database) of the document being edited
- : $endpoint: the endpoint on MarkLogic to save the document (must accept POST
- :     requests, with a field "uri" for the doc URI and "doc" for the content)
- :)
-declare function v:edit-xml(
-   $elem     as element(),
-   $id       as xs:string,
-   $uri      as xs:string,
-   $endpoint as xs:string
-) as element(h:pre)
-{
-   v:ace-editor-xml($elem, 'editor', 'xml', $id, $uri, $endpoint, '250pt')
-};
-
-(:~
- : Like v:edit-xml(), but for text.  $mode is an ACE mode, e.g. "xquery".
- :)
-declare function v:edit-text(
-   $elem     as text(),
-   $mode     as xs:string,
-   $id       as xs:string,
-   $uri      as xs:string,
-   $endpoint as xs:string
-) as element(h:pre)
-{
-   v:ace-editor-xml($elem, 'editor', $mode, $id, $uri, $endpoint, '250pt')
-};
-
-(:~
- : Common implementation of `v:display-xml()` and `v:edit-xml()`.
- :)
-declare %private function v:ace-editor-xml(
-   $node     as node(),
-   $class    as xs:string,
-   $mode     as xs:string,
-   $id       as xs:string?,
-   $uri      as xs:string?,
-   $endpoint as xs:string?,
-   $height   as xs:string?
-) as element(h:pre)
-{
-   let $serialized := xdmp:quote($node, $serial-options)
-   let $lines      := fn:count(fn:tokenize($serialized, '&#10;'))
-   return
-      <pre xmlns="http://www.w3.org/1999/xhtml"
-           class="{ $class }"
-           ace-mode="ace/mode/{ $mode }"
-           ace-theme="ace/theme/pastel_on_dark"
-           ace-gutter="true">
-      {
-         attribute { 'id'           } { $id }[fn:exists($id)],
-         attribute { 'ace-uri'      } { $uri }[fn:exists($uri)],
-         attribute { 'ace-endpoint' } { $endpoint }[fn:exists($endpoint)],
-         attribute { 'style'        } { 'height: ' || $height }[fn:exists($height)],
-         $serialized
-      }
-      </pre>
 };
 
 (:~
@@ -337,6 +266,90 @@ declare %private function v:console-page-static(
    </html>
 };
 
+(: ==== ACE editor tools ======================================================== :)
+
+declare variable $serial-options :=
+   <options xmlns="xdmp:quote">
+      <indent-untyped>yes</indent-untyped>
+   </options>;
+
+(:~
+ : Format a `pre` element containing some XML.
+ :
+ : $elem: the element to serialize and display in a `pre` (with syntax highlighted)
+ :)
+declare function v:display-xml(
+   $elem as element()
+) as element(h:pre)
+{
+   v:ace-editor-xml($elem, 'code', 'xml', (), (), (), ())
+};
+
+(:~
+ : Format a `pre` element containing some XML, and turn it into an editor.
+ :
+ : $elem: the element to serialize and display in the editor
+ : $uri: the URI (in the database) of the document being edited
+ : $endpoint: the endpoint on MarkLogic to save the document (must accept POST
+ :     requests, with a field "uri" for the doc URI and "doc" for the content)
+ :)
+declare function v:edit-xml(
+   $elem     as element(),
+   $id       as xs:string,
+   $uri      as xs:string,
+   $endpoint as xs:string
+) as element(h:pre)
+{
+   v:ace-editor-xml($elem, 'editor', 'xml', $id, $uri, $endpoint, '250pt')
+};
+
+(:~
+ : Like v:edit-xml(), but for text.  $mode is an ACE mode, e.g. "xquery".
+ :)
+declare function v:edit-text(
+   $elem     as text(),
+   $mode     as xs:string,
+   $id       as xs:string,
+   $uri      as xs:string,
+   $endpoint as xs:string
+) as element(h:pre)
+{
+   v:ace-editor-xml($elem, 'editor', $mode, $id, $uri, $endpoint, '250pt')
+};
+
+(:~
+ : Common implementation of `v:display-xml()` and `v:edit-xml()`.
+ :)
+declare %private function v:ace-editor-xml(
+   $node     as node(),
+   $class    as xs:string,
+   $mode     as xs:string,
+   $id       as xs:string?,
+   $uri      as xs:string?,
+   $endpoint as xs:string?,
+   $height   as xs:string?
+) as element(h:pre)
+{
+   let $serialized := xdmp:quote($node, $serial-options)
+   let $lines      := fn:count(fn:tokenize($serialized, '&#10;'))
+   return
+      <pre xmlns="http://www.w3.org/1999/xhtml"
+           class="{ $class }"
+           ace-mode="ace/mode/{ $mode }"
+           ace-theme="ace/theme/pastel_on_dark"
+           ace-gutter="true">
+      {
+         attribute { 'id'           } { $id }[fn:exists($id)],
+         attribute { 'ace-uri'      } { $uri }[fn:exists($uri)],
+         attribute { 'ace-endpoint' } { $endpoint }[fn:exists($endpoint)],
+         attribute { 'style'        } { 'height: ' || $height }[fn:exists($height)],
+         $serialized
+      }
+      </pre>
+};
+
+(: ==== Form tools ======================================================== :)
+
 declare function v:form($action as xs:string, $content as element()+)
    as element(h:form)
 {
@@ -452,4 +465,47 @@ declare function v:input-hidden($id as xs:string, $val as xs:string)
 {
    <input xmlns="http://www.w3.org/1999/xhtml"
           type="hidden" name="{ $id }" value="{ $val }"/>
+};
+
+(: ==== Triple display tools ======================================================== :)
+
+(:~
+ : Shorten a resource URI, if a prefix can be found for it.
+ :
+ : The first entry in `$v:semantic-prefixes` that matches $uri (that is, the
+ : first one for which $uri starts with the text value of) is used.  If there
+ : is no such entry, the function returns the original `$uri`.
+ :)
+declare function v:shorten-resource($uri as xs:string)
+   as xs:string
+{
+   let $decl := v:find-matching-prefix($uri)
+   return
+      if ( fn:empty($decl) ) then
+         $uri
+      else
+         $decl/@prefix || ':' || fn:substring-after($uri, xs:string($decl))
+};
+
+(:~
+ : Return the first matching prefix declaration, for a complete resource URI.
+ :)
+declare function v:find-matching-prefix($uri as xs:string)
+   as element(decl)?
+{
+   v:find-matching-prefix($uri, $v:semantic-prefixes/decl)
+};
+
+(:~
+ : Return the first matching prefix declaration, for a complete resource URI.
+ :)
+declare function v:find-matching-prefix($uri as xs:string, $decls as element(decl)*)
+   as element(decl)?
+{
+   if ( fn:empty($decls) ) then
+      ()
+   else if ( fn:starts-with($uri, xs:string($decls[1])) ) then
+      $decls[1]
+   else
+      v:find-matching-prefix($uri, fn:remove($decls, 1))
 };

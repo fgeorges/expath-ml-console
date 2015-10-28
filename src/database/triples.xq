@@ -161,7 +161,7 @@ declare function local:display-value($v as xs:anyAtomicType)
    if ( sem:isIRI($v) ) then
       (: TODO: Display the link only when the resource exists (that is, there is
          at least one triple with that IRI as subkect). :)
-      <a href="triples?rsrc={ fn:encode-for-uri($v) }">{ $v }</a>
+      <a href="triples?rsrc={ fn:encode-for-uri($v) }">{ v:shorten-resource($v) }</a>
    else
       <span>{ $v }</span>
 };
@@ -172,14 +172,14 @@ declare function local:display-type($v as xs:anyAtomicType)
    (: TODO: Return a different class instead per case, and display it graphically
       rather than using a string. :)
    if ( sem:isIRI($v) ) then
-      <span>IRI</span>
+      <span class="glyphicon glyphicon-link" title="Resource"/>
    else if ( sem:isNumeric($v) ) then
-      <span>Num</span>
+      <span class="glyphicon glyphicon-usd"  title="Number"/>
    else if ( sem:lang($v) ) then
-      <span>Str ({ sem:lang($v) })</span>
+      sem:lang($v) ! <span class="glyphicon glyphicon-font" title="String, language: { . }">&#160;{ . }</span>
    else
       (: Assuming a string? :)
-      <span>Str</span>
+      <span class="glyphicon glyphicon-font" title="String"/>
 };
 
 let $slashes := if ( fn:empty($path) ) then 0 else fn:count(fn:tokenize($path, '/'))
