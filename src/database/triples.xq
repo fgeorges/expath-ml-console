@@ -92,11 +92,12 @@ declare function local:page--browse($db as xs:string, $start as xs:integer)
 {
    <p>Database: "{ $db }".  Go up to <a href="../../tools">tools</a>.</p>,
    <p> {
-      (: TODO: As it is, the query includes blank nodes. Filter them out! :)
+      (: TODO: Pass parameters properly, instead of concatenating values. :)
       let $query :=
             'SELECT DISTINCT ?s WHERE {
                 ?s ?p ?o .
-                FILTER ( ! isBlank(?s) )
+                # filter out blank nodes, and xs:dateTimes like in the Meters database
+                FILTER ( isIRI(?s) )
              }
              ORDER BY ?s
              OFFSET ' || $start - 1 || '
