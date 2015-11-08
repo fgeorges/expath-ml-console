@@ -145,138 +145,142 @@ declare function local:page--doc($db as element(a:database))
 {
    local:up-to-browse($db/a:name, $path),
    <p>In directory { local:uplinks($path, fn:false()) }.</p>,
+   if ( fn:not(fn:doc-available($path)) ) then (
+      <p>The document <code>{ $path } </code> does not exist.</p>
+   )
+   else (
+      <h3>Summary</h3>,
+      <table class="table table-bordered">
+         <thead>
+            <th>Name</th>
+            <th>Value</th>
+         </thead>
+         <tbody>
+            <tr>
+               <td>Type</td>
+               <td> {
+                  typeswitch ( fn:doc($path)/node() )
+                     case element() return 'XML'
+                     case text()    return 'Text'
+                     default        return 'Binary'
+               }
+               </td>
+            </tr>
+            <tr>
+               <td>Document URI</td>
+               <td>{ $path }</td>
+            </tr>
+            <tr>
+               <td>Collections</td>
+               <td> {
+                  xdmp:document-get-collections($path) ! (., <br/>)
+               }
+               </td>
+            </tr>
+            <tr>
+               <td>Forest</td>
+               <td>{ xdmp:forest-name(xdmp:document-forest($path)) }</td>
+            </tr>
+            <tr>
+               <td>Quality</td>
+               <td>{ xdmp:document-get-quality($path) }</td>
+            </tr>
+         </tbody>
+      </table>,
 
-   <h3>Summary</h3>,
-   <table class="table table-bordered">
-      <thead>
-         <th>Name</th>
-         <th>Value</th>
-      </thead>
-      <tbody>
-         <tr>
-            <td>Type</td>
-            <td> {
-               typeswitch ( fn:doc($path)/node() )
-                  case element() return 'XML'
-                  case text()    return 'Text'
-                  default        return 'Binary'
-            }
-            </td>
-         </tr>
-         <tr>
-            <td>Document URI</td>
-            <td>{ $path }</td>
-         </tr>
-         <tr>
-            <td>Collections</td>
-            <td> {
-               xdmp:document-get-collections($path) ! (., <br/>)
-            }
-            </td>
-         </tr>
-         <tr>
-            <td>Forest</td>
-            <td>{ xdmp:forest-name(xdmp:document-forest($path)) }</td>
-         </tr>
-         <tr>
-            <td>Quality</td>
-            <td>{ xdmp:document-get-quality($path) }</td>
-         </tr>
-      </tbody>
-   </table>,
-
-   <h3>Content</h3>,
-   let $doc   := fn:doc($path)/node()
-   let $id    := fn:generate-id($doc)
-   let $count := fn:count(fn:tokenize($path, '/')) - (1[fn:starts-with($path, '/')], 0)[1]
-   let $up    := t:make-string('../', $count)
-   return
-      typeswitch ( $doc )
-         case element() return (
-            v:edit-xml($doc, $id, $path, $up || 'save-doc'),
-            <button class="btn btn-default" onclick='saveDoc("{ $id }");'>Save</button>
-         )
-         case text() return (
-            (: TODO: Use the internal MarkLogic way to recognize XQuery modules? :)
-            let $mode := ('xquery'[fn:matches($path, '\.xq[ylm]?$')], 'javascript'[fn:ends-with($path, '.sjs')], 'text')[1]
-            return (
-               v:edit-text($doc, $mode, $id, $path, $up || 'save-text'),
+      <h3>Content</h3>,
+      let $doc   := fn:doc($path)/node()
+      let $id    := fn:generate-id($doc)
+      let $count := fn:count(fn:tokenize($path, '/')) - (1[fn:starts-with($path, '/')], 0)[1]
+      let $up    := t:make-string('../', $count)
+      return
+         typeswitch ( $doc )
+            case element() return (
+               v:edit-xml($doc, $id, $path, $up || 'save-doc'),
                <button class="btn btn-default" onclick='saveDoc("{ $id }");'>Save</button>
             )
-         )
-         default return (
-            <p>Binary document display not supported.</p>
-         ),
+            case text() return (
+               (: TODO: Use the internal MarkLogic way to recognize XQuery modules? :)
+               let $mode := ('xquery'[fn:matches($path, '\.xq[ylm]?$')], 'javascript'[fn:ends-with($path, '.sjs')], 'text')[1]
+               return (
+                  v:edit-text($doc, $mode, $id, $path, $up || 'save-text'),
+                  <button class="btn btn-default" onclick='saveDoc("{ $id }");'>Save</button>
+               )
+            )
+            default return (
+               <p>Binary document display not supported.</p>
+            ),
 
-   <h3>Properties</h3>,
-   let $props := xdmp:document-properties($path)
-   return
-      if ( fn:exists($props) ) then
-         v:display-xml($props/*)
-      else
-         <p>This document does not have any property.</p>,
+      <h3>Properties</h3>,
+      let $props := xdmp:document-properties($path)
+      return
+         if ( fn:exists($props) ) then
+            v:display-xml($props/*)
+         else
+            <p>This document does not have any property.</p>,
 
-   <h3>Permissions</h3>,
-   let $perms := xdmp:document-get-permissions($path)
-   return
-      if ( fn:empty($perms) ) then
-         <p>This document does not have any permission.</p>
-      else
-         <table class="table table-bordered">
-            <thead>
-               <th>Capability</th>
-               <th>Role</th>
-               <th>Remove</th>
-            </thead>
-            <tbody> {
-               for $perm       in $perms
-               let $capability := xs:string($perm/sec:capability)
-               let $role       := a:role-name($perm/sec:role-id)
+      <h3>Permissions</h3>,
+      let $perms := xdmp:document-get-permissions($path)
+      return
+         if ( fn:empty($perms) ) then
+            <p>This document does not have any permission.</p>
+         else
+            <table class="table table-bordered">
+               <thead>
+                  <th>Capability</th>
+                  <th>Role</th>
+                  <th>Remove</th>
+               </thead>
+               <tbody> {
+                  for $perm       in $perms
+                  let $capability := xs:string($perm/sec:capability)
+                  let $role       := a:role-name($perm/sec:role-id)
+                  return
+                     <tr>
+                        <td>{ $capability }</td>
+                        <td>{ $role }</td>
+                        <td> {
+                           v:inline-form($root || 'tools/del-perm', (
+                              <input type="hidden" name="capability" value="{ $capability }"/>,
+                              <input type="hidden" name="role"       value="{ $role }"/>,
+                              <input type="hidden" name="uri"        value="{ $path }"/>,
+                              <input type="hidden" name="database"   value="{ $db/@id }"/>,
+                              <input type="hidden" name="redirect"   value="true"/>,
+                              (: TODO: Replace with a Bootstrap character icon... :)
+                              v:submit('Remove')))
+                        }
+                        </td>
+                     </tr>
+               }
+               </tbody>
+            </table>,
+      <p>Add a permission:</p>,
+      <form class="form-inline" action="{ $root }tools/add-perm" method="post">
+         <div class="form-group">
+            <label for="capability">Capability&#160;&#160;</label>
+            <select name="capability" class="form-control">
+               <option value="read">Read</option>
+               <option value="update">Update</option>
+               <option value="insert">Insert</option>
+               <option value="execute">Execute</option>
+            </select>
+         </div>
+         <div class="form-group">
+            <label for="role">&#160;&#160;&#160;&#160;Role&#160;&#160;</label>
+            <select name="role" class="form-control"> {
+               for $role in a:get-roles()/a:role/a:name
+               order by $role
                return
-                  <tr>
-                     <td>{ $capability }</td>
-                     <td>{ $role }</td>
-                     <td> {
-                        v:inline-form($root || 'tools/del-perm', (
-                           <input type="hidden" name="capability" value="{ $capability }"/>,
-                           <input type="hidden" name="role"       value="{ $role }"/>,
-                           <input type="hidden" name="uri"        value="{ $path }"/>,
-                           <input type="hidden" name="database"   value="{ $db/@id }"/>,
-                           <input type="hidden" name="redirect"   value="true"/>,
-                           (: TODO: Replace with a Bootstrap character icon... :)
-                           v:submit('Remove')))
-                     }
-                     </td>
-                  </tr>
+                  <option value="{ $role }">{ $role }</option>
             }
-            </tbody>
-         </table>,
-   <p>Add a permission:</p>,
-   <form class="form-inline" action="{ $root }tools/add-perm" method="post">
-      <div class="form-group">
-         <label for="capability">Capability&#160;&#160;</label>
-         <select name="capability" class="form-control">
-            <option value="read">Read</option>
-            <option value="update">Update</option>
-            <option value="insert">Insert</option>
-            <option value="execute">Execute</option>
-         </select>
-      </div>
-      <div class="form-group">
-         <label for="role">&#160;&#160;&#160;&#160;Role&#160;&#160;</label>
-         <select name="role" class="form-control"> {
-            for $role in a:get-roles()/a:role/a:name
-            order by $role
-            return
-               <option value="{ $role }">{ $role }</option>
-         }
-         </select>
-      </div>
-      <input type="hidden" name="uri"      value="{ $path }"/>
-      <input type="hidden" name="database" value="{ $db/@id }"/>
-      <input type="hidden" name="redirect" value="true"/>
-      <button type="submit" class="btn btn-default">Add</button>
-   </form>
+            </select>
+         </div>
+         <input type="hidden" name="uri"      value="{ $path }"/>
+         <input type="hidden" name="database" value="{ $db/@id }"/>
+         <input type="hidden" name="redirect" value="true"/>
+         <button type="submit" class="btn btn-default">Add</button>
+      </form>
+   )
 };
 
 (:~
