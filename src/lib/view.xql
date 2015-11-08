@@ -87,6 +87,7 @@ declare function v:console-page-menu($page as xs:string, $root as xs:string)
  : $title: the title of the page (to appear on top of the page)
  : $root: '' if a top-level page, or '../' if in a sub-directory
  : $content: the actual HTML content, pasted as the content of the page
+ : $scripts: extra script elements, to be inserted at the end of the page
  :
  : TODO: Shouldn't it set the response MIME type and HTTP code?
  :)
@@ -95,6 +96,17 @@ declare function v:console-page(
    $page    as xs:string,
    $title   as xs:string,
    $content as function() as element()+
+) as element(h:html)
+{
+   v:console-page($root, $page, $title, $content, ())
+};
+
+declare function v:console-page(
+   $root    as xs:string,
+   $page    as xs:string,
+   $title   as xs:string,
+   $content as function() as element()+,
+   $scripts as element(h:script)*
 ) as element(h:html)
 {
    let $c     := v:eval-content($content)
@@ -106,7 +118,8 @@ declare function v:console-page(
          $page,
          $title,
          $c,
-         fn:exists($codes))
+         fn:exists($codes),
+         $scripts)
 };
 
 (:~
@@ -144,7 +157,8 @@ declare %private function v:console-page-static(
    $page    as xs:string,
    $title   as xs:string,
    $content as element()+,
-   $codes   as xs:boolean
+   $codes   as xs:boolean,
+   $scripts as element(h:script)*
 ) as element(h:html)
 {
    <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
@@ -262,6 +276,9 @@ declare %private function v:console-page-static(
             else
                ()
          }
+         {
+            $scripts
+         }
       </body>
    </html>
 };
@@ -305,6 +322,25 @@ declare function v:edit-xml(
 
 (:~
  : Like v:edit-xml(), but for text.  $mode is an ACE mode, e.g. "xquery".
+ :
+ : For editing "detached" text (not attached to a document in the database, so
+ : without any URI).
+ :)
+declare function v:edit-text(
+   $elem     as text(),
+   $mode     as xs:string,
+   $id       as xs:string,
+   $endpoint as xs:string
+) as element(h:pre)
+{
+   v:ace-editor-xml($elem, 'editor', $mode, $id, (), $endpoint, '250pt')
+};
+
+(:~
+ : Like v:edit-xml(), but for text.  $mode is an ACE mode, e.g. "xquery".
+ :
+ : For editing "attached" text (attached to a document in the database, so with
+ : a URI).
  :)
 declare function v:edit-text(
    $elem     as text(),
@@ -330,22 +366,19 @@ declare %private function v:ace-editor-xml(
    $height   as xs:string?
 ) as element(h:pre)
 {
-   let $serialized := xdmp:quote($node, $serial-options)
-   let $lines      := fn:count(fn:tokenize($serialized, '&#10;'))
-   return
-      <pre xmlns="http://www.w3.org/1999/xhtml"
-           class="{ $class }"
-           ace-mode="ace/mode/{ $mode }"
-           ace-theme="ace/theme/pastel_on_dark"
-           ace-gutter="true">
-      {
-         attribute { 'id'           } { $id }[fn:exists($id)],
-         attribute { 'ace-uri'      } { $uri }[fn:exists($uri)],
-         attribute { 'ace-endpoint' } { $endpoint }[fn:exists($endpoint)],
-         attribute { 'style'        } { 'height: ' || $height }[fn:exists($height)],
-         $serialized
-      }
-      </pre>
+   <pre xmlns="http://www.w3.org/1999/xhtml"
+        class="{ $class }"
+        ace-mode="ace/mode/{ $mode }"
+        ace-theme="ace/theme/pastel_on_dark"
+        ace-gutter="true">
+   {
+      attribute { 'id'           } { $id }[fn:exists($id)],
+      attribute { 'ace-uri'      } { $uri }[fn:exists($uri)],
+      attribute { 'ace-endpoint' } { $endpoint }[fn:exists($endpoint)],
+      attribute { 'style'        } { 'height: ' || $height }[fn:exists($height)],
+      xdmp:quote($node, $serial-options)
+   }
+   </pre>
 };
 
 (: ==== Form tools ======================================================== :)
