@@ -5,7 +5,6 @@ import module namespace t = "http://expath.org/ns/ml/console/tools" at "../lib/t
 
 declare namespace xdmp = "http://marklogic.com/xdmp";
 
-(: TODO: Use the functions from t:* ! :)
 let $id   := t:mandatory-field('id')
 let $uri  := t:mandatory-field('uri')
 let $doc  := t:mandatory-field('doc')
@@ -25,5 +24,5 @@ return (
       (fn:QName('', 'uri'),  $uri,
        fn:QName('', 'doc'),  $doc,
        fn:QName('', 'text'), $text)),
-   'Query saved in DB ' || xdmp:database-name($db) || ', at ' || $uri
+   'Document saved in DB ' || xdmp:database-name($db) || ', at ' || $uri
 )

@@ -54,6 +54,11 @@
       <add-query-param name="text">true</add-query-param>
       <dispatch>/database/save-doc.xq</dispatch>
    </match-path>
+   <match-path matches="^/db/([0-9]+)/delete$">
+      <add-query-param name="database">$1</add-query-param>
+      <add-query-param name="top">../../</add-query-param>
+      <dispatch>/tools/delete.xq</dispatch>
+   </match-path>
    <match-path matches="^/cxan$">
       <dispatch>/cxan.xq</dispatch>
    </match-path>
@@ -97,6 +102,9 @@
       <dispatch>/tools/config.xq</dispatch>
    </match-path>
    <match-path matches="^/tools/delete$">
+      <add-query-param name="back-url">docs</add-query-param>
+      <add-query-param name="back-label">document manager</add-query-param>
+      <add-query-param name="top">../</add-query-param>
       <dispatch>/tools/delete.xq</dispatch>
    </match-path>
    <match-path matches="^/tools/docs$">

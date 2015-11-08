@@ -27,12 +27,14 @@ declare function local:page()
    as element()+
 {
    (: TODO: Check the params are there, and validate them... :)
-   let $db-id := xs:unsignedLong(t:mandatory-field('database'))
-   let $db    := a:get-database($db-id)
-   let $doc   := t:optional-field('doc', ())
-   let $dir   := t:optional-field('dir', ())
-   let $count := fn:count(($doc, $dir))
-   return
+   let $db-id      := xs:unsignedLong(t:mandatory-field('database'))
+   let $db         := a:get-database($db-id)
+   let $back-url   := t:mandatory-field('back-url')
+   let $back-label := t:mandatory-field('back-label')
+   let $doc        := t:optional-field('doc', ())
+   let $dir        := t:optional-field('dir', ())
+   let $count      := fn:count(($doc, $dir))
+   return (
       if ( $count ne 1 ) then (
          <p><b>Error</b>: Exactly 1 parameter out of "doc" and "dir" should be
             provided. Got { $count } of them.  Doc is "{ $doc }" and dir is
@@ -52,7 +54,10 @@ declare function local:page()
          a:remove-directory($db, $dir),
          <p>Directory successfully deleted from { $dir }.</p>
       ),
-   <p>Back to <a href="docs">document manager</a>.</p>
+      <p>Back to <a href="{ $back-url }">{ $back-label }</a>.</p>
+   )
 };
 
-v:console-page('../', 'tools', 'Tools', local:page#0)
+let $top := t:mandatory-field('top')
+return
+   v:console-page($top, 'tools', 'Tools', local:page#0)

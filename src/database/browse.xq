@@ -196,16 +196,15 @@ declare function local:page--doc($db as element(a:database))
       return
          typeswitch ( $doc )
             case element() return (
-               v:edit-xml($doc, $id, $path, $up || 'save-doc'),
-               <button class="btn btn-default" onclick='saveDoc("{ $id }");'>Save</button>
+               v:edit-xml($doc, $id, $path, $up)
             )
             case text() return (
                (: TODO: Use the internal MarkLogic way to recognize XQuery modules? :)
-               let $mode := ('xquery'[fn:matches($path, '\.xq[ylm]?$')], 'javascript'[fn:ends-with($path, '.sjs')], 'text')[1]
-               return (
-                  v:edit-text($doc, $mode, $id, $path, $up || 'save-text'),
-                  <button class="btn btn-default" onclick='saveDoc("{ $id }");'>Save</button>
-               )
+               let $mode := ( 'xquery'[fn:matches($path, '\.xq[ylm]?$')],
+                              'javascript'[fn:ends-with($path, '.sjs')],
+                              'text' )[1]
+               return
+                  v:edit-text($doc, $mode, $id, $path, $up)
             )
             default return (
                <p>Binary document display not supported.</p>

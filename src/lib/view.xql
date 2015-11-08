@@ -235,21 +235,24 @@ declare %private function v:console-page-static(
 
                   qsa(".editor").forEach(function (edElm) {{
                      var e = {{}};
-                     e.id       = edElm.getAttribute("id");
-                     e.uri      = edElm.getAttribute("ace-uri");
-                     e.endpoint = edElm.getAttribute("ace-endpoint");
-                     e.theme    = edElm.getAttribute("ace-theme");
-                     e.mode     = edElm.getAttribute("ace-mode");
-                     e.editor   = ace.edit(edElm);
+                     e.id     = edElm.getAttribute("id");
+                     e.uri    = edElm.getAttribute("ace-uri");
+                     e.top    = edElm.getAttribute("ace-top");
+                     e.theme  = edElm.getAttribute("ace-theme");
+                     e.mode   = edElm.getAttribute("ace-mode");
+                     e.editor = ace.edit(edElm);
                      e.editor.setTheme(e.theme);
                      e.editor.getSession().setMode(e.mode);
                      editors[e.id] = e;
                   }});
 
-                  function saveDoc(id)
+                  // id is the id of the ACE editor element
+                  // type is either "xml" or "text"
+                  function saveDoc(id, type)
                   {{
                      // get the ACE doc
                      var info = editors[id];
+                     var endpoint = info.top + "save-" + type;
                      var session = info.editor.getSession();
                      var doc = session.getDocument();
                      // the request content
@@ -258,7 +261,7 @@ declare %private function v:console-page-static(
                      fd.append("uri", info.uri);
                      // the request itself
                      $.ajax({{
-                        url: info.endpoint,
+                        url: endpoint,
                         method: "POST",
                         data: fd,
                         dataType: "text",
@@ -270,6 +273,12 @@ declare %private function v:console-page-static(
                         error: function(xhr, status, error) {{
                            alert("Error: " + status + " (" + error + ")\n\nSee logs for details.");
                         }}}});
+                  }};
+
+                  // id is the id of the ACE editor element
+                  function deleteDoc(id)
+                  {{
+                     $("#" + id + "-delete").submit();
                   }};
                </script>
             )
@@ -311,13 +320,24 @@ declare function v:display-xml(
  :     requests, with a field "uri" for the doc URI and "doc" for the content)
  :)
 declare function v:edit-xml(
-   $elem     as element(),
-   $id       as xs:string,
-   $uri      as xs:string,
-   $endpoint as xs:string
-) as element(h:pre)
+   $elem as element(),
+   $id   as xs:string,
+   $uri  as xs:string,
+   $top  as xs:string
+) as element()+
 {
-   v:ace-editor-xml($elem, 'editor', 'xml', $id, $uri, $endpoint, '250pt')
+   v:ace-editor-xml($elem, 'editor', 'xml', $id, $uri, $top, '250pt'),
+   <button class="btn btn-default" onclick='saveDoc("{ $id }", "doc");'>Save</button>,
+   <button class="btn btn-danger pull-right" onclick='deleteDoc("{ $id }");'>Delete</button>,
+   <form method="POST" action="{ $top }delete" style="display: none" id="{ $id }-delete">
+      <input type="hidden" name="doc"        value="{ $uri }"/>
+      <input type="hidden" name="back-label" value="the directory"/>
+      <input type="hidden" name="back-url"   value="browse{
+         '/'[fn:not(fn:starts-with($uri, '/'))]
+      }{
+         fn:string-join(fn:tokenize($uri, '/')[fn:position() lt fn:last()], '/')
+      }/"/>
+   </form>
 };
 
 (:~
@@ -327,13 +347,13 @@ declare function v:edit-xml(
  : without any URI).
  :)
 declare function v:edit-text(
-   $elem     as text(),
-   $mode     as xs:string,
-   $id       as xs:string,
-   $endpoint as xs:string
+   $elem as text(),
+   $mode as xs:string,
+   $id   as xs:string,
+   $top  as xs:string
 ) as element(h:pre)
 {
-   v:ace-editor-xml($elem, 'editor', $mode, $id, (), $endpoint, '250pt')
+   v:ace-editor-xml($elem, 'editor', $mode, $id, (), $top, '250pt')
 };
 
 (:~
@@ -343,14 +363,25 @@ declare function v:edit-text(
  : a URI).
  :)
 declare function v:edit-text(
-   $elem     as text(),
-   $mode     as xs:string,
-   $id       as xs:string,
-   $uri      as xs:string,
-   $endpoint as xs:string
-) as element(h:pre)
+   $elem as text(),
+   $mode as xs:string,
+   $id   as xs:string,
+   $uri  as xs:string,
+   $top  as xs:string
+) as element()+
 {
-   v:ace-editor-xml($elem, 'editor', $mode, $id, $uri, $endpoint, '250pt')
+   v:ace-editor-xml($elem, 'editor', $mode, $id, $uri, $top, '250pt'),
+   <button class="btn btn-default" onclick='saveDoc("{ $id }", "text");'>Save</button>,
+   <button class="btn btn-danger pull-right" onclick='deleteDoc("{ $id }");'>Delete</button>,
+   <form method="POST" action="{ $top }delete" style="display: none" id="{ $id }-delete">
+      <input type="hidden" name="doc"        value="{ $uri }"/>
+      <input type="hidden" name="back-label" value="the directory"/>
+      <input type="hidden" name="back-url"   value="browse{
+         '/'[fn:not(fn:starts-with($uri, '/'))]
+      }{
+         fn:string-join(fn:tokenize($uri, '/')[fn:position() lt fn:last()], '/')
+      }/"/>
+   </form>
 };
 
 (:~
@@ -362,7 +393,7 @@ declare %private function v:ace-editor-xml(
    $mode     as xs:string,
    $id       as xs:string?,
    $uri      as xs:string?,
-   $endpoint as xs:string?,
+   $top      as xs:string?,
    $height   as xs:string?
 ) as element(h:pre)
 {
@@ -372,10 +403,10 @@ declare %private function v:ace-editor-xml(
         ace-theme="ace/theme/pastel_on_dark"
         ace-gutter="true">
    {
-      attribute { 'id'           } { $id }[fn:exists($id)],
-      attribute { 'ace-uri'      } { $uri }[fn:exists($uri)],
-      attribute { 'ace-endpoint' } { $endpoint }[fn:exists($endpoint)],
-      attribute { 'style'        } { 'height: ' || $height }[fn:exists($height)],
+      attribute { 'id'         } { $id }[fn:exists($id)],
+      attribute { 'ace-uri'    } { $uri }[fn:exists($uri)],
+      attribute { 'ace-top'    } { $top }[fn:exists($top)],
+      attribute { 'style'      } { 'height: ' || $height }[fn:exists($height)],
       xdmp:quote($node, $serial-options)
    }
    </pre>
