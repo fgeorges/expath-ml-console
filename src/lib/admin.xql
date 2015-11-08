@@ -15,6 +15,7 @@ declare namespace err   = "http://www.w3.org/2005/xqt-errors";
 declare namespace mlerr = "http://marklogic.com/xdmp/error";
 declare namespace pkg   = "http://expath.org/ns/pkg";
 declare namespace pp    = "http://expath.org/ns/repo/packages";
+declare namespace map   = "http://marklogic.com/xdmp/map";
 declare namespace mlpkg = "http://marklogic.com/ns/expath-pkg";
 declare namespace xdmp  = "http://marklogic.com/xdmp";
 declare namespace zip   = "xdmp:zip";
@@ -44,6 +45,9 @@ declare function a:database-id($db as item()) as xs:unsignedLong
 
 (:~
  : Eval the query on the given database, with the given parameters.
+ :
+ : TODO: Enforce a map for params, instead of the limited and dangerous "sequence
+ : of pairs".
  :)
 declare function a:eval-on-database(
    $db     as item(),
@@ -223,6 +227,24 @@ declare function a:remove-doc($db as item(), $uri as xs:string)
        declare variable $uri external;
        xdmp:document-delete($uri)',
       (xs:QName('uri'), $uri))
+};
+
+(:~
+ : Remove documents and directories on a database.
+ :)
+declare function a:remove-docs-and-dirs($db as item(), $uris as xs:string+)
+{
+   a:eval-on-database(
+      $db,
+      'declare namespace xdmp = "http://marklogic.com/xdmp";
+       declare variable $uris external;
+       let $docs := $uris[fn:not(fn:ends-with(., "/"))]
+       let $dirs := $uris[fn:ends-with(., "/")]
+       return (
+          $docs ! xdmp:document-delete(.),
+          $dirs ! xdmp:directory(., "infinity")/xdmp:document-delete(fn:document-uri(.))
+       )',
+      map:entry('uris', $uris))
 };
 
 (:~

@@ -16,7 +16,8 @@ declare namespace sec  = "http://marklogic.com/xdmp/security";
 
 declare variable $path := local:get-param-path();
 
-declare variable $root := local:get-root($path);
+declare variable $db-root     := local:get-db-root($path);
+declare variable $webapp-root := $db-root || '../../';
 
 (: Fixed page size for now. :)
 declare variable $page-size := 100;
@@ -36,16 +37,16 @@ declare function local:get-param-path()
 };
 
 (:~
- : The path to the webapp root, relative to current $path.
+ : The path to the database root, relative to current $path.
  :)
-declare function local:get-root($path as xs:string?)
+declare function local:get-db-root($path as xs:string?)
    as xs:string
 {
    if ( fn:empty($path) ) then
       './'
    else
       let $toks  := fn:tokenize($path, '/')
-      let $count := fn:count($toks) + (1[fn:starts-with($path, '/')], 2)[1]
+      let $count := fn:count($toks) + (-1[fn:starts-with($path, '/')], 0)[1]
       return
          t:make-string('../', $count)
 };
@@ -239,7 +240,7 @@ declare function local:page--doc($db as element(a:database))
                         <td>{ $capability }</td>
                         <td>{ $role }</td>
                         <td> {
-                           v:inline-form($root || 'tools/del-perm', (
+                           v:inline-form($webapp-root || 'tools/del-perm', (
                               <input type="hidden" name="capability" value="{ $capability }"/>,
                               <input type="hidden" name="role"       value="{ $role }"/>,
                               <input type="hidden" name="uri"        value="{ $path }"/>,
@@ -254,7 +255,7 @@ declare function local:page--doc($db as element(a:database))
                </tbody>
             </table>,
       <p>Add a permission:</p>,
-      <form class="form-inline" action="{ $root }tools/add-perm" method="post">
+      <form class="form-inline" action="{ $webapp-root }tools/add-perm" method="post">
          <div class="form-group">
             <label for="capability">Capability&#160;&#160;</label>
             <select name="capability" class="form-control">
@@ -361,7 +362,7 @@ declare function local:create-doc-form(
    $path as xs:string?
 ) as element(h:form)
 {
-   v:form($root || 'tools/insert', (
+   v:form($webapp-root || 'tools/insert', (
       v:input-text('uri', 'Create document', 'Document URI (relative to this directory)'),
       v:input-select('format', 'Format', (
          v:input-option('xml',    'XML'),
@@ -402,18 +403,30 @@ declare function local:display-list(
          }:
       </p>,
       (: display the list of children themselves :)
-      <ul> {
-         for $c in $children
-         order by $c
-         return
-            (: subdir :)
-            if ( fn:ends-with($c, '/') ) then
-               <li>{ fn:tokenize($c, '/')[fn:last() - 1] ! <a href="{ fn:encode-for-uri(.) }/">{ . }</a> }/</li>
-            (: file children :)
-            else
-               <li>{ fn:tokenize($c, '/')[fn:last()] ! <a href="{ fn:encode-for-uri(.) }">{ . }</a> }</li>
-      }
-      </ul>
+      v:form(
+         '',
+         attribute { 'id' } { 'orig-form' },
+         (<ul> {
+             for $child at $pos in $children
+             let $dir  := fn:ends-with($child, '/')
+             let $name := fn:tokenize($child, '/')[fn:last() - (1[$dir], 0)[1]]
+             order by $child
+             return
+                <li>
+                   <input name="name-{ $pos }"   type="hidden" value="{ $child }"/>
+                   <input name="delete-{ $pos }" type="checkbox"/>
+                   { ' ' }
+                   <a href="{ fn:encode-for-uri($name) }{ '/'[$dir] }">{ $name }</a>
+                   { '/'[$dir] }
+                </li>
+          }
+          </ul>)),
+      <button class="btn btn-danger" onclick='deleteUris("orig-form", "hidden-form");'>Delete</button>,
+      v:inline-form(
+         $db-root || 'bulk-delete',
+         (attribute { 'id'    } { 'hidden-form' },
+          attribute { 'style' } { 'display: none' }),
+         v:input-hidden('back-url', 'browse' || '/'[fn:not(fn:starts-with($path, '/'))] || $path))
    )
 };
 
@@ -502,7 +515,6 @@ browse/http://example.com/ -> 6
 :)
 
 let $slashes := if ( fn:empty($path) ) then 0 else fn:count(fn:tokenize($path, '/'))
-let $root    := fn:string-join(for $i in 1 to $slashes + 2 return '..', '/') || '/'
 let $db-str  := t:mandatory-field('id')
 let $db      := xs:unsignedLong($db-str)
 let $init    := t:optional-field('init-path', ())[.]
@@ -515,14 +527,60 @@ let $params  :=
          map:entry(xdmp:key-from-QName(fn:QName('', 'start')), $start),
          map:entry(xdmp:key-from-QName(fn:QName('', 'fun')),  local:page#4)))
 return
-   v:console-page($root, 'tools', 'Browse database', function() {
-      a:eval-on-database(
-         $db,
-         'declare variable $db    external;
-          declare variable $start external;
-          declare variable $path  external := ();
-          declare variable $init  external := ();
-          declare variable $fun   external;
-          $fun($db, $path, $init, $start)',
-         $params)
-   })
+   v:console-page(
+      $webapp-root,
+      'tools',
+      'Browse database',
+      function() {
+         a:eval-on-database(
+            $db,
+            'declare variable $db    external;
+             declare variable $start external;
+             declare variable $path  external := ();
+             declare variable $init  external := ();
+             declare variable $fun   external;
+             $fun($db, $path, $init, $start)',
+            $params)
+      },
+      <script type="text/javascript">
+         // origId is the id of the original form element, with the list, displayed
+         // hiddenId is the id of the hidden form element, to be submitted
+         function deleteUris(origId, hiddenId)
+         {{
+            // the 2 forms, the displayed list, and the hidden placeholder
+            var orig    = $("#" + origId)[0];
+            var hidden  = $("#" + hiddenId)[0];
+            // all the checked URIs (check there is at least one)
+            var checked = $(":checkbox:checked");
+            if ( checked.length == 0 ) {{
+               alert("Error: No document nor directory selected.");
+               return;
+            }}
+            // for each of them...
+            for ( var i = 0; i != checked.length; ++i ) {{
+               // the input field and its name
+               var field = checked[i];
+               var name  = field.name;
+               if ( ! name.startsWith("delete-") ) {{
+                  alert("Error: The checkbox ID is not starting with 'delete-': " + name);
+                  return;
+               }}
+               if ( field.form.id != origId ) {{
+                  alert("Error: The checkbox is not in the orig form: " + field.form.id);
+                  return;
+               }}
+               // get the value of the corresponding hidden field with the URI
+               var num = name.substr("delete".length);
+               var value = orig.elements["name" + num].value;
+               // create the new input field in the second form, to be submitted
+               var input = document.createElement("input");
+               input.setAttribute("name",  "uri-to-delete-" + (i + 1));
+               input.setAttribute("type",  "hidden");
+               input.setAttribute("value", value);
+               // add the new field to the second form
+               hidden.appendChild(input);
+            }}
+            // submit the form
+            hidden.submit();
+         }};
+      </script>)

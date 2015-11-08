@@ -59,6 +59,10 @@
       <add-query-param name="top">../../</add-query-param>
       <dispatch>/tools/delete.xq</dispatch>
    </match-path>
+   <match-path matches="^/db/([0-9]+)/bulk-delete$">
+      <add-query-param name="database">$1</add-query-param>
+      <dispatch>/database/bulk-delete.xq</dispatch>
+   </match-path>
    <match-path matches="^/cxan$">
       <dispatch>/cxan.xq</dispatch>
    </match-path>
