@@ -417,25 +417,43 @@ declare %private function v:ace-editor-xml(
 declare function v:form($action as xs:string, $content as element()+)
    as element(h:form)
 {
-   <form xmlns="http://www.w3.org/1999/xhtml"
-         method="post"
-         action="{ $action }"
-         enctype="multipart/form-data"
-         class="form-horizontal"> {
-      $content
-   }
-   </form>
+   v:form($action, (), $content)
+};
+
+declare function v:form($action as xs:string, $attrs as attribute()*, $content as element()+)
+   as element(h:form)
+{
+   let $class := attribute { 'class' } { 'form-horizontal' }[fn:empty($attrs[fn:node-name(.) eq xs:QName('class')])]
+   return
+      v:form-impl($action, ($attrs, $class), $content)
 };
 
 declare function v:inline-form($action as xs:string, $content as element()+)
    as element(h:form)
 {
+   v:inline-form($action, (), $content)
+};
+
+declare function v:inline-form($action as xs:string, $attrs as attribute()*, $content as element()+)
+   as element(h:form)
+{
+   let $class := attribute { 'class' } { 'form-inline'  }[fn:empty($attrs[fn:node-name(.) eq xs:QName('class')])]
+   let $style := attribute { 'style' } { 'height: 12pt' }[fn:empty($attrs[fn:node-name(.) eq xs:QName('style')])]
+   return
+      v:form-impl($action, ($attrs, $class, $style), $content)
+};
+
+declare %private function v:form-impl(
+   $action  as xs:string,
+   $attrs   as attribute()*,
+   $content as element()+
+) as element(h:form)
+{
    <form xmlns="http://www.w3.org/1999/xhtml"
          method="post"
          action="{ $action }"
-         enctype="multipart/form-data"
-         class="form-inline"
-         style="height: 12pt"> {
+         enctype="multipart/form-data"> {
+      $attrs,
       $content
    }
    </form>
