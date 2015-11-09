@@ -191,10 +191,10 @@ let $rsrc    := t:optional-field('rsrc', ())
 let $start   := xs:integer(t:optional-field('start', 1)[.])
 let $params  := 
       map:new((
-         map:entry(xdmp:key-from-QName(fn:QName('', 'db')),   $db),
-         map:entry(xdmp:key-from-QName(fn:QName('', 'rsrc')), $rsrc),
-         map:entry(xdmp:key-from-QName(fn:QName('', 'start')), $start),
-         map:entry(xdmp:key-from-QName(fn:QName('', 'fun')),  local:page#3)))
+         map:entry('db',    $db),
+         map:entry('rsrc',  $rsrc),
+         map:entry('start', $start),
+         map:entry('fun',   local:page#3)))
 return
    v:console-page($root, 'browser', 'Browse triples', function() {
       a:eval-on-database(

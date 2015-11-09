@@ -521,11 +521,11 @@ let $init    := t:optional-field('init-path', ())[.]
 let $start   := xs:integer(t:optional-field('start', 1)[.])
 let $params  := 
       map:new((
-         map:entry(xdmp:key-from-QName(fn:QName('', 'db')),    $db),
-         map:entry(xdmp:key-from-QName(fn:QName('', 'path')),  $path),
-         map:entry(xdmp:key-from-QName(fn:QName('', 'init')),  $init),
-         map:entry(xdmp:key-from-QName(fn:QName('', 'start')), $start),
-         map:entry(xdmp:key-from-QName(fn:QName('', 'fun')),  local:page#4)))
+         map:entry('db',    $db),
+         map:entry('path',  $path),
+         map:entry('init',  $init),
+         map:entry('start', $start),
+         map:entry('fun',   local:page#4)))
 return
    v:console-page(
       $webapp-root,

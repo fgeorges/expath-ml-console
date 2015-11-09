@@ -17,6 +17,7 @@ import module namespace v = "http://expath.org/ns/ml/console/view"  at "../lib/v
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
+declare namespace map  = "http://marklogic.com/xdmp/map";
 declare namespace xdmp = "http://marklogic.com/xdmp";
 
 declare option xdmp:update "true";
@@ -49,9 +50,10 @@ declare function local:page()
              xdmp:document-remove-permissions(
                 $uri,
                 xdmp:permission($role, $cap))',
-            (fn:QName('', 'uri'),  $uri,
-             fn:QName('', 'cap'),  $capability,
-             fn:QName('', 'role'), $role)),
+            map:new((
+               map:entry('uri',  $uri),
+               map:entry('cap',  $capability),
+               map:entry('role', $role)))),
          if ( $redirect ) then (
             v:redirect(
                '../db/' || $db-id || '/browse'

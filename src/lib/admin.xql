@@ -45,14 +45,11 @@ declare function a:database-id($db as item()) as xs:unsignedLong
 
 (:~
  : Eval the query on the given database, with the given parameters.
- :
- : TODO: Enforce a map for params, instead of the limited and dangerous "sequence
- : of pairs".
  :)
 declare function a:eval-on-database(
    $db     as item(),
    $query  as xs:string,
-   $params as item()*
+   $params as map:map
 ) as item()*
 {
    xdmp:eval(
@@ -75,7 +72,7 @@ declare function a:exists-on-database(
       a:database-id($db),
       'declare variable $doc external;
        fn:doc-available($doc)',
-      (xs:QName('doc'), $doc))
+      map:entry('doc', $doc))
 };
 
 (:~
@@ -92,7 +89,7 @@ declare function a:get-from-database(
       a:database-id($db),
       'declare variable $uri external;
        fn:doc($uri)',
-      (xs:QName('uri'), $uri))
+      map:entry('uri', $uri))
 };
 
 (:~
@@ -131,7 +128,9 @@ declare function a:insert-into-database(
        declare variable $uri external;
        declare variable $doc external;
        xdmp:document-insert($uri, $doc), $uri',
-      (xs:QName('uri'), $uri, xs:QName('doc'), $doc))
+      map:new((
+         map:entry('uri', $uri),
+         map:entry('doc', $doc))))
 };
 
 (:~
@@ -177,10 +176,11 @@ declare function a:load-dir-into-database(
                fn:error((), fn:concat("dir:type is neither directory nor file: ", $e/dir:type))
        };
        local:load($uri, $path, ""), $uri',
-      (xs:QName('uri'), $uri,
-       xs:QName('path'), $path,
-       xs:QName('include'), ($include, '')[1],
-       xs:QName('exclude'), ($exclude, '')[1]))
+      map:new((
+         map:entry('uri',     $uri),
+         map:entry('path',    $path),
+         map:entry('include', ($include, '')[1]),
+         map:entry('exclude', ($exclude, '')[1]))))
 };
 
 (:~
@@ -213,7 +213,9 @@ declare function a:load-zipdir-into-database(
        };
        local:do-it(),
        $uri',
-      (xs:QName('uri'), $uri, xs:QName('zip'), $zip))
+      map:new((
+         map:entry('uri', $uri),
+         map:entry('zip', $zip))))
 };
 
 (:~
@@ -226,7 +228,7 @@ declare function a:remove-doc($db as item(), $uri as xs:string)
       'declare namespace xdmp = "http://marklogic.com/xdmp";
        declare variable $uri external;
        xdmp:document-delete($uri)',
-      (xs:QName('uri'), $uri))
+      map:entry('uri', $uri))
 };
 
 (:~
@@ -265,7 +267,7 @@ declare function a:remove-directory($db as item(), $dir as xs:string)
          'declare namespace xdmp = "http://marklogic.com/xdmp";
           declare variable $dir external;
           xdmp:directory($dir, "infinity")/xdmp:document-delete(fn:document-uri(.))',
-         (xs:QName('dir'), $dir))
+         map:entry('dir', $dir))
    else
       t:error('not-dir', 'The directory URI does not end with a forward slash: ' || $dir)
 };
@@ -414,7 +416,7 @@ declare function a:file-exists($path as xs:string)
  :)
 declare function a:eval-on-security-db(
    $query  as xs:string,
-   $params as item()*
+   $params as map:map
 ) as item()*
 {
    a:eval-on-database(
@@ -431,7 +433,7 @@ declare function a:eval-on-security-db(
 declare function a:eval-on-security-db(
    $db     as item(),
    $query  as xs:string,
-   $params as item()*
+   $params as map:map
 ) as item()*
 {
    a:eval-on-database(
@@ -451,7 +453,7 @@ declare function a:role-name($role as xs:unsignedLong)
           at "/MarkLogic/security.xqy";
        declare variable $role as xs:unsignedLong external;
        sec:get-role-names($role)',
-      (xs:QName('role'), $role))
+      map:entry('role', $role))
 };
 
 (: ==== Admin entities ======================================================== :)
@@ -473,7 +475,7 @@ declare function a:get-roles()
              <a:role id="{ $ids[$pos] }">
                 <a:name>{ $name }</a:name>
              </a:role>',
-         ())
+         map:new(()))
    }
    </a:roles>
 };

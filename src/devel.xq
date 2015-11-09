@@ -11,6 +11,7 @@ import module namespace admin = "http://marklogic.com/xdmp/admin"
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
 declare namespace c    = "http://expath.org/ns/ml/console";
+declare namespace map  = "http://marklogic.com/xdmp/map";
 declare namespace xdmp = "http://marklogic.com/xdmp";
 
 declare function local:page()
@@ -31,8 +32,8 @@ declare function local:page()
                   $db-id,
                   'declare variable $path external;
                    xdmp:directory($path, "infinity")',
-                  (fn:QName('', 'path'), $root))
-                  (: fn:QName('', 'path'), fn:concat($root, '.expath-pkg/')) :)
+                  map:entry('path', $root))
+                  (: map:entry('path', $root || '.expath-pkg/')) :)
          for $d in $docs
          return
             <li>{ fn:document-uri($d) }</li>
