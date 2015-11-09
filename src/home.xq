@@ -16,7 +16,7 @@ declare function local:page()
       </div>
       <p>You will find the following sections in the Console:</p>
       <ul> {
-         for $p in $v:pages/*[fn:not(@name eq 'home')]
+         for $p in $v:pages/*
          return
             <li>
                <a href="{ $p/xs:string(@name) }">{ $p/xs:string(@title) }</a>

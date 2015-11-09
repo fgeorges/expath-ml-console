@@ -15,7 +15,6 @@ declare namespace xdmp = "http://marklogic.com/xdmp";
 
 declare variable $v:pages as element(pages) :=
    <pages>
-      <page name="home"     title="Console Home"                  label="Home"     href="."/>
       <page name="pkg"      title="Packages"                      label="Packages"/>
       <!--page name="web"      title="Web Applications Containers"   label="Web"/>
       <page name="cxan"     title="CXAN Config"                   label="CXAN"/>
