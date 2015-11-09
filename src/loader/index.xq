@@ -121,4 +121,4 @@ declare function local:page()
    </wrapper>/*
 };
 
-v:console-page('../', 'loader', 'Document manager', local:page#0)
+v:console-page('./', 'loader', 'Document manager', local:page#0)
