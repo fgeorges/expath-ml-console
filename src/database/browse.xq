@@ -84,7 +84,7 @@ declare function local:page--init-path($init as xs:string)
 declare function local:page--empty-path($db as element(a:database))
    as element()+
 {
-   <p>Database: "{ xs:string($db/a:name) }".  Go up to <a href="../../tools">tools</a>.</p>,
+   <p>Database: "{ xs:string($db/a:name) }".  Go up to <a href="../../browser">the browser</a>.</p>,
    local:create-doc-form($db, ()),
    let $items := (
          <li>
@@ -529,8 +529,8 @@ let $params  :=
 return
    v:console-page(
       $webapp-root,
-      'tools',
-      'Browse database',
+      'browser',
+      'Browse documents',
       function() {
          a:eval-on-database(
             $db,

@@ -16,14 +16,17 @@ declare function local:page()
    as element()+
 {
    <wrapper>
-      <p>Some tools to insert and delete documents:</p>
+      <p>Some tools to insert...</p>
       <ul>
-         <li><a href="#insert-doc">insert a document</a></li>
-         <li><a href="#insert-triples">insert triples</a></li>
-         <li><a href="#insert-dir">insert a directory</a></li>
-         <li><a href="#insert-zip">insert a zipped directory</a></li>
-         <li><a href="#delete-doc">delete a document</a> (by URI)</li>
-         <li><a href="#delete-dir">delete a directory</a> (by URI)</li>
+         <li><a href="#insert-doc">a document</a></li>
+         <li><a href="#insert-triples">triples</a></li>
+         <li><a href="#insert-dir">a directory</a></li>
+         <li><a href="#insert-zip">a zipped directory</a></li>
+      </ul>
+      <p>Some tools to delete...</p>
+      <ul>
+         <li><a href="#delete-doc">a document</a> (by URI)</li>
+         <li><a href="#delete-dir">a directory</a> (by URI)</li>
       </ul>
       <p>When browsing the content of a database, using the <a href="browser">browser</a>,
          you can also delete documents and directories as you browse, as well as

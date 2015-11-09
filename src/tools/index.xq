@@ -16,25 +16,6 @@ declare function local:page()
    as element()+
 {
    <wrapper>
-      <p>Some generic tools for MarkLogic.</p>
-      <h3>Browse a database</h3>
-      <p>Browse the documents within a database, in a hierarchical kind of way
-         (based on the directory "structure").</p>
-      {
-         v:form('tools/browse-db', (
-            v:input-select-databases('database', 'Database'),
-            v:submit('Documents')))
-      }
-      <p>Browse the RDF resources within a database.  Only available for the databases
-         with the triple index enabled.</p>
-      {
-         v:form('tools/browse-triples', (
-            v:input-select-databases(
-               'database',
-               'Database',
-               function($db) { $db/xs:boolean(a:triple-index) }),
-            v:submit('Resources')))
-      }
       <h3>Convert triples</h3>
       <p>Convert triples from a file, in a supported format, to the MarkLogic
          sem:triples format.</p>

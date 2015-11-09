@@ -90,7 +90,7 @@ declare function local:page--no-db($id as xs:unsignedLong)
 declare function local:page--browse($db as xs:string, $start as xs:integer)
    as element()+
 {
-   <p>Database: "{ $db }".  Go up to <a href="../../tools">tools</a>.</p>,
+   <p>Database: "{ $db }".  Go up to <a href="../../browser">the browser</a>.</p>,
    <p> {
       (: TODO: Pass parameters properly, instead of concatenating values. :)
       let $query :=
@@ -126,7 +126,7 @@ declare function local:page--rsrc($db as xs:string, $rsrc as xs:string)
 {
    <p>
       Database: "{ $db }".
-      Go up to <a href="../../tools">tools</a>.
+      Go up to <a href="../../browser">the browser</a>.
       Go back to <a href="triples">browse</a>.
    </p>,
    <p>Resource <code>{ $rsrc }</code>:</p>,
@@ -196,7 +196,7 @@ let $params  :=
          map:entry(xdmp:key-from-QName(fn:QName('', 'start')), $start),
          map:entry(xdmp:key-from-QName(fn:QName('', 'fun')),  local:page#3)))
 return
-   v:console-page($root, 'tools', 'Browse triples', function() {
+   v:console-page($root, 'browser', 'Browse triples', function() {
       a:eval-on-database(
          $db,
          'declare variable $db    external;

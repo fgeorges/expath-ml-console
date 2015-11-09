@@ -99,6 +99,9 @@
    <match-path matches="^/repo/show$">
       <dispatch>/repo/show.xq</dispatch>
    </match-path>
+   <match-path matches="^/browser$">
+      <dispatch>/browser/index.xq</dispatch>
+   </match-path>
    <match-path matches="^/loader$">
       <dispatch>/loader/index.xq</dispatch>
    </match-path>
