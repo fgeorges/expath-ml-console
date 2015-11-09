@@ -4,8 +4,8 @@ xquery version "3.0";
  : Aimed at providing general tools for MarkLogic.
  :)
 
-import module namespace a = "http://expath.org/ns/ml/console/admin" at "lib/admin.xql";
-import module namespace v = "http://expath.org/ns/ml/console/view"  at "lib/view.xql";
+import module namespace a = "http://expath.org/ns/ml/console/admin" at "../lib/admin.xql";
+import module namespace v = "http://expath.org/ns/ml/console/view"  at "../lib/view.xql";
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
@@ -17,23 +17,15 @@ declare function local:page()
 {
    <wrapper>
       <p>Some generic tools for MarkLogic.</p>
-      <h3>Document manager</h3>
-      <p>Go to the <a href="tools/docs">document manager</a> to insert documents
-         (single files one by one, entire directories, or directories archived
-         as a ZIP file), and triples.  You can also delete existing documents
-         and directories.</p>
       <h3>Browse a database</h3>
       <p>Browse the documents within a database, in a hierarchical kind of way
          (based on the directory "structure").</p>
-      <!--p><b>TODO</b>: Provide a "delete" button for each of them, as well as
-         an "update" button (and more generally some useful actions to do on a
-         document or file, like move, rename, etc.)</p-->
       {
          v:form('tools/browse-db', (
             v:input-select-databases('database', 'Database'),
-            v:submit('Browse')))
+            v:submit('Documents')))
       }
-      <p>Browse the triples within a database.  Only available for the databases
+      <p>Browse the RDF resources within a database.  Only available for the databases
          with the triple index enabled.</p>
       {
          v:form('tools/browse-triples', (
@@ -41,7 +33,7 @@ declare function local:page()
                'database',
                'Database',
                function($db) { $db/xs:boolean(a:triple-index) }),
-            v:submit('Browse')))
+            v:submit('Resources')))
       }
       <h3>Convert triples</h3>
       <p>Convert triples from a file, in a supported format, to the MarkLogic

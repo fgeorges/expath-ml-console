@@ -43,7 +43,7 @@ declare function local:page()
             ! <li>{ . }</li>
       }
       </ul>,
-      <p>Back to <a href="docs">document manager</a>.</p>
+      <p>Back to <a href="../loader">document manager</a>.</p>
    )
 };
 

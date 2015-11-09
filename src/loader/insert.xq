@@ -61,7 +61,7 @@ declare function local:page()
          local:handle-dir($dir)
       else
          local:handle-zipdir($zipdir),
-   <p>Back to <a href="docs">document manager</a>.</p>
+   <p>Back to <a href="../loader">document manager</a>.</p>
 };
 
 (:~
@@ -204,7 +204,8 @@ declare function local:get-node($file as item(), $format as xs:string)
          (: TODO: Decode the binary... :)
          t:error('INSERT102', 'XML file is a binary node, please report this to the mailing list')
       else
-         t:error('INSERT003', 'XML file is neither parsed nor a document node with an element, please report this to the mailing list')
+         t:error('INSERT003', 'XML file is neither parsed nor a document node with an element, '
+            || 'please report this to the mailing list')
    else
       t:error('INSERT004', 'Format not known: "' || $format || '"')
 };

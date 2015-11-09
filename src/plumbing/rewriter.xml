@@ -4,7 +4,7 @@
    </match-path>
    <match-path matches="^/appserver/([0-9]+)$">
       <add-query-param name="id">$1</add-query-param>
-      <dispatch>/appserver.xq</dispatch>
+      <dispatch>/appserver/index.xq</dispatch>
    </match-path>
    <match-path matches="^/appserver/([0-9]+)/init-repo$">
       <add-query-param name="id">$1</add-query-param>
@@ -64,7 +64,7 @@
       <dispatch>/database/bulk-delete.xq</dispatch>
    </match-path>
    <match-path matches="^/cxan$">
-      <dispatch>/cxan.xq</dispatch>
+      <dispatch>/cxan/index.xq</dispatch>
    </match-path>
    <match-path matches="^/cxan/change$">
       <dispatch>/cxan/change.xq</dispatch>
@@ -82,7 +82,7 @@
       <dispatch>$0</dispatch>
    </match-path>
    <match-path matches="^/pkg$">
-      <dispatch>/repo.xq</dispatch>
+      <dispatch>/repo/index.xq</dispatch>
    </match-path>
    <match-path matches="^/repo/create$">
       <dispatch>/repo/create.xq</dispatch>
@@ -99,26 +99,26 @@
    <match-path matches="^/repo/show$">
       <dispatch>/repo/show.xq</dispatch>
    </match-path>
+   <match-path matches="^/loader$">
+      <dispatch>/loader/index.xq</dispatch>
+   </match-path>
+   <match-path matches="^/loader/insert$">
+      <dispatch>/loader/insert.xq</dispatch>
+   </match-path>
+   <match-path matches="^/loader/insert-triples$">
+      <dispatch>/loader/insert-triples.xq</dispatch>
+   </match-path>
    <match-path matches="^/tools$">
-      <dispatch>/tools.xq</dispatch>
+      <dispatch>/tools/index.xq</dispatch>
    </match-path>
    <match-path matches="^/tools/config$">
       <dispatch>/tools/config.xq</dispatch>
    </match-path>
    <match-path matches="^/tools/delete$">
-      <add-query-param name="back-url">docs</add-query-param>
+      <add-query-param name="back-url">../loader</add-query-param>
       <add-query-param name="back-label">document manager</add-query-param>
       <add-query-param name="top">../</add-query-param>
       <dispatch>/tools/delete.xq</dispatch>
-   </match-path>
-   <match-path matches="^/tools/docs$">
-      <dispatch>/tools/docs.xq</dispatch>
-   </match-path>
-   <match-path matches="^/tools/insert$">
-      <dispatch>/tools/insert.xq</dispatch>
-   </match-path>
-   <match-path matches="^/tools/insert-triples$">
-      <dispatch>/tools/insert-triples.xq</dispatch>
    </match-path>
    <match-path matches="^/tools/convert-triples$">
       <dispatch>/tools/convert-triples.xq</dispatch>
@@ -136,7 +136,7 @@
       <dispatch>/tools/del-perm.xq</dispatch>
    </match-path>
    <match-path matches="^/web$">
-      <dispatch>/web.xq</dispatch>
+      <dispatch>/web/index.xq</dispatch>
    </match-path>
    <match-path matches="^/web/create$">
       <dispatch>/web/create.xq</dispatch>
