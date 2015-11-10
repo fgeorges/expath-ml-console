@@ -253,13 +253,11 @@ declare %private function v:console-page-static(
                   function saveDoc(id, type)
                   {{
                      // get the ACE doc
-                     var info = editors[id];
+                     var info     = editors[id];
                      var endpoint = info.top + "save-" + type;
-                     var session = info.editor.getSession();
-                     var doc = session.getDocument();
                      // the request content
                      var fd = new FormData();
-                     fd.append("doc", doc.getValue());
+                     fd.append("doc", editorContent(id));
                      fd.append("uri", info.uri);
                      // the request itself
                      $.ajax({{
@@ -281,6 +279,36 @@ declare %private function v:console-page-static(
                   function deleteDoc(id)
                   {{
                      $("#" + id + "-delete").submit();
+                  }};
+
+                  function editorDocument(id)
+                  {{
+                     var info = editors[id];
+                     if ( info ) {{
+                        var editor = info.editor;
+                        if ( editor ) {{
+                           var session = editor.getSession();
+                           if ( session ) {{
+                              return session.getDocument();
+                           }}
+                        }}
+                     }}
+                  }};
+
+                  function editorContent(id)
+                  {{
+                     var doc = editorDocument(id);
+                     if ( doc ) {{
+                        doc.getValue();
+                     }}
+                  }};
+
+                  function editorSetContent(id, value)
+                  {{
+                     var doc = editorDocument(id);
+                     if ( doc ) {{
+                        doc.setValue(value);
+                     }}
                   }};
                </script>
             )

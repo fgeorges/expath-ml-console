@@ -24,17 +24,46 @@ declare variable $script :=
 
       function doLoadJson(data, jsonId)
       {{
-         var info    = editors[jsonId];
          var reports = JSON.parse(data);
          var pretty  = JSON.stringify(reports, null, 3);
          // TODO: Display the first line...
-         info.editor.getSession().getDocument().setValue(pretty);
+         editorSetContent(jsonId, pretty);
          display(reports);
       }}
 
-      function loadXml(file)
+      function loadXml(file, jsonId)
       {{
-         alert("TODO: Load the XML: " + file);
+         if ( ! file ) return;
+         $("#xmlFile").val("");
+         var reader = new FileReader();
+         reader.onload = function(e) {{
+            var xml  = e.target.result;
+            convertXmlToJson(
+               xml,
+               function(data) {{
+                  doLoadJson(data, jsonId);
+               }});
+         }};
+         reader.readAsText(file);
+      }}
+
+      function convertXmlToJson(xml, success)
+      {{
+         // the request content
+         var fd = new FormData();
+         fd.append("report", xml);
+         // the request itself
+         $.ajax({{
+            url: "profiler/xml-to-json",
+            method: "POST",
+            data: fd,
+            dataType: "text",
+            processData: false,
+            contentType: false,
+            success: success,
+            error: function(xhr, status, error) {{
+               alert("Error: " + status + " (" + error + ")\n\nSee logs for details.");
+            }}}});
       }}
 
       function profile(queryId, jsonId)
@@ -59,10 +88,7 @@ declare variable $script :=
 
       function saveJson(jsonId)
       {{
-         var json = editors[jsonId];
-         var session = json.editor.getSession();
-         var doc = session.getDocument();
-         download(doc.getValue(), "profile-report.json", "application/json");
+         download(editorContent(jsonId), "profile-report.json", "application/json");
       }}
 
       function download(text, name, type)
@@ -76,13 +102,9 @@ declare variable $script :=
 
       function profileImpl(queryId, endpoint, success)
       {{
-         // get the ACE doc
-         var query = editors[queryId];
-         var session = query.editor.getSession();
-         var doc = session.getDocument();
          // the request content
          var fd = new FormData();
-         fd.append("query", doc.getValue());
+         fd.append("query", editorContent(queryId));
          // the request itself
          $.ajax({{
             url: endpoint,
@@ -184,7 +206,7 @@ declare function local:page()
               onclick='profile("prof-query", "prof-json");'>Profile</button>
       <button class="btn btn-default"
               onclick='profileXml("prof-query");'
-              style="margin-left: 10px;">Save XML</button>
+              style="margin-left: 10px;">As XML</button>
       <button class="btn btn-default pull-right"
               onclick='$("#jsonFile").click();'
               style="margin-left: 10px;">Load JSON</button>
@@ -209,7 +231,7 @@ declare function local:page()
       { v:edit-text(text { '' }, 'json', 'prof-json', 'profile') }
       <button class="btn btn-default" onclick='saveJson("prof-json");'>Save JSON</button>
       <!-- hidden fields -->
-      <input type="file" id="xmlFile"  style="display: none" onchange="loadXml(this.files[0])"/>
+      <input type="file" id="xmlFile"  style="display: none" onchange='loadXml(this.files[0],  "prof-json")'/>
       <input type="file" id="jsonFile" style="display: none" onchange='loadJson(this.files[0], "prof-json")'/>
    </wrapper>/*
 };

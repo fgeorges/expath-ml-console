@@ -1,7 +1,7 @@
 xquery version "3.0";
 
 (:~
- : The profile service, returning a JSON report.
+ : Transform an XML report to a JSON report.
  :)
 
 import module namespace t  = "http://expath.org/ns/ml/console/tools"
@@ -9,9 +9,9 @@ import module namespace t  = "http://expath.org/ns/ml/console/tools"
 import module namespace qc = "http://marklogic.com/appservices/qconsole/evaler"
    at "/MarkLogic/appservices/qconsole/qc-evaler.xqy";
 
-declare namespace prof = "http://marklogic.com/xdmp/profile";
+declare namespace xdmp = "http://marklogic.com/xdmp";
 
-let $query  := t:mandatory-field('query')
-let $report := prof:eval($query)[1]
+let $param  := t:mandatory-field('report')
+let $report := xdmp:unquote($param)/*
 return
    qc:format-report($report)

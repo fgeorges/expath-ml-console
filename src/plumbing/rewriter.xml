@@ -120,6 +120,9 @@
    <match-path matches="^/profiler/profile-xml$">
       <dispatch>/profiler/profile-xml.xq</dispatch>
    </match-path>
+   <match-path matches="^/profiler/xml-to-json$">
+      <dispatch>/profiler/xml-to-json.xq</dispatch>
+   </match-path>
    <match-path matches="^/tools$">
       <dispatch>/tools/index.xq</dispatch>
    </match-path>
