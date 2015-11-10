@@ -111,6 +111,15 @@
    <match-path matches="^/loader/insert-triples$">
       <dispatch>/loader/insert-triples.xq</dispatch>
    </match-path>
+   <match-path matches="^/profiler$">
+      <dispatch>/profiler/index.xq</dispatch>
+   </match-path>
+   <match-path matches="^/profiler/profile-json$">
+      <dispatch>/profiler/profile-json.xq</dispatch>
+   </match-path>
+   <match-path matches="^/profiler/profile-xml$">
+      <dispatch>/profiler/profile-xml.xq</dispatch>
+   </match-path>
    <match-path matches="^/tools$">
       <dispatch>/tools/index.xq</dispatch>
    </match-path>
