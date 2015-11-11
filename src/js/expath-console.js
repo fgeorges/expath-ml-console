@@ -100,6 +100,8 @@ function editorSetContent(id, value)
    }
 };
 
+/* ==== Browser support ======================================================== */
+
 /**
  * Delete all selected URIs.
  *
@@ -157,3 +159,167 @@ function deleteUris(origId, hiddenId)
    // submit the form
    hidden.submit();
 };
+
+/* ==== Profiler support ======================================================== */
+
+function loadJson(file, jsonId)
+{
+   if ( ! file ) return;
+   $("#jsonFile").val("");
+   var reader = new FileReader();
+   reader.onload = function(e) {
+      doLoadJson(e.target.result, jsonId);
+   };
+   reader.readAsText(file);
+}
+
+function doLoadJson(data, jsonId)
+{
+   var reports = JSON.parse(data);
+   var pretty  = JSON.stringify(reports, null, 3);
+   // TODO: Display the first line...
+   editorSetContent(jsonId, pretty);
+   display(reports);
+}
+
+function loadXml(file, jsonId)
+{
+   if ( ! file ) return;
+   $("#xmlFile").val("");
+   var reader = new FileReader();
+   reader.onload = function(e) {
+      var xml  = e.target.result;
+      convertXmlToJson(
+         xml,
+         function(data) {
+            doLoadJson(data, jsonId);
+         });
+   };
+   reader.readAsText(file);
+}
+
+function convertXmlToJson(xml, success)
+{
+   // the request content
+   var fd = new FormData();
+   fd.append("report", xml);
+   // the request itself
+   $.ajax({
+      url: "profiler/xml-to-json",
+      method: "POST",
+      data: fd,
+      dataType: "text",
+      processData: false,
+      contentType: false,
+      success: success,
+      error: function(xhr, status, error) {
+         alert("Error: " + status + " (" + error + ")\n\nSee logs for details.");
+      }});
+}
+
+function profile(queryId, jsonId)
+{
+   profileImpl(
+      queryId,
+      "profiler/profile-json",
+      function(data) {
+         doLoadJson(data, jsonId);
+      });
+}
+
+function profileXml(queryId)
+{
+   profileImpl(
+      queryId,
+      "profiler/profile-xml",
+      function(data) {
+         download(data, "profile-report.xml", "application/xml");
+      });
+}
+
+function saveJson(jsonId)
+{
+   download(editorContent(jsonId), "profile-report.json", "application/json");
+}
+
+function download(text, name, type)
+{
+   var a = document.createElement("a");
+   var b = new Blob([ text ], { type: type });
+   a.href = URL.createObjectURL(b);
+   a.download = name;
+   a.click();
+}
+
+function profileImpl(queryId, endpoint, success)
+{
+   // the request content
+   var fd = new FormData();
+   fd.append("query",  editorContent(queryId));
+   fd.append("target", $("#target-id").text());
+   // the request itself
+   $.ajax({
+      url: endpoint,
+      method: "POST",
+      data: fd,
+      dataType: "text",
+      processData: false,
+      contentType: false,
+      success: success,
+      error: function(xhr, status, error) {
+         alert("Error: " + status + " (" + error + ")\n\nSee logs for details.");
+      }});
+}
+
+function display(reports)
+{
+   var report  = reports.reports[0];
+   var details = report.details;
+   // TODO: Display the xs:duration in a human-friendly way.
+   $("#total-time").text(report.summary.elapsed);
+   var table   = $("#prof-detail").find("tbody:last");
+   table.find("tr").remove();
+   for ( var i = 0; i != details.length; ++i ) {
+      var d   = details[i];
+      var loc = d.location;
+      var row = document.createElement("tr");
+      addCell(row, loc.uri + ":" + loc.line + ":" + loc.column);
+      addCell(row, d.count);
+      addCell(row, d["shallow-percent"]);
+      addCell(row, d["shallow-us"]);
+      addCell(row, d["deep-percent"]);
+      addCell(row, d["deep-us"]);
+      addCell(row, d.expression, true);
+      table.append(row);
+   }
+}
+
+function addCell(row, text, small)
+{
+   var cell = document.createElement("td");
+   var text = document.createTextNode(text);
+   if ( small ) {
+      var s = document.createElement("small");
+      s.appendChild(text);
+      text = s;
+   }
+   cell.appendChild(text);
+   row.appendChild(cell);
+}
+
+function selectTarget(targetId, id, targetLabel, label)
+{
+   // set the ID on the hidden element
+   $("#" + targetId).text(id);
+   // set the label on the display button
+   var btn = $("#" + targetLabel);
+   btn.text(label);
+   // toggle the class of the display button if necessary
+   if ( btn.hasClass("btn-danger") ) {
+      btn.removeClass("btn-danger");
+      btn.addClass("btn-warning");
+      // activate the "profile" and "as xml" buttons
+      $("#go-profile").prop("disabled", false);
+      $("#go-as-xml").prop("disabled", false);
+   }
+}
