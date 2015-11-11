@@ -603,7 +603,7 @@ declare function a:get-appserver($as as xs:unsignedLong)
             else
                a:get-from-database($mdb, $root, $repo-root || $packages-file-path)
    return
-      <a:appserver id="{ $as }">
+      <a:appserver id="{ $as }" type="{ admin:appserver-get-type($config, $as) }">
          <a:name>{ admin:appserver-get-name($config, $as) }</a:name>
          <a:port>{ admin:appserver-get-port($config, $as) }</a:port>
          <a:db id="{ $db }">{ admin:database-get-name($config, $db) }</a:db>
