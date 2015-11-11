@@ -4,14 +4,10 @@ xquery version "3.0";
  : The profile service, returning a JSON report.
  :)
 
-import module namespace t  = "http://expath.org/ns/ml/console/tools"
-   at "../lib/tools.xql";
-import module namespace qc = "http://marklogic.com/appservices/qconsole/evaler"
-   at "/MarkLogic/appservices/qconsole/qc-evaler.xqy";
+import module namespace p = "http://expath.org/ns/ml/console/profile" at "profile-lib.xql";
+import module namespace t = "http://expath.org/ns/ml/console/tools"   at "../lib/tools.xql";
 
-declare namespace prof = "http://marklogic.com/xdmp/profile";
-
-let $query  := t:mandatory-field('query')
-let $report := prof:eval($query)[1]
-return
-   qc:format-report($report)
+p:to-json(
+   p:profile(
+      t:mandatory-field('query'),
+      t:mandatory-field('target')))
