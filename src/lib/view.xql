@@ -169,10 +169,9 @@ declare %private function v:console-page-static(
          <meta name="viewport" content="width=device-width, initial-scale=1"/>
          <meta name="ml.time"  content="{ xdmp:elapsed-time() }"/>
          <title>{ $title }</title>
-         <link href="{ $root }style/bootstrap.css"       rel="stylesheet"/>
-         <link href="{ $root }style/bootstrap-theme.css" rel="stylesheet"/>
-         <link href="{ $root }style/expath-theme.css"    rel="stylesheet"/>
-         <link href="{ $root }images/expath-icon.png"    rel="shortcut icon" type="image/png"/>
+         <link href="{ $root }style/bootstrap.css"    rel="stylesheet"/>
+         <link href="{ $root }style/expath-theme.css" rel="stylesheet"/>
+         <link href="{ $root }images/expath-icon.png" rel="shortcut icon" type="image/png"/>
       </head>
       <body>
          <nav class="navbar navbar-inverse navbar-fixed-top">
