@@ -298,7 +298,7 @@ declare %private function v:console-page-static(
                   {{
                      var doc = editorDocument(id);
                      if ( doc ) {{
-                        doc.getValue();
+                        return doc.getValue();
                      }}
                   }};
 
