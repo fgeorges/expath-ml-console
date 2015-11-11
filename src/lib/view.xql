@@ -203,9 +203,9 @@ declare %private function v:console-page-static(
          </div>
          <script src="{ $root }js/jquery.js"         type="text/javascript"/>
          <script src="{ $root }js/bootstrap.js"      type="text/javascript"/>
-         <script src="{ $root }js/expath-console.js" type="text/javascript"/>
          <script src="{ $root }js/ace/ace.js"        type="text/javascript"/>
          <script src="{ $root }js/ace/ext-static_highlight.js" type="text/javascript"/>
+         <script src="{ $root }js/expath-console.js" type="text/javascript"/>
          {
             $scripts
          }
