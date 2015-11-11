@@ -89,7 +89,6 @@ declare function v:console-page-menu($page as xs:string, $root as xs:string)
  : $title: the title of the page (to appear on top of the page)
  : $root: '' if a top-level page, or '../' if in a sub-directory
  : $content: the actual HTML content, pasted as the content of the page
- : $scripts: extra script elements, to be inserted at the end of the page
  :
  : TODO: Shouldn't it set the response MIME type and HTTP code?
  :)
@@ -98,17 +97,6 @@ declare function v:console-page(
    $page    as xs:string,
    $title   as xs:string,
    $content as function() as element()+
-) as element(h:html)
-{
-   v:console-page($root, $page, $title, $content, ())
-};
-
-declare function v:console-page(
-   $root    as xs:string,
-   $page    as xs:string,
-   $title   as xs:string,
-   $content as function() as element()+,
-   $scripts as element(h:script)*
 ) as element(h:html)
 {
    let $c     := v:eval-content($content)
@@ -120,8 +108,7 @@ declare function v:console-page(
          $page,
          $title,
          $c,
-         fn:exists($codes),
-         $scripts)
+         fn:exists($codes))
 };
 
 (:~
@@ -159,8 +146,7 @@ declare %private function v:console-page-static(
    $page    as xs:string,
    $title   as xs:string,
    $content as element()+,
-   $codes   as xs:boolean,
-   $scripts as element(h:script)*
+   $codes   as xs:boolean
 ) as element(h:html)
 {
    <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
@@ -206,9 +192,6 @@ declare %private function v:console-page-static(
          <script src="{ $root }js/ace/ace.js"        type="text/javascript"/>
          <script src="{ $root }js/ace/ext-static_highlight.js" type="text/javascript"/>
          <script src="{ $root }js/expath-console.js" type="text/javascript"/>
-         {
-            $scripts
-         }
       </body>
    </html>
 };
