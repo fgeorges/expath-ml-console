@@ -1,41 +1,43 @@
-var high = ace.require("ace/ext/static_highlight");
-var dom  = ace.require("ace/lib/dom");
+var highlight = ace.require("ace/ext/static_highlight");
 
-// TODO: Replace by jQuery?
-function qsa(sel)
+function initCodeSnippet()
 {
-   return Array.apply(null, document.querySelectorAll(sel));
-}
-
-qsa(".code").forEach(function (code) {
-   high(
-      code,
+   var elem = $(this);
+   highlight(
+      elem,
       {
-         mode: code.getAttribute("ace-mode"),
-         theme: code.getAttribute("ace-theme"),
-         startLineNumber: 1,
-         showGutter: code.getAttribute("ace-gutter"),
-         trim: false
+         mode:       elem.attr("ace-mode"),
+         theme:      elem.attr("ace-theme"),
+         showGutter: elem.attr("ace-gutter"),
+         trim:       false,
+         startLineNumber: 1
       },
       function (highlighted) {
+         // nothing
       });
-});
+}
 
 // contains all editors on the page, by ID
-var editors = {};
+var editors = { };
 
-qsa(".editor").forEach(function (edElm) {
-   var e = {};
-   e.id     = edElm.getAttribute("id");
-   e.uri    = edElm.getAttribute("ace-uri");
-   e.top    = edElm.getAttribute("ace-top");
-   e.theme  = edElm.getAttribute("ace-theme");
-   e.mode   = edElm.getAttribute("ace-mode");
-   e.editor = ace.edit(edElm);
+function initCodeEditor()
+{
+   var elem = $(this);
+   var e    = { };
+   e.id     = elem.attr("id");
+   e.uri    = elem.attr("ace-uri");
+   e.top    = elem.attr("ace-top");
+   e.theme  = elem.attr("ace-theme");
+   e.mode   = elem.attr("ace-mode");
+   e.editor = ace.edit(elem.get(0));
    e.editor.setTheme(e.theme);
    e.editor.getSession().setMode(e.mode);
    editors[e.id] = e;
-});
+}
+
+// actually initialise code snippets and editors
+$(".code").each(initCodeSnippet);
+$(".editor").each(initCodeEditor);
 
 // id is the id of the ACE editor element
 // type is either "xml" or "text"
