@@ -1,3 +1,6 @@
+/* General rules.
+ */
+
 body {
   padding-top: 70px;
   padding-bottom: 30px;
@@ -6,18 +9,4 @@ body {
 table {
   font-size: 13px;
   font-family: "Lucida Grande", Verdana, Arial, Helvetica, sans-serif;
-}
-
-.theme-dropdown .dropdown-menu {
-  position: static;
-  display: block;
-  margin-bottom: 20px;
-}
-
-.theme-showcase > p > .btn {
-  margin: 5px 0;
-}
-
-.theme-showcase .navbar .container {
-  width: auto;
 }
