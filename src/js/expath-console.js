@@ -4,7 +4,7 @@ function initCodeSnippet()
 {
    var elem = $(this);
    highlight(
-      elem,
+      this,
       {
          mode:       elem.attr('ace-mode'),
          theme:      elem.attr('ace-theme'),
