@@ -35,9 +35,26 @@ function initCodeEditor()
    editors[e.id] = e;
 }
 
-// actually initialise code snippets and editors
-$('.code').each(initCodeSnippet);
-$('.editor').each(initCodeEditor);
+// initialise page components
+$(document).ready(function () {
+   // actually initialise code snippets and editors
+   $('.code').each(initCodeSnippet);
+   $('.editor').each(initCodeEditor);
+   // initialise the data tables
+   // TODO: This is specific to the profiler table, this class should not have
+   // as a generic name as 'datatables'
+   $('.datatable').DataTable({
+      info: false,
+      paging: false,
+      searching: false,
+      order: [2, 'desc'],
+      columnDefs: [
+         { targets: 'col-num',  type: 'num',    className: 'dt-body-right' },
+         { targets: 'col-expr', type: 'string', className: 'cell-small' },
+         { targets: '_all',     type: 'string' }
+      ]
+   });
+});
 
 // id is the id of the ACE editor element
 // type is either 'xml' or 'text'
@@ -140,7 +157,7 @@ function deleteUris(origId, hiddenId)
       var field = checked[i];
       var name  = field.name;
       if ( ! name.startsWith('delete-') ) {
-         alert('Error: The checkbox ID is not starting with 'delete-': ' + name);
+         alert('Error: The checkbox ID is not starting with "delete-": ' + name);
          return;
       }
       if ( field.form.id != origId ) {
@@ -279,34 +296,23 @@ function display(reports)
    var details = report.details;
    // TODO: Display the xs:duration in a human-friendly way.
    $('#total-time').text(report.summary.elapsed);
-   var table   = $('#prof-detail').find('tbody:last');
-   table.find('tr').remove();
+   var table   = $('#prof-detail').DataTable();
+   table.clear();
    for ( var i = 0; i != details.length; ++i ) {
       var d   = details[i];
       var loc = d.location;
-      var row = document.createElement('tr');
-      addCell(row, loc.uri + ':' + loc.line + ':' + loc.column);
-      addCell(row, d.count);
-      addCell(row, d['shallow-percent']);
-      addCell(row, d['shallow-us']);
-      addCell(row, d['deep-percent']);
-      addCell(row, d['deep-us']);
-      addCell(row, d.expression, true);
-      table.append(row);
+      table.row.add([
+         loc.uri + ':' + loc.line + ':' + loc.column,
+         d.count,
+         d['shallow-percent'],
+         d['shallow-us'],
+         d['deep-percent'],
+         d['deep-us'],
+         d.expression
+      ]);
    }
-}
-
-function addCell(row, text, small)
-{
-   var cell = document.createElement('td');
-   var text = document.createTextNode(text);
-   if ( small ) {
-      var s = document.createElement('small');
-      s.appendChild(text);
-      text = s;
-   }
-   cell.appendChild(text);
-   row.appendChild(cell);
+   table.draw();
+   table.columns.adjust();
 }
 
 function selectTarget(targetId, id, targetLabel, label)
@@ -319,7 +325,7 @@ function selectTarget(targetId, id, targetLabel, label)
    // toggle the class of the display button if necessary
    if ( btn.hasClass('btn-danger') ) {
       btn.removeClass('btn-danger');
-      btn.addClass('btn-warning');
+      btn.addClass('btn-primary');
       // activate the 'profile' and 'as xml' buttons
       $('#go-profile').prop('disabled', false);
       $('#go-as-xml').prop('disabled', false);

@@ -17,6 +17,8 @@ declare variable $fibonacci :=
  : Replace this buffer with the query you want to profile.
  :)
 
+xquery version "3.0";
+
 (:~
  : Fibonacci, recursive version.
  :)
@@ -179,15 +181,15 @@ declare function local:page()
       <p>
          Total time: <span id="total-time"/>
       </p>
-      <table class="table table-bordered" id="prof-detail">
+      <table class="table table-bordered datatable" id="prof-detail">
          <thead>
             <th>Location</th>
-            <th>Count</th>
-            <th>Shallow %</th>
-            <th>Shallow µs</th>
-            <th>Deep %</th>
-            <th>Deep µs</th>
-            <th>Expression</th>
+            <th class="col-num">Count</th>
+            <th class="col-num">Shallow %</th>
+            <th class="col-num">Shallow µs</th>
+            <th class="col-num">Deep %</th>
+            <th class="col-num">Deep µs</th>
+            <th class="col-expr">Expression</th>
          </thead>
          <tbody/>
       </table>

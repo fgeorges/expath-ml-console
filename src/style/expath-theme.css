@@ -10,3 +10,21 @@ table {
   font-size: 13px;
   font-family: "Lucida Grande", Verdana, Arial, Helvetica, sans-serif;
 }
+
+#total-time {
+  font-weight: bold;
+}
+
+/* DataTables rules.
+ */
+
+/* FIXME: This is missing when importing DataTables CSS with Bootstrap support. */
+/* See https://datatables.net/forums/discussion/31440/. */
+table.dataTable tbody th.dt-body-right,
+table.dataTable tbody td.dt-body-right {
+  text-align: right;
+}
+
+td.cell-small {
+  font-size: 80%;
+}
