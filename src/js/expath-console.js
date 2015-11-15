@@ -50,7 +50,7 @@ $(document).ready(function () {
       order: [2, 'desc'],
       columnDefs: [
          { targets: 'col-num',  type: 'num',    className: 'dt-body-right' },
-         { targets: 'col-expr', type: 'string', className: 'cell-small' },
+         { targets: 'col-expr', type: 'string', className: 'cell-code' },
          { targets: '_all',     type: 'string' }
       ]
    });
