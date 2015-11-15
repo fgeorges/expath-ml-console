@@ -89,8 +89,6 @@ declare function v:console-page-menu($page as xs:string, $root as xs:string)
  : $title: the title of the page (to appear on top of the page)
  : $root: '' if a top-level page, or '../' if in a sub-directory
  : $content: the actual HTML content, pasted as the content of the page
- :
- : TODO: Shouldn't it set the response MIME type and HTTP code?
  :)
 declare function v:console-page(
    $root    as xs:string,
@@ -99,15 +97,38 @@ declare function v:console-page(
    $content as function() as element()+
 ) as element(h:html)
 {
-   let $c     := v:eval-content($content)
-   let $pres  := $c/descendant-or-self::h:pre
+   v:console-page($root, $page, $title, $content, ())
+};
+
+(:~
+ : Format a console page.
+ :
+ : $page: the current page (must be the key of one menu)
+ : $title: the title of the page (to appear on top of the page)
+ : $root: '' if a top-level page, or '../' if in a sub-directory
+ : $content: the actual HTML content, pasted as the content of the page
+ : $scripts: extra HTML "script" elements, to be added at the very end
+ :
+ : TODO: Shouldn't it set the response MIME type and HTTP code?
+ :)
+declare function v:console-page(
+   $root    as xs:string,
+   $page    as xs:string,
+   $title   as xs:string,
+   $content as function() as element()+,
+   $scripts as element(h:script)*
+) as element(h:html)
+{
+   let $cnt   := v:eval-content($content)
+   let $pres  := $cnt/descendant-or-self::h:pre
    let $codes := $pres[fn:tokenize(@class, '\s+') = ('code', 'editor')]
    return
       v:console-page-static(
          $root,
          $page,
          $title,
-         $c,
+         $cnt,
+         $scripts,
          fn:exists($codes))
 };
 
@@ -146,6 +167,7 @@ declare %private function v:console-page-static(
    $page    as xs:string,
    $title   as xs:string,
    $content as element()+,
+   $scripts as element(h:script)*,
    $codes   as xs:boolean
 ) as element(h:html)
 {
@@ -195,6 +217,9 @@ declare %private function v:console-page-static(
          <script src="{ $root }js/expath-console.js" type="text/javascript"/>
          <script src="{ $root }js/datatables-1.10.10/js/jquery.dataTables.js"    type="text/javascript"/>
          <script src="{ $root }js/datatables-1.10.10/js/dataTables.bootstrap.js" type="text/javascript"/>
+         {
+            $scripts
+         }
       </body>
    </html>
 };
@@ -245,6 +270,21 @@ declare function v:edit-xml(
          fn:string-join(fn:tokenize($uri, '/')[fn:position() lt fn:last()], '/')
       }/"/>
    </form>
+};
+
+(:~
+ : Like v:edit-xml(), but for text.  $mode is an ACE mode, e.g. "xquery".
+ :
+ : For editing "detached" text (not attached to a document in the database, so
+ : without any URI).
+ :)
+declare function v:edit-text(
+   $elem as text(),
+   $mode as xs:string,
+   $id   as xs:string
+) as element(h:pre)
+{
+   v:ace-editor-xml($elem, 'editor', $mode, $id, (), (), '250pt')
 };
 
 (:~
