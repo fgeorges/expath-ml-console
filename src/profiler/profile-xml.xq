@@ -9,4 +9,5 @@ import module namespace t = "http://expath.org/ns/ml/console/tools"   at "../lib
 
 p:profile(
    t:mandatory-field('query'),
-   t:mandatory-field('target'))
+   t:mandatory-field('target'),
+   'xml')
