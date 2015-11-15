@@ -177,11 +177,11 @@ declare function local:page()
          </div>
       </div>
 
-      <h3>Profiling result</h3>
-      <p>
+      <h3 class="prof-success">Profiling result</h3>
+      <p class="prof-success">
          Total time: <span id="total-time"/>
       </p>
-      <table class="table table-bordered datatable" id="prof-detail">
+      <table class="table table-bordered datatable prof-success" id="prof-detail">
          <thead>
             <th>Location</th>
             <th class="col-num">Count</th>
@@ -193,6 +193,9 @@ declare function local:page()
          </thead>
          <tbody/>
       </table>
+
+      <h3 class="prof-failure">Stacktrace</h3>
+      <div id="stacktrace" class="prof-failure"/>
 
       <h3>JSON report</h3>
       { v:edit-text(text { '' }, 'json', 'prof-json', 'profile') }

@@ -286,19 +286,30 @@ function profileImpl(queryId, endpoint, success)
       contentType: false,
       success: success,
       error: function(xhr, status, error) {
-         alert('Error: ' + status + ' (' + error + ')\n\nSee logs for details.');
+         alert('Error: ' + status + ' (' + error + ')\n\n' + xhr.responseText + '\n\nSee logs for details.');
       }});
 }
 
 function display(reports)
 {
+   // clear and hide all result- and stacktrace-related elements
+   var table   = $('#prof-detail').DataTable();
+   var stArea  = $('#stacktrace');
+   table.clear();
+   stArea.empty();
+   $('.prof-success').hide();
+   $('.prof-failure').hide();
+   // if an error
+   if ( reports.error ) {
+      displayStackTrace(reports, stArea);
+      $('.prof-failure').show();
+      return;
+   }
    var report  = reports.reports[0];
    var details = report.details;
    // TODO: Display the xs:duration in a human-friendly way.
    $('#total-time').text(report.summary.elapsed);
-   var table   = $('#prof-detail').DataTable();
-   table.clear();
-   for ( var i = 0; i != details.length; ++i ) {
+   for ( var i = 0; i < details.length; ++i ) {
       var d   = details[i];
       var loc = d.location;
       table.row.add([
@@ -313,6 +324,58 @@ function display(reports)
    }
    table.draw();
    table.columns.adjust();
+   $('.prof-success').show();
+}
+
+/**
+ * Display a stacktrace.
+ *
+ * @param st   The stacktrace to display, as a JSON object.
+ * @param area The element where to display the stacktrace.
+ */
+function displayStackTrace(st, area)
+{
+   // the 'whereURI' of the frame where to stop (from the profiler itself)
+   var stop  = '/profiler/profile-lib.xql';
+   var stack = st.error.stacktrace.stack;
+   for ( var i = 0; i < stack.length; ++i ) {
+      var frame = stack[i];
+      if ( frame.whereURI == stop ) {
+         break;
+      }
+      displayStackFrame(frame, area);
+   }
+}
+
+function displayStackFrame(frame, area)
+{
+   var div   = $('<div class="frame"></div>');
+   area.append(div);
+   var uri   = frame.whereURI || '';
+   var line  = frame.errorline;
+   var col   = frame.errorcolumn;
+   div.append('<p><b>Stack frame</b>, at ' + uri + ':' + line + ':' + col + '</p>');
+   div.append('<p>Context:</p>');
+   div.append('<pre>' + frame.operation + '</pre>');
+   div.append('<p>Code:</p>');
+   var lines = '';
+   for ( var i = 0; i < frame.lines.length; ++i ) {
+      var l = frame.lines[i];
+      if ( i == 2 ) {
+         l = '<span style="color:red">' + l + '</span>';
+      }
+      lines = lines + l + '\n';
+   }
+   div.append('<pre>' + lines + '</pre>');
+   if ( frame.code ) {
+      var list = $('<ul></ul>');
+      div.append('<p>Mappings:</p>');
+      div.append(list);
+      for ( i = 0; i < frame.code.length; ++i ) {
+         var c = frame.code[i];
+         list.append('<li><code>' + c + '</code></li>');
+      }
+   }
 }
 
 function selectTarget(targetId, id, targetLabel, label)
