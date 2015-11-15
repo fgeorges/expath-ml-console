@@ -174,6 +174,35 @@
    <match-path matches="^/xspec$">
       <dispatch>/xspec.xq</dispatch>
    </match-path>
+<!--
+   TODO: I'd like to redirect "/test" to "/test/", but it seems it is
+   not possible using the declarative XML rewriter.
+   See: http://developer.marklogic.com/features/enhanced-http
+   See: http://docs.marklogic.com/guide/app-dev/XMLrewriter
+   See: http://marklogic.markmail.org/thread/2znot5llb4fivur3
+
+   <match-path matches="^/test$">
+      <redirect>/test/</redirect>
+   </match-path>
+-->
+   <match-path matches="^/test/$">
+      <dispatch>/test/index.xq</dispatch>
+   </match-path>
+   <match-path matches="^/test/profiler/$">
+      <dispatch>/test/profiler/index.xq</dispatch>
+   </match-path>
+<!--
+   TODO: Really, using $1 in "dispatch" does not work?!?
+-->
+   <match-path matches="^/test/profiler/display-stacktrace$">
+      <dispatch>/test/profiler/display-stacktrace.xq</dispatch>
+   </match-path>
+   <match-path matches="^/test/profiler/throws-error$">
+      <dispatch>/test/profiler/throws-error.xq</dispatch>
+   </match-path>
+   <match-path matches="^/test/profiler/([-a-z]+)$">
+      <dispatch>/test/profiler/$1.xq</dispatch>
+   </match-path>
    <match-path matches=".xq$">
       <error>Not allowed to invoke modules directly</error>
    </match-path>
