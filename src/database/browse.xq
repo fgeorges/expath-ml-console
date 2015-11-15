@@ -87,8 +87,8 @@ declare function local:page--empty-path($db as element(a:database))
    <p>Database: "{ xs:string($db/a:name) }".  Go up to <a href="../../browser">the browser</a>.</p>,
    local:create-doc-form($db, ()),
    let $items := (
-         '/'[fn:exists(local:get-children("/", 1, 1))],
-         local:get-children("http://", 1, 1))
+         '/'[fn:exists(local:get-children-uri('/', 1))],
+         local:get-children-uri('http://', 1))
    return
       if ( fn:exists($items) ) then (
          <p>Choose the root to navigate:</p>,
@@ -334,38 +334,46 @@ declare function local:page(
       )
 };
 
-declare function local:get-children(
+declare function local:get-children-matches($base as xs:string) as xs:string+
+{
+   (: for uri-match() or collection-match() :)
+   if ( $base eq '' or fn:ends-with($base, '/') ) then
+      $base || '*'
+   else
+      $base || '/*'
+   ,
+   (: for replace() :)
+   '^(' || (
+   if ( $base eq '' or fn:ends-with($base, '/') ) then
+      $base
+   else
+      $base || '/'
+   ) || '([^/]*/){1}).*'
+};
+
+declare function local:get-children-uri(
    $base  as xs:string,
-   $level as item(),
    $start as xs:integer
 ) as xs:string*
 {
-   let $uri-match :=
-         if ( $base eq '' or ends-with($base, '/') ) then
-            $base || '*'
-         else
-            $base || '/*'
-   let $regex-base :=
-         if ( $base eq '' or ends-with($base, '/') ) then
-            $base
-         else
-            $base || '/'
-   let $depth :=
-         if ( string($level) eq 'infinity' ) then
-            '*'
-         else
-            '{' || $level || '}'
-   let $remainder :=
-         if ( $base eq '' and string($level) eq 'infinity' ) then
-            '.+'
-         else
-            '.*'
-   let $regex :=
-         '^(' || $regex-base || '([^/]*/)' || $depth || ')' || $remainder || ''
+   let $matches := local:get-children-matches($base)
    return
       (: TODO: Why is distinct-valus needed?  Any way to get rid of it? :)
       fn:distinct-values(
-         cts:uri-match($uri-match) ! fn:replace(., $regex, '$1'))
+         cts:uri-match($matches[1]) ! fn:replace(., $matches[2], '$1'))
+         [fn:position() ge $start and fn:position() lt $start + $page-size]
+};
+
+declare function local:get-children-coll(
+   $base  as xs:string,
+   $start as xs:integer
+) as xs:string*
+{
+   let $matches := local:get-children-matches($base)
+   return
+      (: TODO: Why is distinct-valus needed?  Any way to get rid of it? :)
+      fn:distinct-values(
+         cts:collection-match($matches[1]) ! fn:replace(., $matches[2], '$1'))
          [fn:position() ge $start and fn:position() lt $start + $page-size]
 };
 
@@ -403,7 +411,7 @@ declare function local:display-list(
 {
    local:create-doc-form($db, $path),
    (: Do we really need to filter out "$path"?  Can't we get rid of it in get-children()? :)
-   let $children := local:get-children($path, 1, $start)[. ne $path]
+   let $children := local:get-children-uri($path, $start)[. ne $path]
    let $count    := fn:count($children)
    let $to       := $start + $count - 1
    return (
