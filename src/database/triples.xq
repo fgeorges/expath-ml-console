@@ -129,8 +129,8 @@ declare function local:page--rsrc($db as xs:string, $rsrc as xs:string)
       Go up to <a href="../../browser">the browser</a>.
       Go back to <a href="triples">browse</a>.
    </p>,
-   <p>Resource <code>{ $rsrc }</code>:</p>,
-   <table class="table table-striped">
+   <p>Resource <a href="triples?rsrc={ fn:encode-for-uri($rsrc) }"><code class="rsrc">{ $rsrc }</code></a>, all its triples:</p>,
+   <table class="table table-striped datatable">
       <thead>
          <th>Property</th>
          <th>Object</th>
@@ -147,8 +147,8 @@ declare function local:page--rsrc($db as xs:string, $rsrc as xs:string)
          return
             (: TODO: Abbreviate properties, based on configured prefixes (or well-known?) :)
             <tr>
-               <td>{ local:display-value(map:get($r, 'p')) }</td>
-               <td>{ local:display-value(map:get($r, 'o')) }</td>
+               <td>{ local:display-value(map:get($r, 'p'), 'prop') }</td>
+               <td>{ local:display-value(map:get($r, 'o'), 'rsrc') }</td>
                <td>{ local:display-type(map:get($r, 'o')) }</td>
             </tr>
       }
@@ -156,13 +156,15 @@ declare function local:page--rsrc($db as xs:string, $rsrc as xs:string)
    </table>
 };
 
-declare function local:display-value($v as xs:anyAtomicType)
+declare function local:display-value($v as xs:anyAtomicType, $kind as xs:string)
    as element()
 {
    if ( sem:isIRI($v) ) then
       (: TODO: Display the link only when the resource exists (that is, there is
          at least one triple with that IRI as subkect). :)
-      <a href="triples?rsrc={ fn:encode-for-uri($v) }">{ v:shorten-resource($v) }</a>
+      <a href="triples?rsrc={ fn:encode-for-uri($v) }">
+         <code class="{ $kind }">{ v:shorten-resource($v) }</code>
+      </a>
    else
       <span>{ $v }</span>
 };

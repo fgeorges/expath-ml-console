@@ -11,6 +11,137 @@ table {
   font-family: "Lucida Grande", Verdana, Arial, Helvetica, sans-serif;
 }
 
+code {
+  font-family: "Source Code Pro", Consolas, Menlo, Monaco, "Courier New", monospace;
+  padding: 2px 4px;
+  /* font-size: 0.8em; */
+  color: #444;
+  background-color: #fcfcfc;
+  border: 1px solid #e0e0e0;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+}
+
+code:after {
+  display: inline-block;
+  border-left: 1px solid rgba(0, 0, 0, 0.2);
+  margin-left: 4px;
+  padding-left: 4px;
+  opacity: 0.5;
+}
+
+a code {
+  text-decoration: underline;
+}
+
+code.doc {
+  color:#095c05;
+  background-color:#eef7ed;
+  border:1px solid #8ccb89;
+  white-space: nowrap;
+}
+
+code.doc:after {
+  content: 'Doc';
+}
+
+code.coll {
+  color:#D14;
+  background-color:#fcf6f8;
+  border:1px solid #f7d6df;
+  white-space: nowrap;
+}
+
+code.coll:after {
+  content: 'Coll';
+}
+
+code.dir {
+  color:#c05f1d;
+  background-color:#f5eee9;
+  border:1px solid #dfc4b2;
+  white-space: nowrap;
+}
+
+code.dir:after {
+  content: 'Dir';
+}
+
+code.rsrc {
+  color: #2a839e;
+  background-color: #f5fafb;
+  border: 1px solid #a8ddec;
+  white-space: nowrap;
+}
+
+code.rsrc:after {
+  content: 'Rsrc';
+}
+
+code.class {
+  color:#ad1ee8;
+  background-color:#f9f1fc;
+  border:1px solid #ebc9f7;
+  white-space: nowrap;
+}
+
+code.class:after {
+  content: 'Class';
+}
+
+code.prop {
+  color:#d119cf;
+  background-color:#faebfa;
+  border:1px solid #f3aef2;
+  white-space: nowrap;
+}
+
+code.prop:after {
+  content: 'Prop';
+}
+
+/*
+ * Available color combinations, for different code.* classes:
+ *
+# red
+   color:#D14;
+   background-color:#fcf6f8;
+   border:1px solid #f7d6df;
+# green
+   color:#095c05;
+   background-color:#eef7ed;
+   border:1px solid #8ccb89;
+# yellow
+   color:#c29f00;
+   background-color:#fff9d7;
+   border:1px solid #ffe700;
+# dark blue
+   color:#0c199c;
+   background-color:#f4f5fc;
+   border:1px solid #c6cbe9;
+# pink
+   color:#d119cf;
+   background-color:#faebfa;
+   border:1px solid #f3aef2;
+# light blue
+   color:#2a839e;
+   background-color:#f5fafb;
+   border:1px solid #a8ddec;
+# brown
+   color:#c05f1d;
+   background-color:#f5eee9;
+   border:1px solid #dfc4b2;
+# purple
+   color:#ad1ee8;
+   background-color:#f9f1fc;
+   border:1px solid #ebc9f7;
+# grey
+   color:#464e50;
+   background-color:#f2f7f9;
+   border:1px solid #b8c3c5;
+ */
+
 #total-time {
   font-weight: bold;
 }
@@ -27,4 +158,20 @@ table.dataTable tbody td.dt-body-right {
 
 td.cell-small {
   font-size: 80%;
+}
+
+/* Profiler-specific.
+ */
+
+.frame {
+  /* font-family: "Source Code Pro", Consolas, Menlo, Monaco, "Courier New", monospace; */
+  padding: 5px;
+  margin-bottom: 15px;
+  /* font-size: 0.8em; */
+  color: #444;
+  background-color: #fcfcfc;
+  border: 1px solid #e0e0e0;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
 }

@@ -496,6 +496,30 @@ declare function v:input-hidden($id as xs:string, $val as xs:string)
           type="hidden" name="{ $id }" value="{ $val }"/>
 };
 
+(: ==== Link display tools ======================================================== :)
+
+declare function v:doc-link($href as xs:string, $name as xs:string)
+{
+   v:component-link($href, $name, 'doc')
+};
+
+declare function v:coll-link($href as xs:string, $name as xs:string)
+{
+   v:component-link($href, $name, 'coll')
+};
+
+declare function v:dir-link($href as xs:string, $name as xs:string)
+{
+   v:component-link($href, $name, 'dir')
+};
+
+declare function v:component-link($href as xs:string, $name as xs:string, $kind as xs:string)
+{
+   <a href="{ $href }">
+      <code class="{ $kind }">{ $name }</code>
+   </a>
+};
+
 (: ==== Triple display tools ======================================================== :)
 
 (:~

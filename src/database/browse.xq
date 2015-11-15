@@ -87,24 +87,32 @@ declare function local:page--empty-path($db as element(a:database))
    <p>Database: "{ xs:string($db/a:name) }".  Go up to <a href="../../browser">the browser</a>.</p>,
    local:create-doc-form($db, ()),
    let $items := (
-         <li>
-            <a href="browse/">
-               <span class="glyphicon glyphicon-collapse-down" aria-hidden="true"/>
-            </a>
-            /
-         </li>[fn:exists(local:get-children("/", 1, 1))],
-         (: TODO: Display in case there are more roots than $page-size! :)
-         local:get-children("http://", 1, 1) ! <li>http://<a href="browse/{ . }"> {
-            fn:substring(., 8, fn:string-length(.) - 8)
-         }</a>/</li>
-      )
+         '/'[fn:exists(local:get-children("/", 1, 1))],
+         local:get-children("http://", 1, 1))
    return
       if ( fn:exists($items) ) then (
          <p>Choose the root to navigate:</p>,
-         <ul> {
-            $items
-         }
-         </ul>
+         (: TODO: Lot of duplicated code with local:display-list(), factorize out? :)
+         v:form(
+            '',
+            attribute { 'id' } { 'orig-form' },
+            (<ul style="list-style-type: none"> {
+                for $i at $pos in $items
+                return
+                   <li>
+                      <input name="name-{ $pos }"   type="hidden" value="{ $i }"/>
+                      <input name="delete-{ $pos }" type="checkbox"/>
+                      { ' ' }
+                      { v:dir-link('browse/' || $i[. ne '/'], $i) }
+                   </li>
+             }
+             </ul>)),
+         <button class="btn btn-danger" onclick='deleteUris("orig-form", "hidden-form");'>Delete</button>,
+         v:inline-form(
+            $db-root || 'bulk-delete',
+            (attribute { 'id'    } { 'hidden-form' },
+             attribute { 'style' } { 'display: none' }),
+            v:input-hidden('back-url', 'browse' || '/'[fn:not(fn:starts-with($path, '/'))] || $path))
       )
       else (
          <p>The database is empty.</p>
@@ -169,12 +177,19 @@ declare function local:page--doc($db as element(a:database))
             </tr>
             <tr>
                <td>Document URI</td>
-               <td>{ $path }</td>
+               <td> {
+                  v:doc-link(fn:encode-for-uri(fn:tokenize($path, '/')[fn:last()]), $path)
+               }
+               </td>
             </tr>
             <tr>
                <td>Collections</td>
                <td> {
-                  xdmp:document-get-collections($path) ! (., <br/>)
+                  for $ c in xdmp:document-get-collections($path)
+                  return (
+                     v:coll-link('#', $c),
+                     <br/>
+                  )
                }
                </td>
             </tr>
@@ -403,10 +418,11 @@ declare function local:display-list(
          }:
       </p>,
       (: display the list of children themselves :)
+      (: TODO: Lot of duplicated code with local:page--empty-path(), factorize out? :)
       v:form(
          '',
          attribute { 'id' } { 'orig-form' },
-         (<ul> {
+         (<ul style="list-style-type: none"> {
              for $child at $pos in $children
              let $dir  := fn:ends-with($child, '/')
              let $name := fn:tokenize($child, '/')[fn:last() - (1[$dir], 0)[1]]
@@ -416,8 +432,12 @@ declare function local:display-list(
                    <input name="name-{ $pos }"   type="hidden" value="{ $child }"/>
                    <input name="delete-{ $pos }" type="checkbox"/>
                    { ' ' }
-                   <a href="{ fn:encode-for-uri($name) }{ '/'[$dir] }">{ $name }</a>
-                   { '/'[$dir] }
+                   {
+                      if ( $dir ) then
+                         v:dir-link(fn:encode-for-uri($name) || '/', $name || '/')
+                      else
+                         v:doc-link(fn:encode-for-uri($name), $name)
+                   }
                 </li>
           }
           </ul>)),
@@ -463,28 +483,32 @@ declare function local:uplinks($path as xs:string, $isdir as xs:boolean)
       name part), while it is necessary for "/" URIs (clicking on the "/" is just
       no an option). :)
    if ( $path eq '/' ) then (
-      text { '"/"' }
+      v:dir-link('./', '/')
    )
    else if ( fn:starts-with($path, '/') ) then (
       let $toks := fn:tokenize($path, '/')[.]
       return (
-         text { '" ' },
-         <a href="./{ t:make-string('../', fn:count($toks) - (0[$isdir], 1)[1]) }">
-            <span class="glyphicon glyphicon-collapse-up" aria-hidden="true"/>
-         </a>,
-         text { ' /' },
+         v:dir-link('./' || t:make-string('../', fn:count($toks) - (0[$isdir], 1)[1]), '/'),
          local:uplinks-1($toks[fn:position() lt fn:last()], ('../'[$isdir], './')[1]),
-         text { $toks[fn:last()] || '/' }[$isdir]
+         if ( $isdir ) then (
+            text { ' ' },
+            v:dir-link('./', $toks[fn:last()] || '/')
+         )
+         else (
+         )
       )
    )
    else if ( fn:starts-with($path, 'http://') ) then (
-      let $toks := fn:remove(fn:tokenize($path, '/')[.], 1)
+      let $toks_ := fn:remove(fn:tokenize($path, '/')[.], 1)
+      let $toks  := ( 'http://' || $toks_[1], fn:remove($toks_, 1) )
       return (
-         text { '"http://' },
          local:uplinks-1($toks[fn:position() lt fn:last()], ('../'[$isdir], './')[1]),
-         text { $toks[fn:last()] || '/' }[$isdir],
-         text { '"' },
-         text { ' (click on a part to travel up the directories)' }[fn:exists($toks[2])]
+         if ( $isdir ) then (
+            text { ' ' },
+            v:dir-link('./', $toks[fn:last()] || '/')
+         )
+         else (
+         )
       )
    )
    else (
@@ -501,8 +525,8 @@ declare function local:uplinks-1($toks as xs:string*, $up as xs:string?)
    )
    else (
       local:uplinks-1($toks[fn:position() lt fn:last()], '../' || $up),
-      <a href="{ $up }">{ $toks[fn:last()] }</a>,
-      text { '/' }
+      text { ' ' },
+      v:dir-link($up, $toks[fn:last()] || '/')
    )
 };
 
