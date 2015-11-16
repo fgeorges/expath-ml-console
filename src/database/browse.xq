@@ -84,7 +84,7 @@ declare function local:page--init-path($init as xs:string)
 declare function local:page--empty-path($db as element(a:database))
    as element()+
 {
-   <p>Database: "{ xs:string($db/a:name) }".  Go up to <a href="../../browser">the browser</a>.</p>,
+   <p>Database: { v:db-link('browse', $db/a:name) }</p>,
    local:create-doc-form($db, ()),
    let $items := (
          '/'[fn:exists(local:get-children-uri('/', 1))],
@@ -125,7 +125,7 @@ declare function local:page--empty-path($db as element(a:database))
 declare function local:page--root($db as element(a:database), $up as xs:string, $start as xs:integer)
    as element()+
 {
-   <p>Database: "{ xs:string($db/a:name) }".  Go up to the <a href="{ $up }">browse page</a>.</p>,
+   <p>Database: { v:db-link($up, $db/a:name) }</p>,
    local:display-list($db, $path, $start)
 };
 
@@ -466,9 +466,9 @@ declare function local:up-to-browse($db as xs:string, $path as xs:string)
 {
    let $toks  := fn:tokenize($path, '/')
    let $count := fn:count($toks) - (1[fn:starts-with($path, '/')], 0)[1]
+   let $up    := t:make-string('../', $count) || 'browse'
    return
-      <p>Database: "{ $db }".  Go up to the
-         <a href="{ t:make-string('../', $count) }browse">browse page</a>.</p>
+      <p>Database: { v:db-link($up, $db) }</p>
 };
 
 (:~

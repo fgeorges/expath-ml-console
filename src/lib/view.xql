@@ -513,6 +513,26 @@ declare function v:dir-link($href as xs:string, $name as xs:string)
    v:component-link($href, $name, 'dir')
 };
 
+declare function v:rsrc-link($href as xs:string, $name as xs:string)
+{
+   v:component-link($href, $name, 'rsrc')
+};
+
+declare function v:class-link($href as xs:string, $name as xs:string)
+{
+   v:component-link($href, $name, 'class')
+};
+
+declare function v:prop-link($href as xs:string, $name as xs:string)
+{
+   v:component-link($href, $name, 'prop')
+};
+
+declare function v:db-link($href as xs:string, $name as xs:string)
+{
+   v:component-link($href, $name, 'db')
+};
+
 declare function v:component-link($href as xs:string, $name as xs:string, $kind as xs:string)
 {
    <a href="{ $href }">

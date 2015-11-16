@@ -35,10 +35,11 @@ a code {
   text-decoration: underline;
 }
 
+/* green */
 code.doc {
-  color:#095c05;
-  background-color:#eef7ed;
-  border:1px solid #8ccb89;
+  color: #095c05;
+  background-color: #eef7ed;
+  border: 1px solid #8ccb89;
   white-space: nowrap;
 }
 
@@ -46,10 +47,11 @@ code.doc:after {
   content: 'Doc';
 }
 
+/* red */
 code.coll {
-  color:#D14;
-  background-color:#fcf6f8;
-  border:1px solid #f7d6df;
+  color: #D14;
+  background-color: #fcf6f8;
+  border: 1px solid #f7d6df;
   white-space: nowrap;
 }
 
@@ -57,10 +59,11 @@ code.coll:after {
   content: 'Coll';
 }
 
+/* brown */
 code.dir {
-  color:#c05f1d;
-  background-color:#f5eee9;
-  border:1px solid #dfc4b2;
+  color: #c05f1d;
+  background-color: #f5eee9;
+  border: 1px solid #dfc4b2;
   white-space: nowrap;
 }
 
@@ -68,6 +71,7 @@ code.dir:after {
   content: 'Dir';
 }
 
+/* light blue */
 code.rsrc {
   color: #2a839e;
   background-color: #f5fafb;
@@ -79,10 +83,11 @@ code.rsrc:after {
   content: 'Rsrc';
 }
 
+/* purple */
 code.class {
-  color:#ad1ee8;
-  background-color:#f9f1fc;
-  border:1px solid #ebc9f7;
+  color: #ad1ee8;
+  background-color: #f9f1fc;
+  border: 1px solid #ebc9f7;
   white-space: nowrap;
 }
 
@@ -90,10 +95,11 @@ code.class:after {
   content: 'Class';
 }
 
+/* pink */
 code.prop {
-  color:#d119cf;
-  background-color:#faebfa;
-  border:1px solid #f3aef2;
+  color: #d119cf;
+  background-color: #faebfa;
+  border: 1px solid #f3aef2;
   white-space: nowrap;
 }
 
@@ -101,45 +107,57 @@ code.prop:after {
   content: 'Prop';
 }
 
+/* yello */
+code.db {
+  color: #c29f00;
+  background-color: #fff9d7;
+  border: 1px solid #ffe700;
+  white-space: nowrap;
+}
+
+code.db:after {
+  content: 'DB';
+}
+
 /*
  * Available color combinations, for different code.* classes:
  *
-# red
-   color:#D14;
-   background-color:#fcf6f8;
-   border:1px solid #f7d6df;
-# green
-   color:#095c05;
-   background-color:#eef7ed;
-   border:1px solid #8ccb89;
-# yellow
-   color:#c29f00;
-   background-color:#fff9d7;
-   border:1px solid #ffe700;
+# red (coll)
+   color: #D14;
+   background-color: #fcf6f8;
+   border: 1px solid #f7d6df;
+# green (doc)
+   color: #095c05;
+   background-color: #eef7ed;
+   border: 1px solid #8ccb89;
+# yellow (db)
+   color: #c29f00;
+   background-color: #fff9d7;
+   border: 1px solid #ffe700;
 # dark blue
-   color:#0c199c;
-   background-color:#f4f5fc;
-   border:1px solid #c6cbe9;
-# pink
-   color:#d119cf;
-   background-color:#faebfa;
-   border:1px solid #f3aef2;
-# light blue
-   color:#2a839e;
-   background-color:#f5fafb;
-   border:1px solid #a8ddec;
-# brown
-   color:#c05f1d;
-   background-color:#f5eee9;
-   border:1px solid #dfc4b2;
-# purple
-   color:#ad1ee8;
-   background-color:#f9f1fc;
-   border:1px solid #ebc9f7;
+   color: #0c199c;
+   background-color: #f4f5fc;
+   border: 1px solid #c6cbe9;
+# pink (prop)
+   color: #d119cf;
+   background-color: #faebfa;
+   border: 1px solid #f3aef2;
+# light blue (rsrc)
+   color: #2a839e;
+   background-color: #f5fafb;
+   border: 1px solid #a8ddec;
+# brown (dir)
+   color: #c05f1d;
+   background-color: #f5eee9;
+   border: 1px solid #dfc4b2;
+# purple (class)
+   color: #ad1ee8;
+   background-color: #f9f1fc;
+   border: 1px solid #ebc9f7;
 # grey
-   color:#464e50;
-   background-color:#f2f7f9;
-   border:1px solid #b8c3c5;
+   color: #464e50;
+   background-color: #f2f7f9;
+   border: 1px solid #b8c3c5;
  */
 
 #total-time {
