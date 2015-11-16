@@ -119,6 +119,18 @@ code.db:after {
   content: 'DB';
 }
 
+/* dark blue */
+code.as {
+  color: #0c199c;
+  background-color: #f4f5fc;
+  border: 1px solid #c6cbe9;
+  white-space: nowrap;
+}
+
+code.as:after {
+  content: 'AS';
+}
+
 /*
  * Available color combinations, for different code.* classes:
  *
@@ -134,7 +146,7 @@ code.db:after {
    color: #c29f00;
    background-color: #fff9d7;
    border: 1px solid #ffe700;
-# dark blue
+# dark blue (as)
    color: #0c199c;
    background-color: #f4f5fc;
    border: 1px solid #c6cbe9;

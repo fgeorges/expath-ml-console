@@ -18,13 +18,11 @@ declare function local:page-no-repo($as as element(a:appserver))
    as element()+
 {
    <wrapper>
-      <p>The app server "<code>{ $as/a:name }</code>" has no repo setup.  In
-         order to be able to install packages for this app server, you must
-         first setup a repo.  Do you want to set one up?</p>
-      <form method="post" action="{ $as/@id }/init-repo" enctype="multipart/form-data">
-         <input type="submit" value="Initialize"/>
-         <span> repo for this app server.</span>
-      </form>
+      <p>The app server { v:as-link($as/@id, $as/a:name) } has no repo setup.
+         In order to be able to install packages for this app server, you must
+         first setup a repo.</p>
+      <p>Do you want to set one up?</p>
+      { v:inline-form($as/@id || '/init-repo', v:submit('Initialise')) }
    </wrapper>/*
 };
 
@@ -35,7 +33,7 @@ declare function local:page-with-repo($as as element(a:appserver), $pkgs as elem
    as element()+
 {
    <wrapper>
-      <p>Packages on the app server "<code>{ $as/a:name }</code>".</p>
+      <p>Packages on { v:as-link($as/@id, $as/a:name) }</p>
       <h3>Installed packages</h3>
       {
          if ( fn:empty($pkgs/pp:package) ) then

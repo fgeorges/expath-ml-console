@@ -23,6 +23,42 @@ declare function local:page()
            </li>
       }
       </ul>
+      <p>You will find the following types of component in the Console:</p>
+      <ul>
+         <li>
+            { v:db-link('#', 'database') } -
+            a database (all types of database: content, schemas, security, etc.)
+         </li>
+         <li>
+            { v:as-link('#', 'app server') } -
+            an application server (all types of appserver: HTTP, XDBC, WebDAV or ODBC)
+         </li>
+         <li>
+            { v:doc-link('#', 'document') } -
+            a document (all types of document: XML, JSON, text or binary)
+         </li>
+         <li>
+            { v:coll-link('#', 'collection') } -
+            a collection
+         </li>
+         <li>
+            { v:dir-link('#', 'directory') } -
+            a directory (materialized as a property document or not, for document
+            or collection URIs)
+         </li>
+         <li>
+            { v:rsrc-link('#', 'resource') } -
+            an RDF resource (that is, an IRI which is subject of at least one triple)
+         </li>
+         <li>
+            { v:prop-link('#', 'property') } -
+            an RDF property
+         </li>
+         <li>
+            { v:class-link('#', 'class') } -
+            an RDF class
+         </li>
+      </ul>
    </wrapper>/*
 };
 

@@ -53,12 +53,13 @@ declare function local:appservers-table($grp as element(a:group))
          order by $name
          return
             <tr>
-               <td>
-                  <a href="appserver/{ $id }">{ $name }</a>
+               <td> {
+                  v:as-link('appserver/' || $id, $name)
+               }
                </td>
                <td> {
                   if ( fn:exists($as/a:modules-db) ) then
-                     fn:string($as/a:modules-db) || ' *'
+                     v:db-link('db/' || $as/a:modules-db/@id || '/browse', $as/a:modules-db)
                   else
                      fn:string($as/a:modules-path)
                }

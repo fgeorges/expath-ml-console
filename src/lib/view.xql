@@ -533,6 +533,11 @@ declare function v:db-link($href as xs:string, $name as xs:string)
    v:component-link($href, $name, 'db')
 };
 
+declare function v:as-link($href as xs:string, $name as xs:string)
+{
+   v:component-link($href, $name, 'as')
+};
+
 declare function v:component-link($href as xs:string, $name as xs:string, $kind as xs:string)
 {
    <a href="{ $href }">
