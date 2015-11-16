@@ -31,6 +31,11 @@
       <add-query-param name="id">$1</add-query-param>
       <dispatch>/database/browse.xq</dispatch>
    </match-path>
+   <match-path matches="^/db/([0-9]+)/browse/(http://.+)$">
+      <add-query-param name="id">$1</add-query-param>
+      <add-query-param name="path">$2</add-query-param>
+      <dispatch>/database/browse.xq</dispatch>
+   </match-path>
    <match-path matches="^/db/([0-9]+)/browse(/.*)$">
       <add-query-param name="id">$1</add-query-param>
       <add-query-param name="path">$2</add-query-param>

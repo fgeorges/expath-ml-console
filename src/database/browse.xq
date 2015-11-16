@@ -14,27 +14,13 @@ declare namespace xdmp = "http://marklogic.com/xdmp";
 declare namespace map  = "http://marklogic.com/xdmp/map";
 declare namespace sec  = "http://marklogic.com/xdmp/security";
 
-declare variable $path := local:get-param-path();
+declare variable $path := t:optional-field('path', ())[.];
 
 declare variable $db-root     := local:get-db-root($path);
 declare variable $webapp-root := $db-root || '../../';
 
 (: Fixed page size for now. :)
 declare variable $page-size := 100;
-
-(:~
- : The param "path", if any.
- :)
-declare function local:get-param-path()
-   as xs:string?
-{
-   let $path := t:optional-field('path', ())[.]
-   return
-      if ( fn:starts-with($path, '/http://') ) then
-         fn:substring($path, 2)
-      else
-         $path
-};
 
 (:~
  : The path to the database root, relative to current $path.
