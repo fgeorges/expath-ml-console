@@ -64,6 +64,10 @@
       <add-query-param name="rsrc">$2</add-query-param>
       <dispatch>/database/triples.xq</dispatch>
    </match-path>
+   <match-path matches="^/db/([0-9]+)/classes$">
+      <add-query-param name="id">$1</add-query-param>
+      <dispatch>/database/classes.xq</dispatch>
+   </match-path>
    <match-path matches="^/db/([0-9]+)/save-doc$">
       <add-query-param name="id">$1</add-query-param>
       <dispatch>/database/save-doc.xq</dispatch>
@@ -165,6 +169,9 @@
    </match-path>
    <match-path matches="^/tools/browse-triples$">
       <dispatch>/tools/browse-triples.xq</dispatch>
+   </match-path>
+   <match-path matches="^/tools/browse-classes$">
+      <dispatch>/tools/browse-classes.xq</dispatch>
    </match-path>
    <match-path matches="^/tools/add-perm$">
       <dispatch>/tools/add-perm.xq</dispatch>

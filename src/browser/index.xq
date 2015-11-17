@@ -42,6 +42,16 @@ declare function local:page()
             v:input-select-databases('database', 'Database', $triple-stores),
             v:submit('Browse')))
       }
+<!--
+      <h3>Classes</h3>
+      <p>Browse the RDF classes within a database.  Only available for the databases
+         with the triple index enabled.</p>
+      {
+         v:form('tools/browse-classes', (
+            v:input-select-databases('database', 'Database', $triple-stores),
+            v:submit('Browse')))
+      }
+-->
    </wrapper>/*
 };
 
