@@ -28,17 +28,18 @@ declare function local:page()
    let $override := xs:boolean(t:optional-field('override', 'false'))
    let $pkg      := a:appserver-install-package($xar, $as, $override)
    :)
+   let $link     := v:as-link('../' || $as/@id, $as/a:name)
    return (
       if ( fn:exists($pkg) ) then
-         <p>Package '{ $filename }' successfully installed into the repository associated
-            to the app server '{ $as/xs:string(a:name) }', within the package directory
-            '{ $pkg/xs:string(@dir) }'.</p>
+         <p>Package <code>{ $filename }</code> successfully installed into the
+            repository associated to { $link }, within the package directory
+            <code>{ $pkg/xs:string(@dir) }</code>.</p>
       else
          (: TODO: Provide more accurate info! :)
          (: TODO: Use try/catch instead...! :)
-         <p>Package '{ $filename }' NOT installed into the repository associated to the app
-            server '{ $as/xs:string(a:name) }'.  Did it already exist?</p>,
-      <p>Back to the app server <a href="../{ $as/@id }">{ $as/xs:string(a:name) }</a>.</p>
+         <p>Package <code>{ $filename }</code> NOT installed into the repository
+            associated to { $link }.  Did it already exist?</p>,
+      <p>Back to { $link }</p>
    )
 };
 

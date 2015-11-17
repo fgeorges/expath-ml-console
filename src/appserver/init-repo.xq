@@ -17,21 +17,18 @@ declare function local:page()
    let $id     := xs:unsignedLong($id-str)
    let $as     := a:get-appserver($id)
    let $name   := xs:string($as/a:name)
-   return (
+   let $link   := v:as-link('../' || $as/@id, $name)
+   return
       try {
          (: either it contains the element or an error is thrown, but for extra safety...:)
          if ( fn:exists(a:appserver-init-repo($as)/a:repo) ) then
-            <p>Package repository correctly initialized for the app server "<code>{ $name }</code>".</p>
+            <p>Package repository correctly initialized for { $link }</p>
          else
             t:error('local-init-repo-01', 'Error initializing the package repository for the app server: ' || $name)
       }
-      catch c:packages-file-exists {
-         <p><b>Error</b>: package repository already initialized for the app server
-            "<code>{ $name }</code>".</p>,
-         <p>{ $err:description }</p>
-      },
-      <p>Back to the app server <a href="../{ $as/@id }">{ $name }</a>.</p>
-   )
+      catch c:repo-already-exists {
+         <p><b>Error</b>: package repository already initialized for { $link }</p>
+      }
 };
 
 v:console-page('../../', 'pkg', 'App server', local:page#0)

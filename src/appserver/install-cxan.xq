@@ -43,7 +43,7 @@ declare function local:page()
             <p><b>Error</b>: Cannot decide which CXAN website to use (std-website={ $std-site }).</p>
    return (
       local:install($pkg-id, $name, $version, $site, $as, $override),
-      <p>Back to the app server <a href="../{ $as/@id }">{ $as/xs:string(a:name) }</a>.</p>
+      <p>Back to { v:as-link('../' || $as/@id, $as/a:name) }</p>
    )
 };
 
@@ -100,15 +100,15 @@ declare function local:install-from-uri(
             let $pkg    := a:appserver-install-package($xar, $as)
             return
                if ( fn:exists($pkg) ) then
-                  <p>Package <code>{ string($pkg/@name) }</code>, version <code>{ string($pkg/@version) }</code>,
-                     successfully installed into the repository associated to the app server
-                     <code>{ xs:string($as/a:name) }</code>, within the package directory
-                     <code>{ xs:string($pkg/@dir) }</code>.</p>
+                  <p>Package <code>{ string($pkg/@name) }</code>, version
+                     <code>{ string($pkg/@version) }</code>, successfully installed into the
+                     repository associated to { v:as-link('../' || $as/@id, $as/a:name) },
+                     within the package directory <code>{ xs:string($pkg/@dir) }</code>.</p>
                else
                   (: TODO: Provide more accurate info! :)
                   (: TODO: Use try/catch instead...! :)
-                  <p>Package NOT installed into the repository associated to the app server
-                     <code>{ xs:string($as/a:name) }</code>.  Did it already exist?</p>
+                  <p>Package NOT installed into the repository associated to
+                     { v:as-link('../' || $as/@id, $as/a:name) }.  Did it already exist?</p>
          )
          else (
             <p><b>Error</b>: CXAN server did not respond 200 Ok for the package

@@ -24,16 +24,16 @@ declare function local:page()
    return (
       (: TODO: In those first few cases, we should NOT return "200 OK". :)
       if ( fn:empty($as) ) then
-         <p><b>Error</b>: The app server "<code>{ $id-str }</code>" does not exist.</p>
+         <p><b>Error</b>: There is no app server with ID <code>{ $id-str }</code>.</p>
       else if ( fn:empty($pkg) ) then
-         <p><b>Error</b>: The package with directory "<code>{ $pkgdir }</code>" does not exist.</p>
+         <p><b>Error</b>: There is no package with directory <code>{ $pkgdir }</code>.</p>
       else if ( fn:not($confirm castable as xs:boolean) ) then
-         <p><b>Error</b>: The parameter "<code>confirm</code>" is not a valid boolean:
-            "<code>{ $confirm }</code>".</p>
+         <p><b>Error</b>: The parameter <code>confirm</code> is not a valid boolean:
+            <code>{ $confirm }</code>.</p>
       else
          try {
             a:appserver-delete-package($as, $pkg, xs:boolean($confirm)),
-            <p>The package "<code>{ $pkg/xs:string(@dir) }</code>" has been deleted.</p>
+            <p>The package <code>{ $pkg/xs:string(@dir) }</code> has been deleted.</p>
          }
          catch c:not-confirmed {
             <p>{ $err:description }</p>,
@@ -44,7 +44,7 @@ declare function local:page()
             </form>
          }
       ,
-      <p>Back to the app server <a href="../../../{ $as/@id }">{ $as/xs:string(a:name) }</a>.</p>
+      <p>Back to { v:as-link('../../../' || $as/@id, $as/a:name) }</p>
    )
 };
 
