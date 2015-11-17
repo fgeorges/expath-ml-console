@@ -713,6 +713,10 @@ declare function a:get-database($db as xs:unsignedLong)
       <a:database id="{ $db }">
          <a:name>{ admin:database-get-name($config, $db) }</a:name>
          <a:triple-index>{ admin:database-get-triple-index($config, $db) }</a:triple-index>
+         <a:lexicons>
+            <a:uri>{ admin:database-get-uri-lexicon($config, $db) }</a:uri>
+            <a:coll>{ admin:database-get-collection-lexicon($config, $db) }</a:coll>
+         </a:lexicons>
       </a:database>
 };
 

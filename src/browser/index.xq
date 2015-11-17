@@ -16,15 +16,22 @@ declare function local:page()
    as element()+
 {
    <wrapper>
-      <h3>Browse documents</h3>
+      <h3>Directories</h3>
       <p>Browse the documents within a database, in a hierarchical kind of way
          (based on the directory "structure").</p>
       {
          v:form('tools/browse-db', (
             v:input-select-databases('database', 'Database'),
-            v:submit('Documents')))
+            v:submit('Browse')))
       }
-      <h3>Browse triples</h3>
+      <h3>Collections</h3>
+      <p>Browse the documents within a database, based on the collections.</p>
+      {
+         v:form('tools/browse-colls', (
+            v:input-select-databases('database', 'Database'),
+            v:submit('Browse')))
+      }
+      <h3>Triples</h3>
       <p>Browse the RDF resources within a database.  Only available for the databases
          with the triple index enabled.</p>
       {
@@ -33,7 +40,7 @@ declare function local:page()
                'database',
                'Database',
                function($db) { $db/xs:boolean(a:triple-index) }),
-            v:submit('Resources')))
+            v:submit('Browse')))
       }
    </wrapper>/*
 };

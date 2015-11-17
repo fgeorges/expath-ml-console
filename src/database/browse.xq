@@ -1,14 +1,13 @@
 xquery version "3.0";
 
-import module namespace a = "http://expath.org/ns/ml/console/admin" at "../lib/admin.xql";
-import module namespace t = "http://expath.org/ns/ml/console/tools" at "../lib/tools.xql";
-import module namespace v = "http://expath.org/ns/ml/console/view"  at "../lib/view.xql";
+import module namespace b = "http://expath.org/ns/ml/console/browse" at "browse-lib.xql";
+import module namespace a = "http://expath.org/ns/ml/console/admin"  at "../lib/admin.xql";
+import module namespace t = "http://expath.org/ns/ml/console/tools"  at "../lib/tools.xql";
+import module namespace v = "http://expath.org/ns/ml/console/view"   at "../lib/view.xql";
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
 declare namespace h    = "http://www.w3.org/1999/xhtml";
-declare namespace c    = "http://expath.org/ns/ml/console";
-declare namespace err  = "http://www.w3.org/2005/xqt-errors";
 declare namespace cts  = "http://marklogic.com/cts";
 declare namespace xdmp = "http://marklogic.com/xdmp";
 declare namespace map  = "http://marklogic.com/xdmp/map";
@@ -16,26 +15,8 @@ declare namespace sec  = "http://marklogic.com/xdmp/security";
 
 declare variable $path := t:optional-field('path', ())[.];
 
-declare variable $db-root     := local:get-db-root($path);
+declare variable $db-root     := b:get-db-root($path);
 declare variable $webapp-root := $db-root || '../../';
-
-(: Fixed page size for now. :)
-declare variable $page-size := 100;
-
-(:~
- : The path to the database root, relative to current $path.
- :)
-declare function local:get-db-root($path as xs:string?)
-   as xs:string
-{
-   if ( fn:empty($path) ) then
-      './'
-   else
-      let $toks  := fn:tokenize($path, '/')
-      let $count := fn:count($toks) + (-1[fn:starts-with($path, '/')], 0)[1]
-      return
-         t:make-string('../', $count)
-};
 
 (:~
  : The page content, in case the DB does not exist.
@@ -43,7 +24,18 @@ declare function local:get-db-root($path as xs:string?)
 declare function local:page--no-db($id as xs:unsignedLong)
    as element(h:p)
 {
-   <p><b>Error</b>: The database "<code>{ $id }</code>" does not exist.</p>
+   <p><b>Error</b>: There is no database with the ID <code>{ $id }</code>.</p>
+};
+
+(:~
+ : The page content, in case the URI lexicon is not enabled on the DB.
+ :)
+declare function local:page--no-lexicon($db as element(a:database))
+   as element(h:p)
+{
+   <p><b>Error</b>: The URI lexicon is not enabled on the database
+      { v:db-link($db-root || 'browse', $db/a:name) }.  It is required to
+      browse the directories.</p>
 };
 
 (:~
@@ -66,57 +58,52 @@ declare function local:page--init-path($init as xs:string)
  : 
  : TODO: Displays only "/" and "http://*/" for now.  Find anything else that
  : ends with a "/" as well.  Maybe even "urn:*:" URIs?
+ :
+ : TODO: Lot of duplicated code with local:display-list(), factorize out?
  :)
-declare function local:page--empty-path($db as element(a:database))
+declare function local:page--empty-path($db as element(a:database), $start as xs:integer)
    as element()+
 {
    <p>Database: { v:db-link('browse', $db/a:name) }</p>,
    local:create-doc-form($db, ()),
-   let $items := (
-         '/'[fn:exists(local:get-children-uri('/', 1))],
-         local:get-children-uri('http://', 1))
-   return
-      if ( fn:exists($items) ) then (
-         <p>Choose the root to navigate:</p>,
-         (: TODO: Lot of duplicated code with local:display-list(), factorize out? :)
-         v:form(
-            '',
-            attribute { 'id' } { 'orig-form' },
-            (<ul style="list-style-type: none"> {
-                for $i at $pos in $items
-                return
-                   <li>
-                      <input name="name-{ $pos }"   type="hidden" value="{ $i }"/>
-                      <input name="delete-{ $pos }" type="checkbox"/>
-                      { ' ' }
-                      { v:dir-link('browse/' || $i[. ne '/'], $i) }
-                   </li>
-             }
-             </ul>)),
-         <button class="btn btn-danger" onclick='deleteUris("orig-form", "hidden-form");'>Delete</button>,
-         v:inline-form(
-            $db-root || 'bulk-delete',
-            (attribute { 'id'    } { 'hidden-form' },
-             attribute { 'style' } { 'display: none' }),
-            v:input-hidden('back-url', 'browse' || '/'[fn:not(fn:starts-with($path, '/'))] || $path))
-      )
-      else (
-         <p>The database is empty.</p>
-      )
+   b:display-list(
+      (),
+      ( '/'[fn:exists(b:get-children-uri('/', 1))],
+        b:get-children-uri('http://', 1) ),
+      $start,
+      function($child as xs:string, $pos as xs:integer) {
+         <li>
+            <input name="name-{ $pos }"   type="hidden" value="{ $child }"/>
+            <input name="delete-{ $pos }" type="checkbox"/>
+            { ' ' }
+            { v:dir-link('browse/' || $child[. ne '/'], $child) }
+         </li>
+      },
+      function($items as element(h:li)*) {
+         if ( fn:exists($items) ) then (
+            <p>Choose the root to navigate:</p>,
+            v:form(
+               '',
+               attribute { 'id' } { 'orig-form' },
+               <ul style="list-style-type: none"> {
+                  $items
+               }
+               </ul>),
+            <button class="btn btn-danger" onclick='deleteUris("orig-form", "hidden-form");'>Delete</button>,
+            v:inline-form(
+               $db-root || 'bulk-delete',
+               (attribute { 'id'    } { 'hidden-form' },
+                attribute { 'style' } { 'display: none' }),
+               v:input-hidden('back-url', 'browse' || '/'[fn:not(fn:starts-with($path, '/'))] || $path))
+         )
+         else (
+            <p>The database is empty.</p>
+         )
+      })
 };
 
 (:~
- : The page content, in case of displaying a root dir (like '/' or 'http://example.org/'.)
- :)
-declare function local:page--root($db as element(a:database), $up as xs:string, $start as xs:integer)
-   as element()+
-{
-   <p>Database: { v:db-link($up, $db/a:name) }</p>,
-   local:display-list($db, $path, $start)
-};
-
-(:~
- : The page content, in case of displaying a (non-root) dir.
+ : The page content, in case of displaying a dir.
  : 
  : TODO: Display whether the directory exists per se in MarkLogic (and its
  : properties if it has any, etc.)
@@ -128,7 +115,7 @@ declare function local:page--root($db as element(a:database), $up as xs:string, 
 declare function local:page--dir($db as element(a:database), $start as xs:integer)
    as element()+
 {
-   local:up-to-browse($db/a:name, $path),
+   <p>Database: { v:db-link($db-root || 'browse', $db/a:name) }</p>,
    local:display-list($db, $path, $start)
 };
 
@@ -139,7 +126,7 @@ declare function local:page--doc($db as element(a:database))
    as element()+
 {
    local:up-to-browse($db/a:name, $path),
-   <p>In directory { local:uplinks($path, fn:false()) }.</p>,
+   <p>In directory: { b:uplinks($path, fn:false()) }</p>,
    if ( fn:not(fn:doc-available($path)) ) then (
       <p>The document <code>{ $path } </code> does not exist.</p>
    )
@@ -171,11 +158,12 @@ declare function local:page--doc($db as element(a:database))
             <tr>
                <td>Collections</td>
                <td> {
-                  for $ c in xdmp:document-get-collections($path)
-                  return (
-                     v:coll-link('#', $c),
-                     <br/>
-                  )
+                  for $c in xdmp:document-get-collections($path)
+                  return
+                     <p style="margin-bottom: 5px"> {
+                        v:coll-link($db-root || 'colls?coll=' || fn:encode-for-uri($c), $c)
+                     }
+                     </p>
                }
                </td>
             </tr>
@@ -191,14 +179,12 @@ declare function local:page--doc($db as element(a:database))
       </table>,
 
       <h3>Content</h3>,
-      let $doc   := fn:doc($path)/node()
-      let $id    := fn:generate-id($doc)
-      let $count := fn:count(fn:tokenize($path, '/')) - (1[fn:starts-with($path, '/')], 0)[1]
-      let $up    := t:make-string('../', $count)
+      let $doc := fn:doc($path)/node()
+      let $id  := fn:generate-id($doc)
       return
          typeswitch ( $doc )
             case element() return (
-               v:edit-xml($doc, $id, $path, $up)
+               v:edit-xml($doc, $id, $path, $db-root)
             )
             case text() return (
                (: TODO: Use the internal MarkLogic way to recognize XQuery modules? :)
@@ -206,7 +192,7 @@ declare function local:page--doc($db as element(a:database))
                               'javascript'[fn:ends-with($path, '.sjs')],
                               'text' )[1]
                return
-                  v:edit-text($doc, $mode, $id, $path, $up)
+                  v:edit-text($doc, $mode, $id, $path, $db-root)
             )
             default return (
                <p>Binary document display not supported.</p>
@@ -288,10 +274,10 @@ declare function local:page--doc($db as element(a:database))
  : The overall page function.
  :)
 declare function local:page(
-   $id     as xs:unsignedLong,
-   $path   as xs:string?,
-   $init   as xs:string?,
-   $start  as xs:integer
+   $id    as xs:unsignedLong,
+   $path  as xs:string?,
+   $init  as xs:string?,
+   $start as xs:integer
 ) as element()+
 {
    let $db := a:get-database($id)
@@ -300,17 +286,15 @@ declare function local:page(
       if ( fn:empty($db) ) then (
          local:page--no-db($id)
       )
+      (: TODO: In this case, we should NOT return "200 OK". :)
+      else if ( fn:not($db/a:lexicons/xs:boolean(a:uri)) ) then (
+         local:page--no-lexicon($db)
+      )
       else if ( fn:exists($init) ) then (
          local:page--init-path($init)
       )
       else if ( fn:empty($path) ) then (
-         local:page--empty-path($db)
-      )
-      else if ( fn:matches($path, '^http://[^/]+/$') ) then (
-         local:page--root($db, '../../../../browse', $start)
-      )
-      else if ( $path eq '/' ) then (
-         local:page--root($db, '../browse', $start)
+         local:page--empty-path($db, $start)
       )
       else if ( fn:ends-with($path, '/') ) then (
          local:page--dir($db, $start)
@@ -318,49 +302,6 @@ declare function local:page(
       else (
          local:page--doc($db)
       )
-};
-
-declare function local:get-children-matches($base as xs:string) as xs:string+
-{
-   (: for uri-match() or collection-match() :)
-   if ( $base eq '' or fn:ends-with($base, '/') ) then
-      $base || '*'
-   else
-      $base || '/*'
-   ,
-   (: for replace() :)
-   '^(' || (
-   if ( $base eq '' or fn:ends-with($base, '/') ) then
-      $base
-   else
-      $base || '/'
-   ) || '([^/]*/){1}).*'
-};
-
-declare function local:get-children-uri(
-   $base  as xs:string,
-   $start as xs:integer
-) as xs:string*
-{
-   let $matches := local:get-children-matches($base)
-   return
-      (: TODO: Why is distinct-valus needed?  Any way to get rid of it? :)
-      fn:distinct-values(
-         cts:uri-match($matches[1]) ! fn:replace(., $matches[2], '$1'))
-         [fn:position() ge $start and fn:position() lt $start + $page-size]
-};
-
-declare function local:get-children-coll(
-   $base  as xs:string,
-   $start as xs:integer
-) as xs:string*
-{
-   let $matches := local:get-children-matches($base)
-   return
-      (: TODO: Why is distinct-valus needed?  Any way to get rid of it? :)
-      fn:distinct-values(
-         cts:collection-match($matches[1]) ! fn:replace(., $matches[2], '$1'))
-         [fn:position() ge $start and fn:position() lt $start + $page-size]
 };
 
 (:~
@@ -387,7 +328,10 @@ declare function local:create-doc-form(
 (:~
  : TODO: Document... (especially the fact it accesses the entire URI index,
  : should be a problem with large databases, with a shit loads of documents.
+ :
  : TODO: The details of how to retrieve the children must be in lib/admin.xql.
+ :
+ : TODO: Lot of duplicated code with local:page--empty-path(), factorize out?
  :)
 declare function local:display-list(
    $db    as element(a:database),
@@ -396,52 +340,43 @@ declare function local:display-list(
 ) as element()+
 {
    local:create-doc-form($db, $path),
-   (: Do we really need to filter out "$path"?  Can't we get rid of it in get-children()? :)
-   let $children := local:get-children-uri($path, $start)[. ne $path]
-   let $count    := fn:count($children)
-   let $to       := $start + $count - 1
-   return (
-      (: display $path, with each part being a link :)
-      <p>
-         Content of { local:uplinks($path, fn:true()) },
-         results { $start } to { $to }{
-            t:cond($start gt 1,
-               (', ', <a href="./?start={ $start - $page-size }">previous page</a>)),
-            t:cond($count eq $page-size,
-               (', ', <a href="./?start={ $start + $count }">next page</a>))
-         }:
-      </p>,
-      (: display the list of children themselves :)
-      (: TODO: Lot of duplicated code with local:page--empty-path(), factorize out? :)
-      v:form(
-         '',
-         attribute { 'id' } { 'orig-form' },
-         (<ul style="list-style-type: none"> {
-             for $child at $pos in $children
-             let $dir  := fn:ends-with($child, '/')
-             let $name := fn:tokenize($child, '/')[fn:last() - (1[$dir], 0)[1]]
-             order by $child
-             return
-                <li>
-                   <input name="name-{ $pos }"   type="hidden" value="{ $child }"/>
-                   <input name="delete-{ $pos }" type="checkbox"/>
-                   { ' ' }
-                   {
-                      if ( $dir ) then
-                         v:dir-link(fn:encode-for-uri($name) || '/', $name || '/')
-                      else
-                         v:doc-link(fn:encode-for-uri($name), $name)
-                   }
-                </li>
-          }
-          </ul>)),
-      <button class="btn btn-danger" onclick='deleteUris("orig-form", "hidden-form");'>Delete</button>,
-      v:inline-form(
-         $db-root || 'bulk-delete',
-         (attribute { 'id'    } { 'hidden-form' },
-          attribute { 'style' } { 'display: none' }),
-         v:input-hidden('back-url', 'browse' || '/'[fn:not(fn:starts-with($path, '/'))] || $path))
-   )
+   b:display-list(
+      $path,
+      (: Do we really need to filter out "$path"?  Can't we get rid of it in get-children-uri()? :)
+      b:get-children-uri($path, $start)[. ne $path],
+      $start,
+      function($child as xs:string, $pos as xs:integer) {
+         let $dir  := fn:ends-with($child, '/')
+         let $name := fn:tokenize($child, '/')[fn:last() - (1[$dir], 0)[1]]
+         return
+            <li>
+               <input name="name-{ $pos }"   type="hidden" value="{ $child }"/>
+               <input name="delete-{ $pos }" type="checkbox"/>
+               { ' ' }
+               {
+                  if ( $dir ) then
+                     v:dir-link(fn:encode-for-uri($name) || '/', $name || '/')
+                  else
+                     v:doc-link(fn:encode-for-uri($name), $name)
+               }
+            </li>
+      },
+      function($items as element(h:li)+) {
+         (: display the list of children themselves :)
+         v:form(
+            '',
+            attribute { 'id' } { 'orig-form' },
+            <ul style="list-style-type: none"> {
+               $items
+            }
+            </ul>),
+         <button class="btn btn-danger" onclick='deleteUris("orig-form", "hidden-form");'>Delete</button>,
+         v:inline-form(
+            $db-root || 'bulk-delete',
+            (attribute { 'id'    } { 'hidden-form' },
+             attribute { 'style' } { 'display: none' }),
+            v:input-hidden('back-url', 'browse' || '/'[fn:not(fn:starts-with($path, '/'))] || $path))
+      })
 };
 
 (:~
@@ -455,73 +390,6 @@ declare function local:up-to-browse($db as xs:string, $path as xs:string)
    let $up    := t:make-string('../', $count) || 'browse'
    return
       <p>Database: { v:db-link($up, $db) }</p>
-};
-
-(:~
- : Display the current directory, with each part being a link up to it.
- : 
- : Display the current directory (the parent directory when displaying a file).
- : Each part of the directory is clickable to go up to it in the browser (when
- : displaying a directory, the last part is not clickable, as it is the current
- : dir).
- :
- : The path is within quotes `"`, and contains appropriate text after (and a
- : link up to "/" when the path starts with "/", as it is not convenient to
- : click on such a short text).
- :)
-declare function local:uplinks($path as xs:string, $isdir as xs:boolean)
-   as node()+
-{
-   (: The 3 cases must be handled in slightly different ways, because the "go back
-      to root" button is not necessary with "http" URIs (just click on the domain
-      name part), while it is necessary for "/" URIs (clicking on the "/" is just
-      no an option). :)
-   if ( $path eq '/' ) then (
-      v:dir-link('./', '/')
-   )
-   else if ( fn:starts-with($path, '/') ) then (
-      let $toks := fn:tokenize($path, '/')[.]
-      return (
-         v:dir-link('./' || t:make-string('../', fn:count($toks) - (0[$isdir], 1)[1]), '/'),
-         local:uplinks-1($toks[fn:position() lt fn:last()], ('../'[$isdir], './')[1]),
-         if ( $isdir ) then (
-            text { ' ' },
-            v:dir-link('./', $toks[fn:last()] || '/')
-         )
-         else (
-         )
-      )
-   )
-   else if ( fn:starts-with($path, 'http://') ) then (
-      let $toks_ := fn:remove(fn:tokenize($path, '/')[.], 1)
-      let $toks  := ( 'http://' || $toks_[1], fn:remove($toks_, 1) )
-      return (
-         local:uplinks-1($toks[fn:position() lt fn:last()], ('../'[$isdir], './')[1]),
-         if ( $isdir ) then (
-            text { ' ' },
-            v:dir-link('./', $toks[fn:last()] || '/')
-         )
-         else (
-         )
-      )
-   )
-   else (
-      text { '(' },
-      <a href="../">go up</a>,
-      text { ') "' || $path || '"' }
-   )
-};
-
-declare function local:uplinks-1($toks as xs:string*, $up as xs:string?)
-   as node()*
-{
-   if ( fn:empty($toks) ) then (
-   )
-   else (
-      local:uplinks-1($toks[fn:position() lt fn:last()], '../' || $up),
-      text { ' ' },
-      v:dir-link($up, $toks[fn:last()] || '/')
-   )
 };
 
 (:

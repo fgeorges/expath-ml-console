@@ -41,6 +41,20 @@
       <add-query-param name="path">$2</add-query-param>
       <dispatch>/database/browse.xq</dispatch>
    </match-path>
+   <match-path matches="^/db/([0-9]+)/colls$">
+      <add-query-param name="id">$1</add-query-param>
+      <dispatch>/database/collections.xq</dispatch>
+   </match-path>
+   <match-path matches="^/db/([0-9]+)/colls/(http://.+)$">
+      <add-query-param name="id">$1</add-query-param>
+      <add-query-param name="path">$2</add-query-param>
+      <dispatch>/database/collections.xq</dispatch>
+   </match-path>
+   <match-path matches="^/db/([0-9]+)/colls(/.*)$">
+      <add-query-param name="id">$1</add-query-param>
+      <add-query-param name="path">$2</add-query-param>
+      <dispatch>/database/collections.xq</dispatch>
+   </match-path>
    <match-path matches="^/db/([0-9]+)/triples$">
       <add-query-param name="id">$1</add-query-param>
       <dispatch>/database/triples.xq</dispatch>
@@ -145,6 +159,9 @@
    </match-path>
    <match-path matches="^/tools/browse-db$">
       <dispatch>/tools/browse-db.xq</dispatch>
+   </match-path>
+   <match-path matches="^/tools/browse-colls$">
+      <dispatch>/tools/browse-colls.xq</dispatch>
    </match-path>
    <match-path matches="^/tools/browse-triples$">
       <dispatch>/tools/browse-triples.xq</dispatch>
