@@ -68,10 +68,10 @@ declare function local:page(
          local:page--no-db($id)
       )
       else if ( fn:empty($rsrc) ) then (
-         local:page--browse($db/a:name, $start)
+         local:page--browse($db, $start)
       )
       else (
-         local:page--rsrc($db/a:name, $rsrc)
+         local:page--rsrc($db, $rsrc)
       )
 };
 
@@ -81,16 +81,16 @@ declare function local:page(
 declare function local:page--no-db($id as xs:unsignedLong)
    as element(h:p)
 {
-   <p><b>Error</b>: The database "<code>{ $id }</code>" does not exist.</p>
+   <p><b>Error</b>: There is no database with ID <code>{ $id }</code>.</p>
 };
 
 (:~
  : The page content, when browsing resource list.
  :)
-declare function local:page--browse($db as xs:string, $start as xs:integer)
+declare function local:page--browse($db as element(a:database), $start as xs:integer)
    as element()+
 {
-   <p>Database: "{ $db }".  Go up to <a href="../../browser">the browser</a>.</p>,
+   <p>Database: { v:db-link('triples', $db/a:name) }</p>,
    <p> {
       (: TODO: Pass parameters properly, instead of concatenating values. :)
       let $query :=
@@ -112,7 +112,8 @@ declare function local:page--browse($db as xs:string, $start as xs:integer)
          t:cond($count eq $page-size,
             (', ', <a href="triples?start={ $start + $count }">next page</a>)),
          ':',
-         $res ! map:get(., 's') ! <li><a href="triples?rsrc={ fn:encode-for-uri(.) }">{ . }</a></li>
+         $res ! map:get(., 's')
+            ! <li>{ v:rsrc-link('triples?rsrc=' || fn:encode-for-uri(.), .) }</li>
       )
    }
    </p>
@@ -121,15 +122,11 @@ declare function local:page--browse($db as xs:string, $start as xs:integer)
 (:~
  : The page content, when browsing resource list.
  :)
-declare function local:page--rsrc($db as xs:string, $rsrc as xs:string)
+declare function local:page--rsrc($db as element(a:database), $rsrc as xs:string)
    as element()+
 {
-   <p>
-      Database: "{ $db }".
-      Go up to <a href="../../browser">the browser</a>.
-      Go back to <a href="triples">browse</a>.
-   </p>,
-   <p>Resource <a href="triples?rsrc={ fn:encode-for-uri($rsrc) }"><code class="rsrc">{ $rsrc }</code></a>, all its triples:</p>,
+   <p>Database: { v:db-link('triples', $db/a:name) }</p>,
+   <p>All triples of { v:rsrc-link('triples?rsrc=' || fn:encode-for-uri($rsrc), $rsrc) }:</p>,
    <table class="table table-striped datatable">
       <thead>
          <th>Property</th>
@@ -161,10 +158,11 @@ declare function local:display-value($v as xs:anyAtomicType, $kind as xs:string)
 {
    if ( sem:isIRI($v) ) then
       (: TODO: Display the link only when the resource exists (that is, there is
-         at least one triple with that IRI as subkect). :)
-      <a href="triples?rsrc={ fn:encode-for-uri($v) }">
-         <code class="{ $kind }">{ v:shorten-resource($v) }</code>
-      </a>
+         at least one triple with that IRI as subject). :)
+      v:component-link(
+         'triples?rsrc=' || fn:encode-for-uri($v),
+         v:shorten-resource($v),
+         $kind)
    else
       <span>{ $v }</span>
 };
@@ -198,7 +196,7 @@ let $params  :=
          map:entry('start', $start),
          map:entry('fun',   local:page#3)))
 return
-   v:console-page($root, 'browser', 'Browse triples', function() {
+   v:console-page($root, 'browser', 'Browse resources', function() {
       a:eval-on-database(
          $db,
          'declare variable $db    external;
