@@ -450,21 +450,20 @@ declare function v:input-option($val as xs:string, $label as xs:string)
 declare function v:input-select-databases($id as xs:string, $label as xs:string)
    as element(h:div)
 {
-   v:input-select-databases($id, $label, function($db) { fn:true() })
+   v:input-select-databases($id, $label, a:get-databases()/a:database)
 };
 
 declare function v:input-select-databases(
-   $id     as xs:string,
-   $label  as xs:string,
-   $filter as function(element(a:database)) as xs:boolean
+   $id    as xs:string,
+   $label as xs:string,
+   $dbs   as element(a:database)*
 ) as element(h:div)
 {
    v:input-select($id, $label,
-      for $db in a:get-databases()/a:database
-      where $filter($db)
+      for $db in $dbs
       order by $db/a:name
       return
-         v:input-option($db/@id, $db/fn:string(a:name)))
+         v:input-option($db/@id, $db/a:name))
 };
 
 declare function v:input-file($id as xs:string, $label as xs:string)

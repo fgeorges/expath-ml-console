@@ -128,7 +128,7 @@ declare function local:page--doc($db as element(a:database))
    local:up-to-browse($db/a:name, $path),
    <p>In directory: { b:uplinks($path, fn:false()) }</p>,
    if ( fn:not(fn:doc-available($path)) ) then (
-      <p>The document <code>{ $path } </code> does not exist.</p>
+      <p>The document <code>{ $path }</code> does not exist.</p>
    )
    else (
       <h3>Summary</h3>,

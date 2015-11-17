@@ -9,6 +9,9 @@ import module namespace v = "http://expath.org/ns/ml/console/view"  at "../lib/v
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
+declare variable $databases     := a:get-databases()/a:database;
+declare variable $triple-stores := $databases[xs:boolean(a:triple-index)];
+
 (:~
  : The overall page function.
  :)
@@ -38,7 +41,7 @@ declare function local:page()
       {
          v:form('loader/insert', (
             v:input-file('file', 'File to insert'),
-            v:input-select-databases('database', 'Target database'),
+            v:input-select-databases('database', 'Target database', $databases),
             v:input-text('uri',  'Target document', 'The document URI'),
             v:input-select('format', 'Format of the file', (
                v:input-option('xml',    'XML'),
@@ -53,10 +56,7 @@ declare function local:page()
       {
          v:form('loader/insert-triples', (
             v:input-file('file', 'Triples file'),
-            v:input-select-databases(
-               'database',
-               'Target database',
-               function($db) { $db/xs:boolean(a:triple-index) }),
+            v:input-select-databases('database', 'Target database', $triple-stores),
             v:input-select('format', 'Format', (
                v:input-option('triplexml', 'MarkLogic sem:triples'),
                v:input-option('ntriple',   'N-Triples'),
@@ -86,7 +86,7 @@ declare function local:page()
       {
          v:form('loader/insert', (
             v:input-text('dir', 'Directory', 'The directory to insert, om the filesystem'),
-            v:input-select-databases('database', 'Target database'),
+            v:input-select-databases('database', 'Target database', $databases),
             v:input-text('uri', 'Target directory', 'The URI of the target directory, in the database'),
             v:input-text('include', 'Include', 'An optional include filter pattern'),
             v:input-text('exclude', 'Exclude', 'An optional exclude filter pattern'),
@@ -99,7 +99,7 @@ declare function local:page()
       {
          v:form('loader/insert', (
             v:input-file('zipdir', 'Zip to insert'),
-            v:input-select-databases('database', 'Target database'),
+            v:input-select-databases('database', 'Target database', $databases),
             v:input-text('uri', 'Target directory', 'The URI of the target directory, in the database'),
             v:submit('Insert')))
       }
@@ -109,7 +109,7 @@ declare function local:page()
       {
          v:form('tools/delete', (
             v:input-text('doc', 'Document', 'The URI of the document to delete from the database'),
-            v:input-select-databases('database', 'Database'),
+            v:input-select-databases('database', 'Database', $databases),
             v:submit('Delete')))
       }
       <h3 id="delete-dir">Delete a directory</h3>
@@ -118,7 +118,7 @@ declare function local:page()
       {
          v:form('tools/delete', (
             v:input-text('dir', 'Directory', 'The URI of the directory to delete from the database'),
-            v:input-select-databases('database', 'Database'),
+            v:input-select-databases('database', 'Database', $databases),
             v:submit('Delete')))
       }
    </wrapper>/*

@@ -9,6 +9,9 @@ import module namespace v = "http://expath.org/ns/ml/console/view"  at "../lib/v
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
+declare variable $databases     := a:get-databases()/a:database;
+declare variable $triple-stores := $databases[xs:boolean(a:triple-index)];
+
 (:~
  : The overall page function.
  :)
@@ -21,14 +24,14 @@ declare function local:page()
          (based on the directory "structure").</p>
       {
          v:form('tools/browse-db', (
-            v:input-select-databases('database', 'Database'),
+            v:input-select-databases('database', 'Database', $databases),
             v:submit('Browse')))
       }
       <h3>Collections</h3>
       <p>Browse the documents within a database, based on the collections.</p>
       {
          v:form('tools/browse-colls', (
-            v:input-select-databases('database', 'Database'),
+            v:input-select-databases('database', 'Database', $databases),
             v:submit('Browse')))
       }
       <h3>Triples</h3>
@@ -36,10 +39,7 @@ declare function local:page()
          with the triple index enabled.</p>
       {
          v:form('tools/browse-triples', (
-            v:input-select-databases(
-               'database',
-               'Database',
-               function($db) { $db/xs:boolean(a:triple-index) }),
+            v:input-select-databases('database', 'Database', $triple-stores),
             v:submit('Browse')))
       }
    </wrapper>/*

@@ -30,7 +30,7 @@ declare function local:page()
             a database (all types of database: content, schemas, security, etc.)
          </li>
          <li>
-            { v:as-link('#', 'app server') } -
+            { v:as-link('#', 'appserver') } -
             an application server (all types of appserver: HTTP, XDBC, WebDAV or ODBC)
          </li>
          <li>
