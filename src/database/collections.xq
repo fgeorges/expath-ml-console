@@ -196,12 +196,13 @@ declare function local:page(
       if ( fn:empty($db) ) then (
          local:page--no-db($id)
       )
+      (: the collection lexicon is not required to show a specific collection by name :)
+      else if ( fn:exists($coll) ) then (
+         local:page--show-coll($db, $coll, $start)
+      )
       (: TODO: In this case, we should NOT return "200 OK". :)
       else if ( fn:not($db/a:lexicons/xs:boolean(a:coll)) ) then (
          local:page--no-lexicon($db)
-      )
-      else if ( fn:exists($coll) ) then (
-         local:page--show-coll($db, $coll, $start)
       )
       else if ( fn:empty($path) ) then (
          local:page--empty-path($db, $start)
