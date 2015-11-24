@@ -177,9 +177,13 @@ declare %private function v:console-page-static(
          <meta name="viewport" content="width=device-width, initial-scale=1"/>
          <meta name="ml.time"  content="{ xdmp:elapsed-time() }"/>
          <title>{ $title }</title>
-         <link href="{ $root }style/bootstrap.css"    rel="stylesheet" type="text/css"/>
-         <link href="{ $root }style/expath-theme.css" rel="stylesheet" type="text/css"/>
-         <link href="{ $root }js/datatables-1.10.10/css/dataTables.bootstrap.css" rel="stylesheet" type="text/css"/>
+         {
+            v:import-css($root, (
+               'style/bootstrap.css',
+               'style/expath-theme.css',
+               'js/datatables-1.10.10/css/dataTables.bootstrap.css'
+            ))
+         }
          <link href="{ $root }images/expath-icon.png" rel="shortcut icon" type="image/png"/>
       </head>
       <body>
@@ -210,18 +214,37 @@ declare %private function v:console-page-static(
             $content
          }
          </div>
-         <script src="{ $root }js/jquery.js"         type="text/javascript"/>
-         <script src="{ $root }js/bootstrap.js"      type="text/javascript"/>
-         <script src="{ $root }js/ace/ace.js"        type="text/javascript"/>
-         <script src="{ $root }js/ace/ext-static_highlight.js" type="text/javascript"/>
-         <script src="{ $root }js/expath-console.js" type="text/javascript"/>
-         <script src="{ $root }js/datatables-1.10.10/js/jquery.dataTables.js"    type="text/javascript"/>
-         <script src="{ $root }js/datatables-1.10.10/js/dataTables.bootstrap.js" type="text/javascript"/>
          {
+            v:import-javascript($root, (
+               'jquery.js',
+               'bootstrap.js',
+               'ace/ace.js',
+               'ace/ext-static_highlight.js',
+               'datatables-1.10.10/js/jquery.dataTables.js',
+               'datatables-1.10.10/js/dataTables.bootstrap.js',
+               'expath-console.js'
+            )),
             $scripts
          }
       </body>
    </html>
+};
+
+declare function v:import-javascript($root as xs:string, $paths as xs:string+)
+   as element(h:script)+
+{
+   $paths ! <script xmlns="http://www.w3.org/1999/xhtml"
+                    type="text/javascript"
+                    src="{ $root }js/{ . }"/>
+};
+
+declare function v:import-css($root as xs:string, $paths as xs:string+)
+   as element(h:link)+
+{
+   $paths ! <link xmlns="http://www.w3.org/1999/xhtml"
+                  rel="stylesheet"
+                  type="text/css"
+                  href="{ $root }{ . }"/>
 };
 
 (: ==== ACE editor tools ======================================================== :)
