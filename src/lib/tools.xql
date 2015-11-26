@@ -92,6 +92,20 @@ declare function t:mandatory-field-filename($name as xs:string)
          t:error('TOOLS001', 'Mandatory field filename not passed: ' || $name)
 };
 
+(:~
+ : Return a request field content-type, or throw an error if it has not been passed.
+ :)
+declare function t:mandatory-field-content-type($name as xs:string)
+   as item()
+{
+   let $f := xdmp:get-request-field-content-type($name)
+   return
+      if ( fn:exists($f) ) then
+         $f
+      else
+         t:error('TOOLS001', 'Mandatory field content-type not passed: ' || $name)
+};
+
 (: ==== XML tools ======================================================== :)
 
 (:~
