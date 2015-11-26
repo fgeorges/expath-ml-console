@@ -29,8 +29,8 @@ xquery version "3.0";
  : TODO: Split into 3 different queries for the 3 cases above...?
  :)
 
+import module namespace i = "http://expath.org/ns/ml/console/insert" at "insert-lib.xql";
 import module namespace a = "http://expath.org/ns/ml/console/admin"  at "../lib/admin.xql";
-import module namespace b = "http://expath.org/ns/ml/console/binary" at "../lib/binary.xql";
 import module namespace t = "http://expath.org/ns/ml/console/tools"  at "../lib/tools.xql";
 import module namespace v = "http://expath.org/ns/ml/console/view"   at "../lib/view.xql";
 
@@ -69,33 +69,25 @@ declare function local:page()
  :)
 declare function local:handle-file($file as item())
 {
-   let $db-id    := xs:unsignedLong(t:mandatory-field('database'))
+   let $db       := xs:unsignedLong(t:mandatory-field('database'))
    let $uri      := t:mandatory-field('uri')
    let $format   := t:mandatory-field('format')
    let $prefix   := t:optional-field('prefix', ())[.]
    let $override := fn:not(t:optional-field('override', 'false') eq 'false')
    let $redirect := fn:not(t:optional-field('redirect', 'false') eq 'false')
-   let $doc-uri  :=
-         if ( fn:starts-with($uri, '/') or fn:starts-with($uri, 'http://') ) then
-            $uri
-         else if ( fn:exists($prefix) ) then
-            $prefix || $uri
-         else
-            $uri
+   let $res      := i:handle-file($db, $file, $format, $uri, $prefix, $override)
    return
-      if ( fn:doc-available($doc-uri) and fn:not($override) ) then
-         <p><b>Error</b>: File already exists at "{ $doc-uri }".</p>
+      if ( fn:empty($res) ) then
+         <p><b>Error</b>: File already exists at <code>{ $uri }</code> (prefix
+            is <code>{ $prefix }</code>).</p>
       else
-         let $node   := local:get-node($file, $format)
-         let $result := a:insert-into-database($db-id, $doc-uri, $node)
-         return
-            if ( $redirect ) then
-               v:redirect(
-                  '../db/' || $db-id || '/browse'
-                  || '/'[fn:not(fn:starts-with($doc-uri, '/'))]
-                  || fn:string-join(fn:tokenize($doc-uri, '/') ! fn:encode-for-uri(.), '/'))
-            else
-               <p>File succesfully inserted at "{ $result }" as "{ $format }".</p>
+         if ( $redirect ) then
+            v:redirect(
+               '../db/' || $db || '/browse'
+               || '/'[fn:not(fn:starts-with($res, '/'))]
+               || fn:string-join(fn:tokenize($res, '/') ! fn:encode-for-uri(.), '/'))
+         else
+            <p>File succesfully inserted at <code>{ $res }</code> as { $format }.</p>
 };
 
 (:~
@@ -163,51 +155,6 @@ declare function local:handle-zipdir($zip (: as binary() :))
          let $result := a:load-zipdir-into-database($db-id, $uri, $zip)
          return
             <p>Directory succesfully uploaded at "{ $result }" from ZIP file.</p>
-};
-
-(:~
- : Check the type of $file, accordingly to $format, and possibly transform it.
- :
- : If $format is 'text', $file must be a text node within a doc node, or it
- :   must be a binary node, in which case it is decoded (TODO: Still TBD.)
- : If $format is 'binary', $file must be a binary node.
- : If $format is 'xml', $file must be an element node within a doc node (which
- :   seems is never the case with MarkLogic), or it must be a text node within
- :   a doc node, in which case it is parsed. (TODO: What if it is binary?
- :   Probably decode it then parse it...)
- :)
-declare function local:get-node($file as item(), $format as xs:string)
-   as node()
-{
-   if ( $format eq 'text' ) then
-      if ( $file instance of xs:string ) then
-         text { $file }
-      else if ( $file instance of document-node() and fn:exists($file/text()) ) then
-         $file
-      else if ( b:is-binary($file) ) then
-         text { xdmp:binary-decode($file, 'utf-8') }
-      else
-         t:error('INSERT001', 'Text file is not a text node, please report this to the mailing list')
-   else if ( $format eq 'binary' ) then
-      if ( b:is-binary($file) ) then
-         $file
-      else
-         t:error('INSERT002', 'Binary file is not a binary node, please report this to the mailing list')
-   else if ( $format eq 'xml' ) then
-      if ( $file instance of xs:string ) then
-         xdmp:unquote($file)
-      else if ( $file instance of document-node() and fn:exists($file/*) ) then
-         $file
-      else if ( $file instance of document-node() and fn:exists($file/text()) ) then
-         xdmp:unquote($file)
-      else if ( b:is-binary($file) ) then
-         (: TODO: Decode the binary... :)
-         t:error('INSERT102', 'XML file is a binary node, please report this to the mailing list')
-      else
-         t:error('INSERT003', 'XML file is neither parsed nor a document node with an element, '
-            || 'please report this to the mailing list')
-   else
-      t:error('INSERT004', 'Format not known: "' || $format || '"')
 };
 
 v:console-page('../', 'tools', 'Tools', local:page#0)
