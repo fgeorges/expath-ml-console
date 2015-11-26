@@ -187,24 +187,23 @@ declare function local:page--doc($db as element(a:database))
          </table>,
 
          <h3>Content</h3>,
-         let $doc := fn:doc($path)/node()
+         let $doc := fn:doc($path)
          let $id  := fn:generate-id($doc)
          return
-            typeswitch ( $doc )
-               case element() return (
-                  v:edit-xml($doc, $id, $path, $db-root)
-               )
-               case text() return (
-                  (: TODO: Use the internal MarkLogic way to recognize XQuery modules? :)
-                  let $mode := ( 'xquery'[fn:matches($path, '\.xq[ylm]?$')],
-                                 'javascript'[fn:ends-with($path, '.sjs')],
-                                 'text' )[1]
-                  return
-                     v:edit-text($doc, $mode, $id, $path, $db-root)
-               )
-               default return (
-                  <p>Binary document display not supported.</p>
-               ),
+            if ( fn:exists($doc/*) ) then (
+               v:edit-xml($doc, $id, $path, $db-root)
+            )
+            else if ( fn:exists($doc/text()) and fn:empty($doc/node()[2]) ) then (
+               (: TODO: Use the internal MarkLogic way to recognize XQuery modules? :)
+               let $mode := ( 'xquery'[fn:matches($path, '\.xq[ylm]?$')],
+                              'javascript'[fn:ends-with($path, '.sjs')],
+                              'text' )[1]
+               return
+                  v:edit-text($doc, $mode, $id, $path, $db-root)
+            )
+            else (
+               <p>Binary document display not supported.</p>
+            ),
 
          <h3>Properties</h3>,
          let $props := xdmp:document-properties($path)

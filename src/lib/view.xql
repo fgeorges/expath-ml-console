@@ -278,7 +278,7 @@ declare variable $serial-options :=
  : $elem: the element to serialize and display in a `pre` (with syntax highlighted)
  :)
 declare function v:display-xml(
-   $elem as element()
+   $elem as node()
 ) as element(h:pre)
 {
    v:ace-editor-xml($elem, 'code', 'xml', (), (), (), ())
@@ -293,7 +293,7 @@ declare function v:display-xml(
  :     requests, with a field "uri" for the doc URI and "doc" for the content)
  :)
 declare function v:edit-xml(
-   $elem as element(),
+   $elem as node(),
    $id   as xs:string,
    $uri  as xs:string,
    $top  as xs:string
