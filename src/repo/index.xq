@@ -40,7 +40,7 @@ declare function local:page()
 declare function local:appservers-table($grp as element(a:group))
    as element(table)
 {
-   <table class="table table-striped">
+   <table class="table table-bordered datatable" id="prof-detail">
       <thead>
          <th>Name</th>
          <th>Modules</th>

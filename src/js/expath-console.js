@@ -41,9 +41,14 @@ $(document).ready(function () {
    $('.code').each(initCodeSnippet);
    $('.editor').each(initCodeEditor);
    // initialise the data tables
-   // TODO: This is specific to the profiler table, this class should not have
-   // as a generic name as 'datatables'
    $('.datatable').DataTable({
+      info: false,
+      paging: false,
+      searching: false,
+      // no initial oredering
+      order: []
+   });
+   $('.prof-datatable').DataTable({
       info: false,
       paging: false,
       searching: false,

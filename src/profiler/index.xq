@@ -181,7 +181,7 @@ declare function local:page()
       <p class="prof-success">
          Total time: <span id="total-time"/>
       </p>
-      <table class="table table-bordered datatable prof-success" id="prof-detail">
+      <table class="table table-bordered prof-datatable prof-success" id="prof-detail">
          <thead>
             <th>Location</th>
             <th class="col-num">Count</th>
