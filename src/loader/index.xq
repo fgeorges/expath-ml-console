@@ -85,7 +85,7 @@ declare function local:page()
          the files matching the filter.</p>
       {
          v:form('loader/insert', (
-            v:input-text('dir', 'Directory', 'The directory to insert, om the filesystem'),
+            v:input-text('dir', 'Directory', 'The directory to insert, on the filesystem'),
             v:input-select-databases('database', 'Target database', $databases),
             v:input-text('uri', 'Target directory', 'The URI of the target directory, in the database'),
             v:input-text('include', 'Include', 'An optional include filter pattern'),
