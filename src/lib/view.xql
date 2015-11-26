@@ -178,10 +178,15 @@ declare %private function v:console-page-static(
          <meta name="ml.time"  content="{ xdmp:elapsed-time() }"/>
          <title>{ $title }</title>
          {
-            v:import-css($root, (
-               'style/bootstrap.css',
-               'style/expath-theme.css',
-               'js/datatables-1.10.10/css/dataTables.bootstrap.css'
+            v:import-css($root || 'style/', (
+               'bootstrap.css',
+               'expath-theme.css'
+            )),
+            v:import-css($root || 'js/', (
+               'datatables-1.10.10/css/dataTables.bootstrap.css',
+               'file-upload-9.11.2/jquery.fileupload.css',
+               'file-upload-9.11.2/jquery.fileupload-ui.css',
+               'gallery-2.16.0/blueimp-gallery.min.css'
             ))
          }
          <link href="{ $root }images/expath-icon.png" rel="shortcut icon" type="image/png"/>
@@ -215,13 +220,26 @@ declare %private function v:console-page-static(
          }
          </div>
          {
-            v:import-javascript($root, (
+            v:import-javascript($root || 'js/', (
                'jquery.js',
                'bootstrap.js',
                'ace/ace.js',
                'ace/ext-static_highlight.js',
                'datatables-1.10.10/js/jquery.dataTables.js',
                'datatables-1.10.10/js/dataTables.bootstrap.js',
+               'file-upload-9.11.2/vendor/jquery.ui.widget.js',
+               'templates-2.5.5/tmpl.min.js',
+               'load-image-1.14.0/load-image.all.min.js',
+               'canvas-to-blob-2.2.0/canvas-to-blob.min.js',
+               'gallery-2.16.0/jquery.blueimp-gallery.min.js',
+               'file-upload-9.11.2/jquery.iframe-transport.js',
+               'file-upload-9.11.2/jquery.fileupload.js',
+               'file-upload-9.11.2/jquery.fileupload-process.js',
+               'file-upload-9.11.2/jquery.fileupload-image.js',
+               'file-upload-9.11.2/jquery.fileupload-audio.js',
+               'file-upload-9.11.2/jquery.fileupload-video.js',
+               'file-upload-9.11.2/jquery.fileupload-validate.js',
+               'file-upload-9.11.2/jquery.fileupload-ui.js',
                'expath-console.js'
             )),
             $scripts
@@ -235,7 +253,7 @@ declare function v:import-javascript($root as xs:string, $paths as xs:string+)
 {
    $paths ! <script xmlns="http://www.w3.org/1999/xhtml"
                     type="text/javascript"
-                    src="{ $root }js/{ . }"/>
+                    src="{ $root }{ . }"/>
 };
 
 declare function v:import-css($root as xs:string, $paths as xs:string+)

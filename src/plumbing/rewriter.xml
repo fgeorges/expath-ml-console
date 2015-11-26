@@ -134,6 +134,11 @@
    <match-path matches="^/loader/insert-triples$">
       <dispatch>/loader/insert-triples.xq</dispatch>
    </match-path>
+   <match-path matches="^/loader/upload$">
+      <!-- TODO: Write it in JavaScript instead... -->
+      <!--dispatch>/loader/upload.sjs</dispatch-->
+      <dispatch>/loader/upload.xq</dispatch>
+   </match-path>
    <match-path matches="^/profiler$">
       <dispatch>/profiler/index.xq</dispatch>
    </match-path>
