@@ -31,8 +31,12 @@ code:after {
   opacity: 0.5;
 }
 
-a code {
-  text-decoration: underline;
+a:hover {
+  text-decoration: none;
+}
+
+a:active {
+  text-decoration: none;
 }
 
 /* green */
