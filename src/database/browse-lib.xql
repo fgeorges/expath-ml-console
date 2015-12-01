@@ -87,7 +87,7 @@ declare function b:display-list(
 ) as element()+
 {
    if ( fn:empty($children) ) then (
-      <p>No such collection.</p>
+      <p>There is nothing to show.</p>
    )
    else (
       if ( fn:exists($path) ) then
