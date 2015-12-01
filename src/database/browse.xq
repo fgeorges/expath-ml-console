@@ -199,10 +199,18 @@ declare function local:page--doc($db as element(a:database))
                               'javascript'[fn:ends-with($path, '.sjs')],
                               'text' )[1]
                return
-                  v:edit-text($doc, $mode, $id, $path, $db-root)
+                  v:edit-text($doc/text(), $mode, $id, $path, $db-root)
             )
             else (
                <p>Binary document display not supported.</p>
+               (:
+               TODO: Implement binary doc deletion, without the ACE editor to hold the
+               document URI...  Actually, should be easy to change using the ID, and
+               use the URI instead...
+               <button class="btn btn-danger" onclick='deleteDoc("{ $id }");'>
+                  Delete
+               </button>
+               :)
             ),
 
          <h3>Properties</h3>,
