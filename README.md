@@ -112,10 +112,12 @@ database, in a convenient, directory-like, hierarchical way.
 Regardless whether or not the directories are materialized as such on
 the database, the Console present you with the hierarchical view of
 the directories, and the documents they contain.  You can delete
-existing documents, or even entire directories.  You can display the
-documents themselves (displaying their content, the collections they
-are part of, some meta-data, manging their permissions...)  You can
-even edit XML and XQuery files on place with syntax highlighting!
+existing documents, or even entire directories, and upload files from
+your file system or create new documents from scratch.  You can
+display the documents themselves (displaying their content, the
+collections they are part of, some meta-data, manging their
+permissions...)  You can even edit XML and XQuery files on place with
+syntax highlighting!
 
 Another way to browse the content is to browse collections.  On
 MarkLogic, there is no such concept as a "collection directory", but
