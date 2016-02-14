@@ -679,6 +679,42 @@ declare function a:get-appservers($group as element(a:group))
 };
 
 (:~
+ : Return a specific appserver by name.  The result is the same as `a:get-appserver()`.
+ :
+ : TODO: Isn't there a way to resolve an appserver ID by name?  Do I really have
+ : instead to loop over all IDs, retrieve its name and see if it matches?
+ : 
+ : Use recursion to ensure we stop looking as soon as we found a match.
+ :)
+declare function a:get-appserver-by-name($name as xs:string)
+   as element(a:appserver)?
+{
+   let $config := admin:get-configuration()
+   return
+      a:get-appserver-by-name-1(
+         $name,
+         admin:get-appserver-ids($config),
+         $config)
+};
+
+(:~
+ : Implements `a:get-appserver-by-name()`.
+ :)
+declare function a:get-appserver-by-name-1(
+   $name   as xs:string,
+   $ids    as xs:unsignedLong*,
+   $config as element(configuration)
+) as element(a:appserver)?
+{
+   if ( fn:empty($ids) ) then
+      ()
+   else if ( $name eq admin:appserver-get-name($config, fn:head($ids)) ) then
+      a:get-appserver(fn:head($ids))
+   else
+      a:get-appserver-by-name-1($name, fn:tail($ids), $config)
+};
+
+(:~
  : TODO: ...
  :)
 declare function a:set-url-rewriter-if-not-yet(
