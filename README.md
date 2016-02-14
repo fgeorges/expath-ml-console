@@ -85,7 +85,7 @@ If you have a XAR file on your filesystem, you can use the *install
 from file* feature.  Just select the file and click `Install`.  You
 can also install packages straight from [CXAN](http://cxan.org/).
 CXAN is an organized, online source of packages (it is organized as a
-list of persons, each providing several packages,
+list of persons or organisations, each providing several packages,
 e.g. [fgeorges](http://cxan.org/pkg/fgeorges) provides the package
 [fgeorges/fxsl](http://cxan.org/pkg/fgeorges/fxsl), among others).
 The form *install from CXAN* let you select which package you want to
