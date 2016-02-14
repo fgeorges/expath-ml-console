@@ -51,10 +51,10 @@ port number, depending on how you configured your app server):
 The EXPath Console for MarkLogic, or just "the Console" for short,
 provides the following main features:
 
-- the package manager
-- the browser (for documents and triples)
-- The document manager
-- an XQuery profiler
+- package manager
+- browser (for documents and triples)
+- document manager
+- XQuery profiler
 
 The console has been written to offer an intuitive user experience.
 The pages should be intuitive and self-explaining.  If one page does
@@ -101,3 +101,37 @@ importing and the imported modules:
 ```xquery
 import module namespace "http://example.org/cool/lib.xql";
 ```
+
+## The browser
+
+![Screenshot of the browser](doc/browser.png)
+
+The browser provides you with a web UI to browse the content of a
+database, in a convenient, directory-like, hierarchical way.
+
+Regardless whether or not the directories are materialized as such on
+the database, the Console present you with the hierarchical view of
+the directories, and the documents they contain.  You can delete
+existing documents, or even entire directories.  You can display the
+documents themselves (displaying their content, the collections they
+are part of, some meta-data, manging their permissions...)  You can
+even edit XML and XQuery files on place with syntax highlighting!
+
+Another way to browse the content is to browse collections.  On
+MarkLogic, there is no such concept as a "collection directory", but
+here also, the Console present you in a convenient directory-like
+view.  The collection names are simply split using "`/`" as a
+delimiter, each part being shown as a "collection directory".  For
+each part that is an actual collection, all the documents in that
+collection are listed.
+
+Finally, you can also browse the triples in a database.  In that case,
+you browse through the flat list of all RDF "*resources*" in the
+database.  A resource is any URI which appears as the subject of at
+least one triple.  Displaying the resouce itself shows you all its
+properties (that is, the properties and values of all triples with the
+same subject URI).
+
+## The document manager
+
+## The profiler
