@@ -165,3 +165,20 @@ achieve the same by using the browser, but here, you provide a
 complete URI instead, as a text field.
 
 ## The profiler
+
+The Console also contains a profiler.  It is very similar to the
+profiler included in the MarkLogic QConsole, except on a couple of
+points:
+
+- The execution context is a bit more clear: you select either a
+  database, or an app server (by type), and app servers are listed
+  with some information.
+- You can save and load the result of profiling, either in XML or in
+  JSON.
+
+The ability to save and load profiling reports let you save a few
+executions, sometimes by changing a little bit the code, and then load
+the reports themselves in MarkLogic and do some analysis on them.  It
+is then possible to make some computations in XQuery or JavaScript, to
+see the impact of each change, or to help investigating where the time
+is spent.
