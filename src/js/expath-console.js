@@ -71,11 +71,11 @@ function cxanRest(endpoint, callback)
  */
 function cxanWebsiteChanges()
 {
+   // remove the old repositories
+   var repo = $("#cxan-install :input[name='repo']");
+   $('option', repo).remove();
+   // add the repositories for the new selected site
    cxanRest('/pkg', function(xml) {
-      var repo = $("#cxan-install :input[name='repo']");
-      // first remove the old repositories
-      $('option', repo).remove();
-      // then add the repositories for the new selected site
       $(xml).find('id').each(function() {
          var id = $(this).text();
          repo.append($('<option>', { value : id }).text(id));
@@ -93,12 +93,12 @@ function cxanWebsiteChanges()
  */
 function cxanRepoChanges()
 {
+   // remove the old packages
+   var pkg = $("#cxan-install :input[name='pkg']");
+   $('option', pkg).remove();
+   // add the packages for the new selected repo
    var repo = $(this).val();
    cxanRest('/pkg/' + repo, function(xml) {
-      var pkg = $("#cxan-install :input[name='pkg']");
-      // first remove the old packages
-      $('option', pkg).remove();
-      // then add the packages for the new selected repo
       $(xml).find('abbrev').each(function() {
          var abbrev = $(this).text();
          pkg.append($('<option>', { value : repo + '/' + abbrev }).text(abbrev));
