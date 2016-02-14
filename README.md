@@ -166,6 +166,8 @@ complete URI instead, as a text field.
 
 ## The profiler
 
+![Screenshot of the profiler](doc/profiler.png)
+
 The Console also contains a profiler.  It is very similar to the
 profiler included in the MarkLogic QConsole, except on a couple of
 points:
