@@ -63,7 +63,7 @@ report it to the EXPath [mailing list](http://expath.org/lists).  The
 rest of this documentation is an overview of each feature, and what
 you can achieve with them.
 
-## The packahe manager
+## The package manager
 
 The Console provides support for
 [XAR packages](http://expath.org/spec/pkg).  A XAR package is a
