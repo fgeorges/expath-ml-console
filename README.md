@@ -48,12 +48,46 @@ port number, depending on how you configured your app server):
 
 ## Introduction
 
-The EXPath Console for MarkLogic comes with several tools.  The main
-goal though is to provide a repository manager and support for
+The EXPath Console for MarkLogic, or just "the Console" for short,
+provides the following main features:
+
+- the package manager
+- the browser (for documents and triples)
+- The document manager
+- an XQuery profiler
+
+The console has been written to offer an intuitive user experience.
+The pages should be intuitive and self-explaining.  If one page does
+not contain enough help for you to understand what to do, please
+report it to the EXPath [mailing list](http://expath.org/lists).  The
+rest of this documentation is an overview of each feature, and what
+you can achieve with them.
+
+## The packahe manager
+
+The Console provides support for
 [XAR packages](http://expath.org/spec/pkg).  A XAR package is a
 collection of XML-related files, like XQuery modules, XSLT stylesheets
-or XML schemas.  The console helps installing packages on specific app
-servers.
+or XML schemas.  The console helps installing packages, deleting them,
+well, managing packages on MarkLogic.  The result is that one can
+manage packages on MarkLogic by using a user-friendly web UI.
+
+Packages are installed on an app server-basis (that is, a HTTP, XDBC,
+or ODBC app server).  A specific app server has to be *initialised* to
+support packages (a package repository is created on its module
+database or directory).  All you need to do is to click on the button
+`Initialise` when displaying an app server which has not been
+initialised.  Then you can install a package.
+
+If you have a XAR file on your filesystem, you can use the *install
+from file* feature.  Just select the file and click `Install`.  You
+can also install packages straight from [CXAN](http://cxan.org/).
+CXAN is an organized, online source of packages (it is organized as a
+list of persons, each providing several packages,
+e.g. [fgeorges](http://cxan.org/pkg/fgeorges) provides the package
+[fgeorges/fxsl](http://cxan.org/pkg/fgeorges/fxsl), among others).
+The form *install from CXAN* let you select which package you want to
+install, and the Console downloads it and installs it automatically.
 
 Once a package has been installed on an app server, other modules
 running in the same app server can import an XQuery modules from the
@@ -64,25 +98,3 @@ importing and the imported modules:
 ```xquery
 import module namespace "http://example.org/cool/lib.xql";
 ```
-
-[CXAN](http://cxan.org/) is an organized, online source of packages,
-if you are looking for a specific library or application.  The page to
-install a package into an app server supports installed straight from
-CXAN.
-
-## Pages
-
-Every page should be self-explaining.  If one page does not contain
-enough help for you to understand what to do, please report it to the
-EXPath [mailing list](http://expath.org/lists).  The top-level pages,
-or area, are the following:
-
-- The page "Packages" lists all the app servers.  From a specific app
-  server page, you can enable package support (by default it is
-  disabled, in order to enable it, the Console has tp create an
-  internal repository on its modules database or on the filesystem).
-  Once package support has been enabled, a specific app server page
-  offers the ability to install packages for this app server (from
-  your filesystem or directly from CXAN).
-- The page "Tools" provides some general-purpose tools for MarkLogic,
-  as well as the source of the internal Console config files.
