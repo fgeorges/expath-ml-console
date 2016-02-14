@@ -1,6 +1,19 @@
 # EXPath Console for MarkLogic
 
-Download the latest version from the EXPath [download area](http://expath.org/files).
+The EXPath Console for MarkLogic, or just "the Console" for short,
+provides the following main features:
+
+- package manager
+- browser (for documents and triples)
+- document manager
+- XQuery profiler
+
+The console has been written to offer an intuitive user experience.
+The pages should be intuitive and self-explaining.  If one page does
+not contain enough help for you to understand what to do, please
+report it to the EXPath [mailing list](http://expath.org/lists).  The
+rest of this documentation is an overview of each feature, and what
+you can achieve with them.
 
 ![Screenshot of the Console](doc/screenshot.png)
 
@@ -45,23 +58,6 @@ That's it!  You can now access the Console by pointing your preferred
 browser to the appropriate App Server (you might need to adapt the
 port number, depending on how you configured your app server):
 [http://localhost:8010/](http://localhost:8010/).
-
-## Introduction
-
-The EXPath Console for MarkLogic, or just "the Console" for short,
-provides the following main features:
-
-- package manager
-- browser (for documents and triples)
-- document manager
-- XQuery profiler
-
-The console has been written to offer an intuitive user experience.
-The pages should be intuitive and self-explaining.  If one page does
-not contain enough help for you to understand what to do, please
-report it to the EXPath [mailing list](http://expath.org/lists).  The
-rest of this documentation is an overview of each feature, and what
-you can achieve with them.
 
 ## The package manager
 
