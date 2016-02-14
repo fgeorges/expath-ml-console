@@ -19,6 +19,13 @@ declare function local:page()
    as element()+
 {
    <wrapper>
+      <p>The browser lets you browse content on a database of your choice, any
+         database.  You can brose content in several ways, depending on whether you
+         want to browse triples or documents, by directories or by collections.</p>
+      <p>Displaying one document whilst browsing will show you information about
+         the document, and let you edit it (unless it is binary), with syntax
+         highlighting support for XML and XQuery documents.  You can also edit
+         the permissions of the document.</p>
       <h3>Directories</h3>
       <p>Browse the documents within a database, in a hierarchical kind of way
          (based on the directory "structure").</p>
