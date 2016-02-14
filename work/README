@@ -6,17 +6,5 @@
 
 
 
-   1. Installation
-
-     Create a new HTTP server in the MarkLogic admin Console.  Copy the
-   content of the src/ directory to the root of the App Server (depending on
-   the options you selected creating the App Server, it could be on its
-   modules database, or on the filesystem if you decided to store the modules
-   of this App Server on the filesystem).  The database linked to the HTTP
-   server will be used only to store the Console configuration document.  You
-   can then access the Console by pointing your preferred browser to (say the
-   port has been set to 8010):
-
-       http://localhost:8010/
-
-     The help page is at https://github.com/fgeorges/expath-ml-console.
+   Go to https://github.com/fgeorges/expath-ml-console for installation
+   instructions, and all documentation.
