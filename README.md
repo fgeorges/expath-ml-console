@@ -65,6 +65,8 @@ you can achieve with them.
 
 ## The package manager
 
+![Screenshot of the package manager](doc/pkg-manager.png)
+
 The Console provides support for
 [XAR packages](http://expath.org/spec/pkg).  A XAR package is a
 collection of XML-related files, like XQuery modules, XSLT stylesheets
