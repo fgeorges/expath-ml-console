@@ -59,6 +59,8 @@ declare function local:page()
             an RDF class
          </li>
       </ul>
+      <p>The Console should be intuitive to use, but you can find documentation on the
+         <a href="https://github.com/fgeorges/expath-ml-console">GitHub repository</a>.</p>
    </wrapper>/*
 };
 

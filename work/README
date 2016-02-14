@@ -15,10 +15,8 @@
    of this App Server on the filesystem).  The database linked to the HTTP
    server will be used only to store the Console configuration document.  You
    can then access the Console by pointing your preferred browser to (say the
-   port has been set to 8888):
+   port has been set to 8010):
 
-       http://localhost:8888/home.xq
+       http://localhost:8010/
 
-     The help page is:
-
-       http://localhost:8888/help.xq
+     The help page is at https://github.com/fgeorges/expath-ml-console.
