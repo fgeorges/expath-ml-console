@@ -26,14 +26,14 @@ declare function local:page()
          <li><a href="#insert-dir">a directory</a></li>
          <li><a href="#insert-zip">a zipped directory</a></li>
       </ul>
-      <p>Some tools to delete...</p>
+      <p>Some tools to delete, by URI...</p>
       <ul>
-         <li><a href="#delete-doc">a document</a> (by URI)</li>
-         <li><a href="#delete-dir">a directory</a> (by URI)</li>
+         <li><a href="#delete-doc">a document</a></li>
+         <li><a href="#delete-dir">a directory</a></li>
       </ul>
       <p>When browsing the content of a database, using the <a href="browser">browser</a>,
          you can also delete documents and directories as you browse, as well as
-         create new documents.</p>
+         create new documents in a given directory.</p>
       <h3 id="insert-doc">Insert a document</h3>
       <p>Insert a file at some specific place into a specific database. By
          default the file is expected to be XML, but you can change its type to

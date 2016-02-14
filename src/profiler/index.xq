@@ -70,11 +70,16 @@ declare function local:page()
    <wrapper>
       <p>The profiler helps you profile an XQuery expression, save the profiling
          report (both XML and JSON) and load existing reports (both XML and JSON).</p>
-      <p>Saving as XML profile the expression but does not show it in the interface.</p>
-      <p>Saving as JSON saves whatever is in the JSON editor (which is populated
-         with the first profiling).</p>
+      <p>The button <b>Profile</b> profiles the expression, displays the profile
+         report in the table, and display it as JSON below the table.</p>
+      <p>The button <b>As XML</b> profiles the expression and returns the XML report,
+         but does not show it in the interface.</p>
+      <p>The button <b>Save JSON</b> saves whatever is in the JSON editor (which is
+         populated with each <b>Profile</b> pass).</p>
       <p>The query is evaluated with the selected content database, and optionally
-         using the modules database of the selected appserver.</p>
+         using the modules database of the selected appserver (when you select an
+         appserver instead of a database).  Before evaluating an expression, you
+         need to <b>select a source</b> first.</p>
 
       <h3>Query</h3>
       { v:edit-text(text { $fibonacci }, 'xquery', 'prof-query', 'profile') }
@@ -194,8 +199,8 @@ declare function local:page()
          <tbody/>
       </table>
 
-      <h3 class="prof-failure">Stacktrace</h3>
-      <div id="stacktrace" class="prof-failure"/>
+      <h3 class="prof-failure" style="display: none">Stacktrace</h3>
+      <div id="stacktrace" class="prof-failure" style="display: none"/>
 
       <h3>JSON report</h3>
       { v:edit-text(text { '' }, 'json', 'prof-json', 'profile') }

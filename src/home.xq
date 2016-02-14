@@ -43,8 +43,8 @@ declare function local:page()
          </li>
          <li>
             { v:dir-link('#', 'directory') } -
-            a directory (materialized as a property document or not, for document
-            or collection URIs)
+            a directory (materialized as a property document or not, when browsing both
+            document and collection URIs)
          </li>
          <li>
             { v:rsrc-link('#', 'resource') } -
