@@ -82,19 +82,7 @@ declare function local:page--empty-path($db as element(a:database), $start as xs
       function($items as element(h:li)*) {
          if ( fn:exists($items) ) then (
             <p>Choose the root to navigate:</p>,
-            v:form(
-               '',
-               attribute { 'id' } { 'orig-form' },
-               <ul style="list-style-type: none"> {
-                  $items
-               }
-               </ul>),
-            <button class="btn btn-danger" onclick='deleteUris("orig-form", "hidden-form");'>Delete</button>,
-            v:inline-form(
-               $db-root || 'bulk-delete',
-               (attribute { 'id'    } { 'hidden-form' },
-                attribute { 'style' } { 'display: none' }),
-               v:input-hidden('back-url', 'browse' || '/'[fn:not(fn:starts-with($path, '/'))] || $path))
+            local:display-list-children($path, $items)
          )
          else (
             <p>The database is empty.</p>
@@ -330,7 +318,9 @@ declare function local:create-doc-form(
 ) as element()+
 {
    <p id="show-files-area">
-      <button class="btn btn-default" onclick="$('#files-area').slideToggle(); $('#show-files-area span').toggle();">
+      <button class="btn btn-default"
+              title="Display the upload area, to upload files or create empty documents"
+              onclick="$('#files-area').slideToggle(); $('#show-files-area span').toggle();">
          <span>Add files...</span>
          <span style="display: none">Hide upload area</span>
       </button>
@@ -562,21 +552,32 @@ declare function local:display-list(
             </li>
       },
       function($items as element(h:li)+) {
-         (: display the list of children themselves :)
-         v:form(
-            '',
-            attribute { 'id' } { 'orig-form' },
-            <ul style="list-style-type: none"> {
-               $items
-            }
-            </ul>),
-         <button class="btn btn-danger" onclick='deleteUris("orig-form", "hidden-form");'>Delete</button>,
-         v:inline-form(
-            $db-root || 'bulk-delete',
-            (attribute { 'id'    } { 'hidden-form' },
-             attribute { 'style' } { 'display: none' }),
-            v:input-hidden('back-url', 'browse' || '/'[fn:not(fn:starts-with($path, '/'))] || $path))
+         local:display-list-children($path, $items)
       })
+};
+
+declare function local:display-list-children(
+   $path  as xs:string?,
+   $items as element(h:li)+
+) as element()+
+{
+   v:form(
+      '',
+      attribute { 'id' } { 'orig-form' },
+      <ul style="list-style-type: none"> {
+         $items
+      }
+      </ul>),
+   <button class="btn btn-danger"
+           title="Delete selected documents and directories"
+           onclick='deleteUris("orig-form", "hidden-form");'>
+      Delete
+   </button>,
+   v:inline-form(
+      $db-root || 'bulk-delete',
+      (attribute { 'id'    } { 'hidden-form' },
+       attribute { 'style' } { 'display: none' }),
+      v:input-hidden('back-url', 'browse' || '/'[fn:not(fn:starts-with($path, '/'))] || $path))
 };
 
 (:
