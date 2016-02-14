@@ -81,15 +81,16 @@ database or directory).  All you need to do is to click on the button
 `Initialise` when displaying an app server which has not been
 initialised.  Then you can install a package.
 
-If you have a XAR file on your filesystem, you can use the *install
-from file* feature.  Just select the file and click `Install`.  You
+If you have a XAR file on your filesystem, you can use the "*Install
+from file*" feature.  Just select the file and click `Install`.  You
 can also install packages straight from [CXAN](http://cxan.org/).
 CXAN is an organized, online source of packages (it is organized as a
 list of persons or organisations, each providing several packages,
 e.g. [fgeorges](http://cxan.org/pkg/fgeorges) provides the package
 [fgeorges/fxsl](http://cxan.org/pkg/fgeorges/fxsl), among others).
-The form *install from CXAN* let you select which package you want to
-install, and the Console downloads it and installs it automatically.
+The form "*Install from CXAN*" let you select which package you want
+to install, and the Console downloads it and installs it
+automatically.
 
 Once a package has been installed on an app server, other modules
 running in the same app server can import an XQuery modules from the
