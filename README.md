@@ -13,8 +13,6 @@ You need to:
 - Set its modules location.
 - Set its URL rewriter.
 
-### Get the code
-
 You can get the code from to different sources (in both cases the root
 of the sources is the directory `src/`):
 
@@ -26,7 +24,9 @@ of the sources is the directory `src/`):
   (the branch `master` should correspond to the latest stable release,
   when `develop` is the main development branch).
 
-### The app server
+Then you can create the HTTP app server and make it point to the
+source directory (or upload the sources to a modules database if you
+really need to):
 
 - Create a new HTTP server in the MarkLogic admin console.
 - Put the source code of the Console at the root of the App Server
