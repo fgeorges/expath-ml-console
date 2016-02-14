@@ -136,4 +136,32 @@ same subject URI).
 
 ## The document manager
 
+![Screenshot of the document manager](doc/doc-manager.png)
+
+The document manager let you upload files from your file system to
+create new documents, as well as deleting existing documents on a
+database.  All forms on this page, both for insertion and deletion,
+require to select a target database.
+
+The simplest form is to select a simple file and give its entire URI.
+This is complementary to the browser, which let you create a new
+document under a specific "*directory*", if you prefer to copy and
+past the entire URI instead of browsing directories.
+
+You can also upload an entire directory structure (with optional
+regular expressions to filter which file to upload).  Or by using a
+ZIP file (which is then opened on MarkLogic, each of its content file
+becoming a new document in the database).
+
+The last way to upload content is by providing a file containing
+triples (in any format supported by MarkLogic: Turtle, N3...)  The
+file is parsed on the server, and the triples it contains are stored
+in the triple store as "*managed triples*".  This is an easy way to
+ingest triples stored in a file if you don't want to manage which
+documents they are stored in.
+
+The last forms let you delete documents and directories.  You can
+achieve the same by using the browser, but here, you provide a
+complete URI instead, as a text field.
+
 ## The profiler
