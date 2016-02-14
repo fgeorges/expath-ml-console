@@ -79,6 +79,15 @@ declare function t:mandatory-field($name as xs:string)
 };
 
 (:~
+ : Return a request field filename, or a default value if it has not been passed.
+ :)
+declare function t:optional-field-filename($name as xs:string, $default as item()?)
+   as item()
+{
+   ( xdmp:get-request-field-filename($name), $default )[1]
+};
+
+(:~
  : Return a request field filename, or throw an error if it has not been passed.
  :)
 declare function t:mandatory-field-filename($name as xs:string)
@@ -90,6 +99,15 @@ declare function t:mandatory-field-filename($name as xs:string)
          $f
       else
          t:error('TOOLS001', 'Mandatory field filename not passed: ' || $name)
+};
+
+(:~
+ : Return a request field content-type, or a default value if it has not been passed.
+ :)
+declare function t:optional-field-content-type($name as xs:string, $default as item()?)
+   as item()
+{
+   ( xdmp:get-request-field-content-type($name), $default )[1]
 };
 
 (:~
@@ -191,4 +209,170 @@ declare function t:ensure-relative($file as xs:string)
       fn:substring($file, 2)
    else
       $file
+};
+
+(: ==== HTTP Content-Type parsing ======================================================== :)
+
+(:~
+ : Parse a HTTP Content-Type value.
+ :
+ : $ctype must conform to RFC 2616 grammar for Content-Type.  The returned
+ : element looks like the following:
+ :
+ : <!-- result of parsing "text/plain;charset=windows-1250" -->
+ : <content-type type="text" subtype="plain">
+ :    <param name="charset" value="windows-1250"/>
+ : </content-type>
+ : 
+ : From https://tools.ietf.org/html/rfc2616#section-3.7:
+ :
+ : media-type     = type "/" subtype *( ";" parameter )
+ : type           = token
+ : subtype        = token
+ :
+ : The rule `parameter` is defined as `attribute "=" value`.  This function
+ : allows space characters between ";", `attribute`, "=", and `value`, and
+ : simply ignore them.
+ :)
+declare function t:parse-content-type($ctype as xs:string)
+   as element(content-type)
+{
+   if ( fn:contains($ctype, '/') ) then
+      <content-type type="{ fn:substring-before($ctype, '/') }"> {
+         t:parse-content-type-1(
+            fn:substring-after($ctype, '/'))
+      }
+      </content-type>
+   else
+      t:error('content-type-no-slash', 'invalid content-type, no slash: ' || $ctype)
+};
+
+(:~
+ : Private helper for `t:parse-content-type()`.
+ :)
+declare %private function t:parse-content-type-1($input as xs:string)
+   as node()+
+{
+   if ( fn:contains($input, ';') ) then (
+      attribute { 'subtype' } { fn:substring-before($input, ';') },
+      t:parse-content-type-2(
+         fn:string-to-codepoints(
+            fn:substring-after($input, ';')),
+         (), (), 0)
+   )
+   else (
+      attribute { 'subtype' } { $input }
+   )
+};
+
+(:~
+ : Private helper for `t:parse-content-type-1()`.
+ :
+ : # https://tools.ietf.org/html/rfc2616#section-3.6
+ :
+ : parameter               = attribute "=" value
+ : attribute               = token
+ : value                   = token | quoted-string
+ :
+ : # https://tools.ietf.org/html/rfc2616#section-2.2
+ :
+ : token          = 1*<any CHAR except CTLs or separators>
+ : separators     = "(" | ")" | "<" | ">" | "@"
+ :                | "," | ";" | ":" | "\" | <">
+ :                | "/" | "[" | "]" | "?" | "="
+ :                | "{" | "}" | SP | HT
+ :
+ : quoted-string  = ( <"> *(qdtext | quoted-pair ) <"> )
+ : qdtext         = <any TEXT except <">>
+ : quoted-pair    = "\" CHAR
+ :
+ : # Some char codes
+ :
+ : space=32
+ : double quote=34
+ : semi colon=59
+ : equals=61
+ : backslash=92
+ :
+ : # States (values for $state)
+ :
+ : 0: initial state, after a ';' has been seen, looking for a name
+ : 1: scanning a name
+ : 2: scanning a token
+ : 3: scanning the content of a quoted string
+ : 4: after the closing '"' of a quoted string
+ : 5: after a '=' has been seen, looking for a value
+ : 6: scanning spaces (before and after name, before and after value)
+ :)
+declare %private function t:parse-content-type-2(
+   $input as xs:integer*,
+   $name  as xs:integer*,
+   $value as xs:integer*,
+   $state as xs:integer
+) as element(param)+
+{
+   let $head := fn:head($input)
+   let $tail := fn:tail($input)
+   return
+      if ( fn:empty($input) ) then (
+         t:parse-content-type-3($name, $value, $state)
+      )
+      else if ( $head eq 32 and $state = (0, 5, 6) ) then (
+         t:parse-content-type-2($tail, $name, $value, $state)
+      )
+      else if ( $head eq 32 and $state = (1, 2, 4) ) then (
+         t:parse-content-type-2($tail, $name, $value, 6)
+      )
+      else if ( $state eq 6 ) then (
+         t:error('content-type-invalid-char', 'invalid char whilst consuming spaces: ' || $head)
+      )
+      else if ( $head eq 61 and $state ne 3 ) then (
+         if ( fn:empty($name) ) then
+            t:error('content-type-empty-name', 'empty name when encountering equals: ' || $state)
+         else
+            t:parse-content-type-2($tail, $name, $value, 5)
+      )
+      else if ( $head eq 59 and $state ne 3 ) then (
+            t:parse-content-type-3($name, $value, $state),
+            t:parse-content-type-2($tail, (), (), 1)
+      )
+      else if ( $state eq 4 ) then (
+         t:error('content-type-invalid-char', 'invalid char after quoted string ended: ' || $head)
+      )
+      else if ( $state = (0, 1) ) then (
+         t:parse-content-type-2($tail, ($name, $head), $value, 1)
+      )
+      else if ( $state eq 5 and $head eq 34 ) then (
+         t:parse-content-type-2($tail, $name, $value, 3)
+      )
+      else if ( $state eq 5 ) then (
+         t:parse-content-type-2($tail, $name, ($value, $head), 2)
+      )
+      else if ( $state eq 3 and $head eq 92 ) then (
+         t:parse-content-type-2(fn:tail($tail), $name, ($value, $input[2]), $state)
+      )
+      else if ( $state eq 3 and $head eq 34 ) then (
+         t:parse-content-type-2($tail, $name, $value, 4)
+      )
+      else if ( $head eq 34 ) then (
+         t:error('content-type-invalid-char', 'double quote in invalid state: ' || $state)
+      )
+      else (
+         t:parse-content-type-2($tail, $name, ($value, $head), $state)
+      )
+};
+
+(:~
+ : Private helper for `t:parse-content-type-2()`.
+ :)
+declare %private function t:parse-content-type-3(
+   $name  as xs:integer*,
+   $value as xs:integer*,
+   $state as xs:integer
+) as element(param)
+{
+   if ( $state = (2, 4) ) then
+      <param name="{ fn:codepoints-to-string($name) }" value="{ fn:codepoints-to-string($value) }"/>
+   else
+      t:error('content-type-invalid-state', 'invalid state when semi-colon or <eof>: ' || $state)
 };
