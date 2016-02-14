@@ -11,7 +11,9 @@ table {
   font-family: "Lucida Grande", Verdana, Arial, Helvetica, sans-serif;
 }
 
-code {
+ a code ,
+ p code ,
+li code {
   font-family: "Source Code Pro", Consolas, Menlo, Monaco, "Courier New", monospace;
   padding: 2px 4px;
   /* font-size: 0.8em; */
@@ -23,7 +25,9 @@ code {
   border-radius: 3px;
 }
 
-code:after {
+ a code:after ,
+ p code:after ,
+li code:after {
   display: inline-block;
   border-left: 1px solid rgba(0, 0, 0, 0.2);
   margin-left: 4px;
