@@ -1,5 +1,8 @@
 var highlight = ace.require('ace/ext/static_highlight');
 
+/**
+ * Init a (read-only) code snippet on the page.
+ */
 function initCodeSnippet()
 {
    var elem = $(this);
@@ -17,9 +20,12 @@ function initCodeSnippet()
       });
 }
 
-// contains all editors on the page, by ID
+/** Contains all editors on the page, by ID. */
 var editors = { };
 
+/**
+ * Init a code editor on the page.
+ */
 function initCodeEditor()
 {
    var elem = $(this);
@@ -35,11 +41,81 @@ function initCodeEditor()
    editors[e.id] = e;
 }
 
+/**
+ * Send a REST request to the CXAN website selected in the CXAN install form.
+ *
+ * @param endpoint The endpoint to send the request to.
+ * 
+ * @param callback The callback function to call when the XML response is
+ * received from the REST service.
+ */
+function cxanRest(endpoint, callback)
+{
+   var site   = $("#cxan-install :input[name='std-website']").val();
+   var domain = site == 'prod' ? 'http://cxan.org' : 'http://test.cxan.org';
+   $.ajax({
+      url: domain + endpoint,
+      dataType: 'xml',
+      headers: {
+         accept: 'application/xml'
+      }
+   }).done(callback);
+}
+
+/**
+ * Handler for `change` event for field `std-website` of the CXAN install form.
+ *
+ * Remove all options on the field `repo`, send a REST request to CXAN to get the
+ * list of all repositories in the new selected website, and add the new options
+ * accordingly.
+ */
+function cxanWebsiteChanges()
+{
+   cxanRest('/pkg', function(xml) {
+      var repo = $("#cxan-install :input[name='repo']");
+      // first remove the old repositories
+      $('option', repo).remove();
+      // then add the repositories for the new selected site
+      $(xml).find('id').each(function() {
+         var id = $(this).text();
+         repo.append($('<option>', { value : id }).text(id));
+      });
+      repo.change();
+   });
+}
+
+/**
+ * Handler for `change` event for field `repo` of the CXAN install form.
+ *
+ * Remove all options on the field `pkg`, send a REST request to CXAN to get the
+ * list of all packages in the new selected repo, and add the new options
+ * accordingly.
+ */
+function cxanRepoChanges()
+{
+   var repo = $(this).val();
+   cxanRest('/pkg/' + repo, function(xml) {
+      var pkg = $("#cxan-install :input[name='pkg']");
+      // first remove the old packages
+      $('option', pkg).remove();
+      // then add the packages for the new selected repo
+      $(xml).find('abbrev').each(function() {
+         var abbrev = $(this).text();
+         pkg.append($('<option>', { value : repo + '/' + abbrev }).text(abbrev));
+      });
+   });
+}
+
 // initialise page components
 $(document).ready(function () {
    // actually initialise code snippets and editors
    $('.code').each(initCodeSnippet);
    $('.editor').each(initCodeEditor);
+   // initialise the CXAN install form, if any
+   $("#cxan-install :input[name='repo']").change(cxanRepoChanges);
+   var site = $("#cxan-install :input[name='std-website']");
+   site.change(cxanWebsiteChanges);
+   site.change();
    // initialise the data tables
    $('.datatable').DataTable({
       info: false,

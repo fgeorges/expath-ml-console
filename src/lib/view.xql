@@ -202,7 +202,7 @@ declare %private function v:console-page-static(
                      <span class="icon-bar"/>
                      <span class="icon-bar"/>
                   </button>
-                  <a class="navbar-brand" href="/">EXPath Console</a>
+                  <a class="navbar-brand" href="{ $root }./">EXPath Console</a>
                </div>
                <div id="navbar" class="navbar-collapse collapse">
                   <ul class="nav navbar-nav"> {
@@ -468,7 +468,7 @@ declare function v:submit($label as xs:string)
    </div>
 };
 
-declare function v:input-select($id as xs:string, $label as xs:string, $options as element(h:option)+)
+declare function v:input-select($id as xs:string, $label as xs:string, $options as element(h:option)*)
    as element(h:div)
 {
    <div xmlns="http://www.w3.org/1999/xhtml" class="form-group">

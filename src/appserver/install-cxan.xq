@@ -37,8 +37,8 @@ declare function local:page()
             $other-site || '/'
          else if ( $std-site eq 'prod' ) then
             'http://cxan.org/'
-         else if ( $std-site eq 'dev' ) then
-            'http://dev.cxan.org/'
+         else if ( $std-site eq 'test' ) then
+            'http://test.cxan.org/'
          else
             <p><b>Error</b>: Cannot decide which CXAN website to use (std-website={ $std-site }).</p>
    return (
