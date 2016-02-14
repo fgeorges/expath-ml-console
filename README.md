@@ -11,9 +11,7 @@ provides the following main features:
 The console has been written to offer an intuitive user experience.
 The pages should be intuitive and self-explaining.  If one page does
 not contain enough help for you to understand what to do, please
-report it to the EXPath [mailing list](http://expath.org/lists).  The
-rest of this documentation is an overview of each feature, and what
-you can achieve with them.
+report it to the EXPath [mailing list](http://expath.org/lists).
 
 ![Screenshot of the Console](doc/screenshot.png)
 
