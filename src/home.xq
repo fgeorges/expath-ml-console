@@ -26,6 +26,10 @@ declare function local:page()
       <p>You will find the following types of component in the Console:</p>
       <ul>
          <li>
+            { v:proj-link('#', 'project') } -
+            a project
+         </li>
+         <li>
             { v:db-link('#', 'database') } -
             a database (all types of database: content, schemas, security, etc.)
          </li>

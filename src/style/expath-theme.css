@@ -139,6 +139,18 @@ code.as:after {
   content: 'AS';
 }
 
+/* blue/grey */
+code.proj {
+  color: #464e50;
+  background-color: #f2f7f9;
+  border: 1px solid #b8c3c5;
+  white-space: nowrap;
+}
+
+code.proj:after {
+  content: 'Proj';
+}
+
 /*
  * Available color combinations, for different code.* classes:
  *

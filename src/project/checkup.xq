@@ -50,6 +50,7 @@ declare function local:page() as element()+
    let $conf     := fn:doc('http://expath.org/ml/console/config.xml')
    let $projects := $conf/mlc:console/mlc:projects/mlc:project
    return (
+      <p>Back to { v:proj-link('../' || $id, $id) }</p>,
       <p>Console config file: { local:exists($conf) }</p>,
       <p>Config root element: { local:exists($conf/mlc:console) }</p>,
       <p>Project elements: { local:exists($projects) }</p>,

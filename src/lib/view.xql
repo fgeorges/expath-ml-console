@@ -539,6 +539,11 @@ declare function v:input-hidden($id as xs:string, $val as xs:string)
 
 (: ==== Link display tools ======================================================== :)
 
+declare function v:proj-link($href as xs:string, $name as xs:string)
+{
+   v:component-link($href, $name, 'proj')
+};
+
 declare function v:doc-link($href as xs:string, $name as xs:string)
 {
    v:component-link($href, $name, 'doc')

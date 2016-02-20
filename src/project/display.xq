@@ -16,7 +16,7 @@ declare function local:page() as element()+
    let $proj := $conf/mlc:console/mlc:projects/mlc:project[@id eq $id]
    let $info := xdmp:document-get($proj/mlc:dir || 'xproject/project.xml')/xp:project
    return (
-      <p>Project <code>{ xs:string($info/xp:title) }</code>.</p>,
+      <p>Project { v:proj-link($id, $id) } - { xs:string($info/xp:title) }.</p>,
       <p>Available actions:</p>,
       <ul>
          <li><a href="{ $id }/checkup">Check up</a></li>
