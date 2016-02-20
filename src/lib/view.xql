@@ -23,6 +23,7 @@ declare variable $v:pages as element(pages) :=
       <page name="browser"  title="Documents and triples browser" label="Browser"/>
       <page name="loader"   title="The document manager"          label="Loader"/>
       <page name="profiler" title="XQuery Profiler"               label="Profiler"/>
+      <page name="project"  title="The project manager"           label="Projects"/>
       <page name="tools"    title="Goodies for MarkLogic"         label="Tools"/>
       <!--page name="help"     title="Console Help"                  label="Help"/-->
       <!--page name="devel"    title="Devel's evil"                  label="Devel"/-->

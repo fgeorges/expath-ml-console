@@ -202,6 +202,17 @@
    <match-path matches="^/web/show$">
       <dispatch>/web/show.xq</dispatch>
    </match-path>
+   <match-path matches="^/project$">
+      <dispatch>/project/index.xq</dispatch>
+   </match-path>
+   <match-path matches="^/project/([-a-z0-9]+)$">
+      <add-query-param name="id">$1</add-query-param>
+      <dispatch>/project/display.xq</dispatch>
+   </match-path>
+   <match-path matches="^/project/([-a-z0-9]+)/checkup$">
+      <add-query-param name="id">$1</add-query-param>
+      <dispatch>/project/checkup.xq</dispatch>
+   </match-path>
    <match-path matches="^/xproject$">
       <dispatch>/xproject.xq</dispatch>
    </match-path>
