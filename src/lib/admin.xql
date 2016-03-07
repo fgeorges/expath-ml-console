@@ -11,6 +11,7 @@ import module namespace admin = "http://marklogic.com/xdmp/admin"
    at "/MarkLogic/admin.xqy";
 
 declare namespace c     = "http://expath.org/ns/ml/console";
+declare namespace dir   = "http://marklogic.com/xdmp/directory";
 declare namespace err   = "http://www.w3.org/2005/xqt-errors";
 declare namespace mlerr = "http://marklogic.com/xdmp/error";
 declare namespace pkg   = "http://expath.org/ns/pkg";
@@ -298,26 +299,41 @@ declare function a:database-dir-creation($db as item())
 declare function a:get-from-filesystem($file  as xs:string) as xs:string?
 {
    try {
+      (: the "true predicate" prevents the expression to be rewritten
+         "outside the try/catch" by the optimizer :)
       xdmp:filesystem-file($file)[fn:true()]
    }
    catch err:FOER0000 {
       (: TODO: Should all this be in a dedicated error module? :)
-      if ( $err:additional/mlerr:code eq 'SVC-FILOPN' and $err:additional/mlerr:data/mlerr:datum = 'No such file or directory' ) then
+      if ( $err:additional/mlerr:code eq 'SVC-FILOPN'
+              and $err:additional/mlerr:data/mlerr:datum = 'No such file or directory' ) then
          ()
       else
          (: TODO: How to rethrow it? :)
          fn:error($err:code, $err:description, $err:value)
-      (:
-      <error>
-         <code>{ $err:code }</code>
-         <description>{ $err:description }</description>
-         <value>{ $err:value }</value>
-         <module>{ $err:module }</module>
-         <line-number>{ $err:line-number }</line-number>
-         <column-number>{ $err:column-number }</column-number>
-         <additional>{ $err:additional }</additional>
-      </error>
-      :)
+   }
+};
+
+(:~
+ : Return a MarkLogic filesystem directory descriptor.
+ :
+ : Return the empty sequence if the directory does not exist.
+ :
+ : $dir the absolute path of the directory
+ :)
+declare function a:get-directory($dir as xs:string) as element(dir:directory)?
+{
+   try {
+      xdmp:filesystem-directory($dir)
+   }
+   catch err:FOER0000 {
+      (: TODO: Should all this be in a dedicated error module? :)
+      if ( $err:additional/mlerr:code eq 'SVC-DIROPEN'
+              and $err:additional/mlerr:data/mlerr:datum = 'No such file or directory' ) then
+         ()
+      else
+         (: TODO: How to rethrow it? :)
+         fn:error($err:code, $err:description, $err:value)
    }
 };
 
@@ -353,8 +369,8 @@ declare function a:get-from-filesystem(
  : absolute $dir (which must end with a '/').
  :)
 declare function a:get-from-directory(
-   $dir  as xs:string,
-   $file as xs:string,
+   $dir   as xs:string,
+   $file  as xs:string,
    $parse as xs:boolean
 ) as node()?
 {
@@ -405,6 +421,35 @@ declare function a:file-exists($path as xs:string)
    as xs:boolean
 {
    xdmp:filesystem-file-exists($path)
+};
+
+(:~
+ : Deep browse directory, visiting only directories.
+ :)
+declare function a:browse-directories(
+   $path as xs:string,
+   $fn   as function(xs:string) as item()*
+) as item()*
+{
+   $fn($path),
+   a:get-directory($path)
+      / dir:entry[dir:type eq 'directory']
+      ! a:browse-directories(dir:pathname || '/', $fn)
+};
+
+(:~
+ : Deep browse directory, visiting only files.
+ :)
+declare function a:browse-files(
+   $path as xs:string,
+   $fn   as function(xs:string) as item()*
+) as item()*
+{
+   a:browse-directories($path, function($dir) {
+      a:get-directory($dir)
+         / dir:entry[dir:type eq 'file']
+         ! $fn(dir:pathname)
+   })
 };
 
 (: ==== Security tools ======================================================== :)
