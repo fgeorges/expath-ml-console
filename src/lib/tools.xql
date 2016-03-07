@@ -17,24 +17,54 @@ declare function t:ignore($seq as item()*)
 };
 
 (:~
- : If $pred is true, return $content, if not, return the empty sequence.
+ : If `$pred` is true, return `$then`, if not, return the empty sequence.
  :)
-declare function t:when($pred as xs:boolean, $content as item()*)
+declare function t:when($pred as xs:boolean, $then as item()*)
    as item()*
 {
-   if ( $pred ) then
-      $content
-   else
-      ()
+   t:when($pred, $then, ())
 };
 
 (:~
- : If $seq is not empty, return $content, if not, return the empty sequence.
+ : If `$pred` is true, return `$then`, if not, return `$else`.
  :)
-declare function t:exists($seq as item()*, $content as item()*)
+declare function t:when($pred as xs:boolean, $then as item()*, $else as item()*)
    as item()*
 {
-   t:when(fn:exists($seq), $content)
+   if ( $pred ) then
+      $then
+   else
+      $else
+};
+
+(:~
+ : If `$seq` is not empty, return `$then`, if not, return the empty sequence.
+ :)
+declare function t:exists($seq as item()*, $then as item()*)
+   as item()*
+{
+   t:when(fn:exists($seq), $then)
+};
+
+(:~
+ : If `$seq` is not empty, return `$then`, if not, return `$else`.
+ :)
+declare function t:exists($seq as item()*, $then as item()*, $else as item()*)
+   as item()*
+{
+   t:when(fn:exists($seq), $then, $else)
+};
+
+(:~
+ : If `$seq` is non empty, return it, if it is empty, return `$default` instead.
+ :)
+declare function t:default($seq as item()*, $default as item()*)
+   as item()*
+{
+   if ( fn:exists($seq) ) then
+      $seq
+   else
+      $default
 };
 
 (: ==== Error handling ======================================================== :)
