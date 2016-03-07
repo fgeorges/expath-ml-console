@@ -10,18 +10,25 @@ declare namespace xp = "http://expath.org/ns/project";
 declare function local:page($id as xs:string?, $dir as xs:string)
    as element()+
 {
-   let $proj := a:get-from-directory($dir, 'xproject/project.xml', fn:true())/*
-   let $id   := if ( fn:exists($id) ) then $id else $proj/@abbrev
+   let $d := a:get-directory($dir)
    return
-      if ( fn:empty($proj) ) then (
+      if ( fn:empty($d) ) then
          <p xmlns="http://www.w3.org/1999/xhtml">
-            <b>Error</b>: Project file does not exist in <code>{ $dir }</code>.
+            <b>Error</b>: Project directory does not exist: <code>{ $dir }</code>.
          </p>
-      )
-      else (
-         proj:add-config($id, $dir),
-         local:success($id, $dir, $proj)
-      )
+      else
+         let $proj := a:get-from-directory($dir, 'xproject/project.xml', fn:true())/*
+         let $id   := if ( fn:exists($id) ) then $id else $proj/@abbrev
+         return
+            if ( fn:empty($proj) ) then (
+               <p xmlns="http://www.w3.org/1999/xhtml">
+                  <b>Error</b>: Project file does not exist: <code>{ $dir }xproject/project.xml</code>.
+               </p>
+            )
+            else (
+               proj:add-config($id, $dir),
+               local:success($id, $dir, $proj)
+            )
 };
 
 declare function local:success(
