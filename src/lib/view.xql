@@ -187,7 +187,8 @@ declare %private function v:console-page-static(
                'datatables-1.10.10/css/dataTables.bootstrap.css',
                'file-upload-9.11.2/jquery.fileupload.css',
                'file-upload-9.11.2/jquery.fileupload-ui.css',
-               'gallery-2.16.0/blueimp-gallery.min.css'
+               'gallery-2.16.0/blueimp-gallery.min.css',
+               'highlight/styles/default.css'
             ))
          }
          <link href="{ $root }images/expath-icon.png" rel="shortcut icon" type="image/png"/>
