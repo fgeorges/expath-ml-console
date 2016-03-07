@@ -126,9 +126,9 @@ declare function local:page--browse($db as element(a:database), $start as xs:int
       let $to    := $start + $count - 1
       return (
          'Results ' || $start || ' to ' || $to,
-         t:cond($start gt 1,
+         t:when($start gt 1,
             (', ', <a href="classes?start={ $start - $page-size }">previous page</a>)),
-         t:cond($count eq $page-size,
+         t:when($count eq $page-size,
             (', ', <a href="classes?start={ $start + $count }">next page</a>)),
          ':',
          for $r     in $res

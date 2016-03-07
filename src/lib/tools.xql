@@ -8,9 +8,18 @@ declare namespace xdmp = "http://marklogic.com/xdmp";
 (: ==== Simple tools ======================================================== :)
 
 (:~
+ : Ignore its parameter and always return the empty sequence.
+ :)
+declare function t:ignore($seq as item()*)
+   as empty-sequence()
+{
+   ()
+};
+
+(:~
  : If $pred is true, return $content, if not, return the empty sequence.
  :)
-declare function t:cond($pred as xs:boolean, $content as item()*)
+declare function t:when($pred as xs:boolean, $content as item()*)
    as item()*
 {
    if ( $pred ) then
@@ -20,12 +29,12 @@ declare function t:cond($pred as xs:boolean, $content as item()*)
 };
 
 (:~
- : Ignore its parameter and always return the empty sequence.
+ : If $seq is not empty, return $content, if not, return the empty sequence.
  :)
-declare function t:ignore($seq as item()*)
-   as empty-sequence()
+declare function t:exists($seq as item()*, $content as item()*)
+   as item()*
 {
-   ()
+   t:when(fn:exists($seq), $content)
 };
 
 (: ==== Error handling ======================================================== :)
@@ -53,6 +62,41 @@ declare function t:error($code as xs:string, $msg as xs:string, $info as item()*
       $info)
 };
 
+(:~
+ : If $pred is true, throw an error.
+ : 
+ : `t:when` is not usable as it is not a macro.  For instance, in the following
+ : example, evaluating `t:error` to get the value of its parameter would always
+ : throw an error:
+ : 
+ :     t:when($value gt 42,
+ :        t:error('foobar', 'Value is greater than 42.'))
+ :)
+declare function t:error-when(
+   $pred as xs:boolean,
+   $code as xs:string,
+   $msg  as xs:string
+) as empty-sequence()
+{
+   if ( $pred ) then
+      t:error($code, $msg)
+   else
+      ()
+};
+
+declare function t:error-when(
+   $pred as xs:boolean,
+   $code as xs:string,
+   $msg  as xs:string,
+   $info as item()*
+) as empty-sequence()
+{
+   if ( $pred ) then
+      t:error($code, $msg, $info)
+   else
+      ()
+};
+
 (: ==== HTTP request fields ======================================================== :)
 
 (:~
@@ -61,7 +105,7 @@ declare function t:error($code as xs:string, $msg as xs:string, $info as item()*
 declare function t:optional-field($name as xs:string, $default as item()?)
    as item()?
 {
-   ( xdmp:get-request-field($name), $default )[1]
+   ( xdmp:get-request-field($name), $default )[.][1]
 };
 
 (:~

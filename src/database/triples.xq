@@ -107,9 +107,9 @@ declare function local:page--browse($db as element(a:database), $start as xs:int
       let $to    := $start + $count - 1
       return (
          'Results ' || $start || ' to ' || $to,
-         t:cond($start gt 1,
+         t:when($start gt 1,
             (', ', <a href="triples?start={ $start - $page-size }">previous page</a>)),
-         t:cond($count eq $page-size,
+         t:when($count eq $page-size,
             (', ', <a href="triples?start={ $start + $count }">next page</a>)),
          ':',
          $res ! map:get(., 's')

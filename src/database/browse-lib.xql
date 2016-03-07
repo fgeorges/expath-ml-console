@@ -97,9 +97,9 @@ declare function b:display-list(
             <p>
                Content of { b:uplinks($path, fn:true()) },
                results { $start } to { $to }{
-                  t:cond($start gt 1,
+                  t:when($start gt 1,
                      (', ', <a href="./?start={ $start - $b:page-size }">previous page</a>)),
-                  t:cond($count eq $b:page-size,
+                  t:when($count eq $b:page-size,
                      (', ', <a href="./?start={ $start + $count }">next page</a>))
                }:
             </p>
