@@ -1,14 +1,14 @@
 xquery version "3.0";
 
-import module namespace t = "http://expath.org/ns/ml/console/tools" at "../lib/tools.xql";
-import module namespace v = "http://expath.org/ns/ml/console/view"  at "../lib/view.xql";
+import module namespace proj = "http://expath.org/ns/ml/console/project" at "proj-lib.xql";
+import module namespace a    = "http://expath.org/ns/ml/console/admin"   at "../lib/admin.xql";
+import module namespace t    = "http://expath.org/ns/ml/console/tools"   at "../lib/tools.xql";
+import module namespace v    = "http://expath.org/ns/ml/console/view"    at "../lib/view.xql";
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
-declare namespace mlc  = "http://expath.org/ns/ml/console";
-declare namespace xp   = "http://expath.org/ns/project";
-declare namespace err  = "http://www.w3.org/2005/xqt-errors";
-declare namespace xdmp = "http://marklogic.com/xdmp";
+declare namespace mlc = "http://expath.org/ns/ml/console";
+declare namespace xp  = "http://expath.org/ns/project";
 
 declare function local:exists($item as item()?) as element()
 {
@@ -31,19 +31,6 @@ declare function local:string($item as item()?, $ok as xs:boolean) as element()
       <span class="label alert-danger">empty</span>
 };
 
-declare function local:file($path as xs:string) as document-node()?
-{
-   try {
-      xdmp:document-get($path)
-   }
-   catch * {
-      if ( fn:contains($err:description, 'No such file or directory') ) then
-         ()
-      else
-         fn:error((), $err:description,  $err:additional)
-   }
-};
-
 declare function local:page() as element()+
 {
    let $id       := t:mandatory-field('id')
@@ -58,18 +45,20 @@ declare function local:page() as element()+
    )
 };
 
-declare function local:page-1($id as xs:string, $projects as element(mlc:project)+) as element()+
+declare function local:page-1(
+   $id       as xs:string, 
+   $projects as element(mlc:project)+
+) as element()+
 {
    let $proj := $projects[@id eq $id]
-   let $path := $proj/mlc:dir || 'xproject/project.xml'
-   let $file := local:file($path)
-   let $info := $file/xp:project
+   let $desc := proj:get-descriptor($id)
    return (
       <p>Project element: { local:exists($proj) }</p>,
-      <p>Project dir: { local:string($proj/mlc:dir) }</p>,
-      <p>Project file: { local:string($path, fn:exists($file)) }</p>,
-      <p>Project element: { local:exists($info) }</p>,
-      <p>Title: { local:string($info/xp:title) }</p>
+      <p>Project dir: { $proj/mlc:dir ! local:string(., a:file-exists(.)) }</p>,
+      <p>Project file: {
+          local:string($proj/mlc:dir || 'xproject/project.xml', fn:exists($desc))
+      } </p>,
+      <p>Title: { local:string($desc/xp:title) }</p>
    )
 };
 
