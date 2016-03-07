@@ -10,44 +10,45 @@ declare namespace mlc  = "http://expath.org/ns/ml/console";
 declare namespace xp   = "http://expath.org/ns/project";
 declare namespace xdmp = "http://marklogic.com/xdmp";
 
-declare function local:display-file($text as text())
-   as element()+
+declare function local:page($id as xs:string, $read as xs:string?) as element()+
 {
-   <hr/>,
-   <div class="md-content"> {
-      $text
-   }
-   </div>
-};
-
-declare function local:page() as element()+
-{
-   let $id   := t:mandatory-field('id')
    let $proj := proj:get-descriptor($id)
    return
       if ( fn:empty($proj) ) then (
          <p>No such project, with ID <code>{ $id }</code>.</p>
       )
       else (
-         <p>Project { v:proj-link($id, $id) } - { xs:string($proj/xp:title) }.</p>,
+         <p>{ v:proj-link($id, $id) } - { xs:string($proj/xp:title) }.</p>,
          <ul>
             <li><a href="{ $id }/src">Sources</a></li>
             <li><a href="{ $id }/checkup">Check up</a></li>
          </ul>,
-         proj:get-readme($id) ! local:display-file(.)
+         <hr/>,
+         <div class="md-content"> {
+            t:default(
+               $read,
+               'Create a `README.md` file in the project directory to be displayed here.')
+         }
+         </div>
       )
 };
 
-v:console-page('../', 'project', 'Project', local:page#0,
-   (v:import-javascript('../js/', ('marked.min.js', 'highlight/highlight.pack.js')),
-    <script type="text/javascript">
-       marked.setOptions({{
-          highlight: function (code) {{
-             return hljs.highlightAuto(code).value;
-          }}
-       }});
-       $('.md-content').each(function() {{
-          var elem = $(this);
-          elem.html(marked(elem.text()));
-       }});
-    </script>))
+let $id   := t:mandatory-field('id')
+let $read := proj:get-readme($id)
+return
+   v:console-page('../', 'project', t:exists($read, '', 'Project'),
+      function () {
+         local:page($id, $read)
+      },
+      (v:import-javascript('../js/', ('marked.min.js', 'highlight/highlight.pack.js')),
+       <script type="text/javascript">
+          marked.setOptions({{
+             highlight: function (code) {{
+                return hljs.highlightAuto(code).value;
+             }}
+          }});
+          $('.md-content').each(function() {{
+             var elem = $(this);
+             elem.html(marked(elem.text()));
+          }});
+       </script>))
