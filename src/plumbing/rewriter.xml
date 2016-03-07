@@ -209,6 +209,21 @@
    <match-path matches="^/web/show$">
       <dispatch>/web/show.xq</dispatch>
    </match-path>
+<!--
+TODO: Just temporary, to use this code from somewhere, during development...
+-->
+   <match-path matches="^/project/_/sandbox$">
+      <dispatch>/project/sandbox.xq</dispatch>
+   </match-path>
+   <match-path matches="^/project/_/init-console$">
+      <dispatch>/project/init-console.xq</dispatch>
+   </match-path>
+   <match-path matches="^/project/_/add$">
+      <dispatch>/project/add.xq</dispatch>
+   </match-path>
+   <match-path matches="^/project/_/create$">
+      <dispatch>/project/create.xq</dispatch>
+   </match-path>
    <match-path matches="^/project$">
       <dispatch>/project/index.xq</dispatch>
    </match-path>
@@ -219,6 +234,15 @@
    <match-path matches="^/project/([-a-z0-9]+)/checkup$">
       <add-query-param name="id">$1</add-query-param>
       <dispatch>/project/checkup.xq</dispatch>
+   </match-path>
+   <match-path matches="^/project/([-a-z0-9]+)/src$">
+      <add-query-param name="id">$1</add-query-param>
+      <dispatch>/project/sources.xq</dispatch>
+   </match-path>
+   <match-path matches="^/project/([-a-z0-9]+)/src/(.+)$">
+      <add-query-param name="id">$1</add-query-param>
+      <add-query-param name="src">$2</add-query-param>
+      <dispatch>/project/src.xq</dispatch>
    </match-path>
    <match-path matches="^/xproject$">
       <dispatch>/xproject.xq</dispatch>
