@@ -44,6 +44,13 @@ declare function local:page()
                v:input-option('rdfjson',   'RDF/JSON'))),
             v:submit('Convert')))
       }
+      <h3>Temporal</h3>
+      <p>You can list and manage temporal axes available on a database:</p>
+      {
+         v:form('tools/axes', (
+            v:input-select-databases('database', 'Database'),
+            v:submit('Axes')))
+      }
       <h3>Admin entities</h3>
       <p>You can have a look at various MarkLogic objects, as they are
          represented within the code of the Console using XML elements at:
