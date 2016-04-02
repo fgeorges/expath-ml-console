@@ -9,7 +9,7 @@ declare namespace xdmp = "http://marklogic.com/xdmp";
 let $id   := t:mandatory-field('id')
 let $uri  := t:mandatory-field('uri')
 let $doc  := t:mandatory-field('doc')
-let $text := xs:boolean(t:optional-field('text', 'false'))
+let $type := t:mandatory-field('type')
 let $db   := xs:unsignedLong($id)
 return (
    a:eval-on-database(
@@ -17,14 +17,16 @@ return (
       'declare namespace xdmp = "http://marklogic.com/xdmp";
        declare variable $uri  external;
        declare variable $doc  external;
-       declare variable $text external;
-       if ( $text ) then
+       declare variable $type external;
+       if ( $type eq "text" ) then
+          xdmp:document-insert($uri, xdmp:unquote($doc, (), "format-json"))
+       else if ( $type eq "json" ) then
           xdmp:document-insert($uri, text { $doc })
        else
           xdmp:document-insert($uri, xdmp:unquote($doc))',
       map:new((
          map:entry('uri',  $uri),
          map:entry('doc',  $doc),
-         map:entry('text', $text)))),
+         map:entry('type', $type)))),
    'Document saved in DB ' || xdmp:database-name($db) || ', at ' || $uri
 )

@@ -1,9 +1,10 @@
 xquery version "3.0";
 
-import module namespace b = "http://expath.org/ns/ml/console/browse" at "browse-lib.xql";
-import module namespace a = "http://expath.org/ns/ml/console/admin"  at "../lib/admin.xql";
-import module namespace t = "http://expath.org/ns/ml/console/tools"  at "../lib/tools.xql";
-import module namespace v = "http://expath.org/ns/ml/console/view"   at "../lib/view.xql";
+import module namespace b   = "http://expath.org/ns/ml/console/browse" at "browse-lib.xql";
+import module namespace a   = "http://expath.org/ns/ml/console/admin"  at "../lib/admin.xql";
+import module namespace bin = "http://expath.org/ns/ml/console/binary" at "../lib/binary.xql";
+import module namespace t   = "http://expath.org/ns/ml/console/tools"  at "../lib/tools.xql";
+import module namespace v   = "http://expath.org/ns/ml/console/view"   at "../lib/view.xql";
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
@@ -178,13 +179,17 @@ declare function local:page--doc($db as element(a:database))
          let $doc := fn:doc($path)
          let $id  := fn:generate-id($doc)
          return
-            if ( fn:exists($doc/*) ) then (
+            if ( bin:is-json($doc/node()) ) then (
+               v:edit-json($doc, $id, $path, $db-root)
+            )
+            else if ( fn:exists($doc/*) ) then (
                v:edit-xml($doc, $id, $path, $db-root)
             )
             else if ( fn:exists($doc/text()) and fn:empty($doc/node()[2]) ) then (
                (: TODO: Use the internal MarkLogic way to recognize XQuery modules? :)
                let $mode := ( 'xquery'[fn:matches($path, '\.xq[ylm]?$')],
                               'javascript'[fn:ends-with($path, '.sjs')],
+                              'json'[fn:ends-with($path, '.json')],
                               'text' )[1]
                return
                   v:edit-text($doc/text(), $mode, $id, $path, $db-root)
