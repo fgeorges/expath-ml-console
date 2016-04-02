@@ -31,7 +31,7 @@ declare function local:page($id as xs:string, $src as xs:string, $root as xs:str
                            $file,
                            fn:false()))
 :)
-         let $mod := xqp:parse($src, proj:get-source($id, $src))
+         let $mod := xqp:parse($src, proj:project($id) ! proj:source(., $src))
          return
             xdmp:xslt-invoke('xsl/module-to-html.xsl', $mod)
       }

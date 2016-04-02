@@ -27,7 +27,7 @@ declare function local:page() as element()+
    <div xmlns="http://www.w3.org/1999/xhtml"> {
    <p>Module:</p>,
    <pre> {
-      proj:get-source('hello-world', 'hello.xq')
+      proj:project('hello-world') ! proj:source(., 'hello.xq')
    }
    </pre>,
    <p>xqdc:parse-Comments fails this one:</p>,
@@ -83,28 +83,28 @@ declare function local:page() as element()+
    <pre> {
       xdmp:quote(
          local:parse(
-            proj:get-source('hello-world', 'hello.xq')))
+            proj:project('hello-world') ! proj:source(., 'hello.xq')))
    }
    </pre>,
    <p>Parser:</p>,
    <pre> {
       xdmp:quote(
          parser:parse(
-            proj:get-source('hello-world', 'hello.xq')))
+            proj:project('hello-world') ! proj:source(., 'hello.xq')))
    }
    </pre>,
    <p>Original parser:</p>,
    <pre> {
       xdmp:quote(
          p:parse-XQuery(
-            proj:get-source('hello-world', 'hello.xq')))
+            proj:project('hello-world') ! proj:source(., 'hello.xq')))
    }
    </pre>,
    <p>XQD parser:</p>,
    <pre> {
       xdmp:quote(
          xqd:parse(
-            proj:get-source('hello-world', 'hello.xq')))
+            proj:project('hello-world') ! proj:source(., 'hello.xq')))
    }
    </pre>,
    <p>XQD parser, simpler case:</p>,

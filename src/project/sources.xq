@@ -13,7 +13,9 @@ declare function local:page() as element()+
    return (
       <p>Back to { v:proj-link('../' || $id, $id) }</p>,
       <ul> {
-         proj:get-sources($id) ! <li><a href="src/{ . }">{ . }</a></li>
+         proj:project($id)
+            ! proj:sources(.)
+            ! <li><a href="src/{ . }">{ . }</a></li>
       }
       </ul>
    )

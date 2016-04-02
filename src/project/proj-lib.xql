@@ -49,14 +49,30 @@ declare function proj:init-console()
 };
 
 (:~
+ : The collection for project descriptors.
+ :)
+declare variable $proj:projects-coll := 'http://expath.org/ml/console/projects';
+
+(:~
+ : All project descriptors.
+ : 
+ : @return A sequence of project elements.
+ :)
+declare function proj:projects()
+   as element(mlc:project)*
+{
+   fn:collection($proj:projects-coll)/mlc:project
+};
+
+(:~
  : The ID of all projects.
  : 
  : @return A sequence of IDs.
  :)
-declare function proj:get-project-ids()
+declare function proj:project-ids()
    as xs:string*
 {
-   fn:doc($proj:config-uri)/mlc:console/mlc:projects/mlc:project/@id
+   proj:projects()/@id
 };
 
 (:~
@@ -64,10 +80,10 @@ declare function proj:get-project-ids()
  : 
  : @param id The ID of the project to return the config for.
  :)
-declare function proj:get-config($id as xs:string)
+declare function proj:project($id as xs:string)
    as element(mlc:project)?
 {
-   fn:doc($proj:config-uri)/mlc:console/mlc:projects/mlc:project[@id eq $id]
+   proj:projects()[@id eq $id]
 };
 
 (:~
@@ -79,61 +95,64 @@ declare function proj:get-config($id as xs:string)
  : `xproject`, itself containing a file `project.xml`.
  : 
  : @todo Make more checks (does the dir exist, etc.)
+ : 
+ : @todo Specific to XProject projects now, to generalize.
  :)
 declare function proj:add-config($id as xs:string, $dir as xs:string)
    as empty-sequence()
 {
-   let $parent := fn:doc($proj:config-uri)/mlc:console/mlc:projects
-   return
-      if ( fn:exists($parent/mlc:project[@id eq $id]) ) then
-         t:error('project-exists', 'There is already a project with the ID: ' || $id)
-      else
-         xdmp:node-insert-child($parent,
-            <project id="{ $id }" xmlns="http://expath.org/ns/ml/console">
-               <dir>{ $dir }</dir>
-            </project>)
+   if ( fn:exists(proj:project($id)) ) then
+      t:error('project-exists', 'There is already a project with the ID: ' || $id)
+   else
+      xdmp:document-insert(
+         'http://expath.org/ml/console/project/' || $id || '.xml',
+         <project id="{ $id }" type="xproject" xmlns="http://expath.org/ns/ml/console">
+            <dir>{ $dir }</dir>
+         </project>,
+         ( (:permissions:) ),
+         $proj:projects-coll)
 };
 
-declare function proj:get-directory($id as xs:string)
-   as xs:string?
+declare function proj:directory($proj as element(mlc:project))
+   as xs:string
 {
-   proj:get-config($id)/mlc:dir
+   $proj/mlc:dir
 };
 
-declare function proj:get-descriptor($id as xs:string)
+declare function proj:descriptor($proj as element(mlc:project))
    as element(xp:project)?
 {
-   proj:get-directory($id)
+   proj:directory($proj)
       ! a:get-from-directory(., 'xproject/project.xml', fn:true())
       / *
 };
 
-declare function proj:get-readme($id as xs:string)
+declare function proj:readme($proj as element(mlc:project))
    as text()?
 {
-   proj:get-directory($id)
+   proj:directory($proj)
       ! a:get-from-directory(., 'README.md', fn:false())
 };
 
-declare function proj:get-source($id as xs:string, $src as xs:string)
-   as text()
+declare function proj:source($proj as element(mlc:project), $src as xs:string)
+   as text()?
 {
-   proj:get-directory($id)
+   proj:directory($proj)
       ! a:get-from-directory(. || 'src/', $src, fn:false())
 };
 
-declare function proj:get-sources($id as xs:string)
+declare function proj:sources($proj as element(mlc:project))
    as xs:string*
 {
-   proj:get-directory($id)
-      ! proj:get-sources-1(. || 'src/')
+   proj:directory($proj)
+      ! proj:sources-1(. || 'src/')
 };
 
 (: TODO: Store the module extension in xproject/marklogic.xml.
  :)
 declare variable $exts := ('xq', 'xql', 'xqy', 'xqm');
 
-declare function proj:get-sources-1($dir as xs:string)
+declare function proj:sources-1($dir as xs:string)
    as xs:string*
 {
    a:browse-files($dir, function($file as xs:string) as xs:string? {

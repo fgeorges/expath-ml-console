@@ -10,15 +10,16 @@ declare namespace mlc  = "http://expath.org/ns/ml/console";
 declare namespace xp   = "http://expath.org/ns/project";
 declare namespace xdmp = "http://marklogic.com/xdmp";
 
-declare function local:page($id as xs:string, $read as xs:string?) as element()+
+declare function local:page($proj as element(mlc:project), $read as xs:string?) as element()+
 {
-   let $proj := proj:get-descriptor($id)
+   let $id   := xs:string($proj/@id)
+   let $desc := proj:descriptor($proj)
    return
-      if ( fn:empty($proj) ) then (
+      if ( fn:empty($desc) ) then (
          <p>No such project, with ID <code>{ $id }</code>.</p>
       )
       else (
-         <p>{ v:proj-link($id, $id) } - { xs:string($proj/xp:title) }.</p>,
+         <p>{ v:proj-link($id, $id) } - { xs:string($desc/xp:title) }.</p>,
          <ul>
             <li><a href="{ $id }/src">Sources</a></li>
             <li><a href="{ $id }/checkup">Check up</a></li>
@@ -34,11 +35,12 @@ declare function local:page($id as xs:string, $read as xs:string?) as element()+
 };
 
 let $id   := t:mandatory-field('id')
-let $read := proj:get-readme($id)
+let $proj := proj:project($id)
+let $read := proj:readme($proj)
 return
    v:console-page('../', 'project', t:exists($read, '', 'Project'),
       function () {
-         local:page($id, $read)
+         local:page($proj, $read)
       },
       (v:import-javascript('../js/', ('marked.min.js', 'highlight/highlight.pack.js')),
        <script type="text/javascript">

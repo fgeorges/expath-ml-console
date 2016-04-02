@@ -59,12 +59,13 @@ declare function local:page-1(
 ) as element()+
 {
    let $proj := $projects[@id eq $id]
-   let $desc := proj:get-descriptor($id)
+   let $desc := proj:descriptor($proj)
+   let $dir  := proj:directory($proj)
    return (
       <p>Project element: { local:one($proj) }</p>,
-      <p>Project dir: { $proj/mlc:dir ! local:string(., a:file-exists(.)) }</p>,
+      <p>Project dir: { $dir ! local:string(., a:file-exists(.)) }</p>,
       <p>Project file: {
-          local:string($proj/mlc:dir || 'xproject/project.xml', fn:exists($desc))
+          local:string($dir || 'xproject/project.xml', fn:exists($desc))
       } </p>,
       <p>Title: { local:string($desc/xp:title) }</p>
    )

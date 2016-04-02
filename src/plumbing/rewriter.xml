@@ -221,9 +221,6 @@ TODO: Just temporary, to use this code from somewhere, during development...
    <match-path matches="^/project/_/sandbox$">
       <dispatch>/project/sandbox.xq</dispatch>
    </match-path>
-   <match-path matches="^/project/_/init-console$">
-      <dispatch>/project/init-console.xq</dispatch>
-   </match-path>
    <match-path matches="^/project/_/add-xproject$">
       <dispatch>/project/xproject/add.xq</dispatch>
    </match-path>
