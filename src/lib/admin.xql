@@ -382,28 +382,61 @@ declare function a:get-from-directory(
 (:~
  : Create a document on the filesystem.
  :
- : $file the absolute path of the file
- : $doc the document to save, either a document, an element or a text node
+ : @param $file the absolute path of the file.
+ : @param $doc the document to save, either a document, an element or a text node.
  :
- : The return value is the path of the document created.
+ : @return The path of the document created.
  :)
 declare function a:insert-into-filesystem(
    $file as xs:string,
    $doc  as node()
 ) as xs:string
 {
+   a:insert-into-filesystem($file, $doc, ())
+};
+
+(:~
+ : Create a document on the filesystem.
+ : 
+ : Options supported:
+ :
+ : - `indent`: indent the XML when serialized to the file.
+ : 
+ : @param $file The absolute path of the file.
+ : @param $doc The document to save, either a document, an element or a text node.
+ : @param $options The options supported are described above.
+ :
+ : @return The path of the document created.
+ :)
+declare function a:insert-into-filesystem(
+   $file    as xs:string,
+   $doc     as node(),
+   $options as xs:string*
+) as xs:string
+{
    t:ensure-dir(t:dirname($file)),
-   xdmp:save($file, $doc),
+   xdmp:save($file, $doc,
+      <options xmlns="xdmp:save"> {
+         for $o in $options return
+            switch ( $o )
+               case 'indent' return (
+                  <indent>yes</indent>,
+                  <indent-untyped>yes</indent-untyped>
+               )
+               default return (
+                  t:error('not-supported', 'Option not supported: ' || $o)
+               )
+      }
+      </options>),
    $file
 };
 
 (:~
  : Create a document on the filesystem.
- :
- : The path of the document is the relative $file path resolved in the
- : absolute $dir (which must end with a '/').
- :
- : The return value is the path of the document created.
+ : 
+ : Same as `a:insert-into-filesystem#2`, except the file path is given as a
+ : directory path and a file path relative to it (the directory one must end
+ : with a '/').
  :)
 declare function a:insert-into-directory(
    $dir  as xs:string,
@@ -412,6 +445,23 @@ declare function a:insert-into-directory(
 ) as xs:string
 {
    a:insert-into-filesystem($dir || $file, $doc)
+};
+
+(:~
+ : Create a document on the filesystem.
+ : 
+ : Same as `a:insert-into-filesystem#3`, except the file path is given as a
+ : directory path and a file path relative to it (the directory one must end
+ : with a '/').
+ :)
+declare function a:insert-into-directory(
+   $dir     as xs:string,
+   $file    as xs:string,
+   $doc     as node(),
+   $options as xs:string*
+) as xs:string
+{
+   a:insert-into-filesystem($dir || $file, $doc, $options)
 };
 
 (:~
