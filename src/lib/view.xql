@@ -120,17 +120,10 @@ declare function v:console-page(
    $scripts as element(h:script)*
 ) as element(h:html)
 {
-   let $cnt   := v:eval-content($content)
-   let $pres  := $cnt/descendant-or-self::h:pre
-   let $codes := $pres[fn:tokenize(@class, '\s+') = ('code', 'editor')]
+   let $cnt  := v:eval-content($content)
+   let $pres := $cnt/descendant-or-self::h:pre
    return
-      v:console-page-static(
-         $root,
-         $page,
-         $title,
-         $cnt,
-         $scripts,
-         fn:exists($codes))
+      v:console-page-static($root, $page, $title, $cnt, $scripts)
 };
 
 (:~
@@ -168,8 +161,7 @@ declare %private function v:console-page-static(
    $page    as xs:string,
    $title   as xs:string,
    $content as element()+,
-   $scripts as element(h:script)*,
-   $codes   as xs:boolean
+   $scripts as element(h:script)*
 ) as element(h:html)
 {
    <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
@@ -289,10 +281,13 @@ declare function v:display-xml(
 (:~
  : Format a `pre` element containing some XML, and turn it into an editor.
  :
- : $elem: the element to serialize and display in the editor
- : $uri: the URI (in the database) of the document being edited
- : $endpoint: the endpoint on MarkLogic to save the document (must accept POST
- :     requests, with a field "uri" for the doc URI and "doc" for the content)
+ : @param $elem The element to serialize and display in the editor.
+ : 
+ : @param $id The ID to use on the page (in HTML) for the editor.
+ : 
+ : @param $uri The URI (in the database) of the document being edited.
+ : 
+ : @param $top The relative reference to the top, for breadcrums.
  :)
 declare function v:edit-xml(
    $elem as node(),
@@ -301,18 +296,23 @@ declare function v:edit-xml(
    $top  as xs:string
 ) as element()+
 {
-   v:ace-editor-xml($elem, 'editor', 'xml', $id, $uri, $top, '250pt'),
-   <button class="btn btn-default" onclick='saveDoc("{ $id }", "doc");'>Save</button>,
-   <button class="btn btn-danger pull-right" onclick='deleteDoc("{ $id }");'>Delete</button>,
-   <form method="POST" action="{ $top }delete" style="display: none" id="{ $id }-delete">
-      <input type="hidden" name="doc"        value="{ $uri }"/>
-      <input type="hidden" name="back-label" value="the directory"/>
-      <input type="hidden" name="back-url"   value="browse{
-         '/'[fn:not(fn:starts-with($uri, '/'))]
-      }{
-         fn:string-join(fn:tokenize($uri, '/')[fn:position() lt fn:last()], '/')
-      }/"/>
-   </form>
+   v:edit-node($elem, 'xml', 'xml', $id, $uri, $top)
+};
+
+(:~
+ : Like v:edit-xml(), but for JSON.
+ :
+ : For editing "attached" text (attached to a document in the database, so with
+ : a URI).
+ :)
+declare function v:edit-json(
+   $json as node(),
+   $id   as xs:string,
+   $uri  as xs:string,
+   $top  as xs:string
+) as element()+
+{
+   v:edit-node($json, 'json', 'json', $id, $uri, $top)
 };
 
 (:~
@@ -353,15 +353,33 @@ declare function v:edit-text(
  : a URI).
  :)
 declare function v:edit-text(
-   $elem as text(),
+   $text as text(),
    $mode as xs:string,
    $id   as xs:string,
    $uri  as xs:string,
    $top  as xs:string
 ) as element()+
 {
-   v:ace-editor-xml($elem, 'editor', $mode, $id, $uri, $top, '250pt'),
-   <button class="btn btn-default" onclick='saveDoc("{ $id }", "text");'>Save</button>,
+   v:edit-node($text, $mode, 'text', $id, $uri, $top)
+};
+
+(:~
+ : Implementation of v:edit-xml() and v:edit-text().
+ :
+ : For editing "attached" nodes (attached to a document in the database, so with
+ : a URI).
+ :)
+declare function v:edit-node(
+   $node as node(),
+   $mode as xs:string,
+   $type as xs:string,
+   $id   as xs:string,
+   $uri  as xs:string,
+   $top  as xs:string
+) as element()+
+{
+   v:ace-editor-xml($node, 'editor', $mode, $id, $uri, $top, '250pt'),
+   <button class="btn btn-default" onclick='saveDoc("{ $id }", "{ $type }");'>Save</button>,
    <button class="btn btn-danger pull-right" onclick='deleteDoc("{ $id }");'>Delete</button>,
    <form method="POST" action="{ $top }delete" style="display: none" id="{ $id }-delete">
       <input type="hidden" name="doc"        value="{ $uri }"/>
