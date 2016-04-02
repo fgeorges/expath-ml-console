@@ -1,9 +1,9 @@
 xquery version "3.0";
 
-import module namespace proj = "http://expath.org/ns/ml/console/project" at "proj-lib.xql";
-import module namespace a    = "http://expath.org/ns/ml/console/admin"   at "../lib/admin.xql";
-import module namespace t    = "http://expath.org/ns/ml/console/tools"   at "../lib/tools.xql";
-import module namespace v    = "http://expath.org/ns/ml/console/view"    at "../lib/view.xql";
+import module namespace proj = "http://expath.org/ns/ml/console/project" at "../proj-lib.xql";
+import module namespace a    = "http://expath.org/ns/ml/console/admin"   at "../../lib/admin.xql";
+import module namespace t    = "http://expath.org/ns/ml/console/tools"   at "../../lib/tools.xql";
+import module namespace v    = "http://expath.org/ns/ml/console/view"    at "../../lib/view.xql";
 
 declare namespace err   = "http://www.w3.org/2005/xqt-errors";
 declare namespace error = "http://marklogic.com/xdmp/error";

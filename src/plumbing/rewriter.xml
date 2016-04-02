@@ -224,10 +224,10 @@ TODO: Just temporary, to use this code from somewhere, during development...
    <match-path matches="^/project/_/init-console$">
       <dispatch>/project/init-console.xq</dispatch>
    </match-path>
-   <match-path matches="^/project/_/add$-xproject">
+   <match-path matches="^/project/_/add-xproject$">
       <dispatch>/project/xproject/add.xq</dispatch>
    </match-path>
-   <match-path matches="^/project/_/create$-xproject">
+   <match-path matches="^/project/_/create-xproject$">
       <dispatch>/project/xproject/create.xq</dispatch>
    </match-path>
    <match-path matches="^/project$">
