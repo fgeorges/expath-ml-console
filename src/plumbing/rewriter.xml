@@ -72,7 +72,7 @@
       <add-query-param name="id">$1</add-query-param>
       <dispatch>/database/classes.xq</dispatch>
    </match-path>
-   <match-path matches="^/db/([0-9]+)/save-doc$">
+   <match-path matches="^/db/([0-9]+)/save-xml$">
       <add-query-param name="id">$1</add-query-param>
       <add-query-param name="type">xml</add-query-param>
       <dispatch>/database/save-doc.xq</dispatch>

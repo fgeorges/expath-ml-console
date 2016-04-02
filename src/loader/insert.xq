@@ -85,7 +85,7 @@ declare function local:handle-file($file as item())
             v:redirect(
                '../db/' || $db || '/browse'
                || '/'[fn:not(fn:starts-with($res, '/'))]
-               || fn:string-join(fn:tokenize($res, '/') ! fn:encode-for-uri(.), '/'))
+               || $res)
          else
             <p>File succesfully inserted at <code>{ $res }</code> as { $format }.</p>
 };

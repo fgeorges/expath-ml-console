@@ -25,9 +25,6 @@ declare function i:handle-file(
    $override as xs:boolean
 ) as xs:string?
 {
-               
-   let $prefix   := fn:string-join(fn:tokenize($prefix, '/') ! fn:encode-for-uri(.), '/')
-   let $uri      := fn:string-join(fn:tokenize($uri, '/') ! fn:encode-for-uri(.), '/')
    let $doc-uri  :=
          if ( fn:starts-with($uri, '/') or fn:starts-with($uri, 'http://') ) then
             $uri
