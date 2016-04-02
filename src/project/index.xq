@@ -13,7 +13,6 @@ declare namespace xdmp = "http://marklogic.com/xdmp";
 declare function local:page() as element()+
 {
    if ( proj:is-console-init() ) then (
-      <h3>List</h3>,
       <p>The projects on this system.</p>,
       <ul> {
          let $ids := proj:get-project-ids()
@@ -27,22 +26,33 @@ declare function local:page() as element()+
                   <li>{ v:proj-link('project/' || $id, $id) } - { $title }</li>
       }
       </ul>,
-      <h3>Add</h3>,
-      <p>Add an existing project.</p>,
-      v:form('project/_/add', (
+      <h3>XProject</h3>,
+      <p>XProject is a simple project structure for XQuery- and XSLT-based projects.  It is based on
+         simple conventions, like a directory <code>src/</code>, a directory <code>xproject/</code>,
+         and a project descriptor in <code>xproject/project.xml</code>.</p>,
+      <h4>Add</h4>,
+      <p>Add an existing XProject project.</p>,
+      v:form('project/_/add-xproject', (
          v:input-text('id',  'ID',        'The ID of the project (default to the project abbrev)'),
          v:input-text('dir', 'Directory', 'Absolute path to the project directory'),
          v:submit('Add'))),
-      <h3>Create</h3>,
-      <p>Create a new project.</p>,
-      v:form('project/_/create', (
+      <h4>Create</h4>,
+      <p>Create a new XProject project.</p>,
+      v:form('project/_/create-xproject', (
          v:input-text('id',      'ID',        'The ID of the project (default to the project abbrev)'),
          v:input-text('dir',     'Directory', 'Absolute path where to create the project directory'),
          v:input-text('name',    'Name',      'Project full name (a unique URI)'),
          v:input-text('abbrev',  'Abbrev',    'Project abbreviation'),
          v:input-text('version', 'Version',   'Version number (using SemVer)'),
          v:input-text('title',   'Title',     'Project title'),
-         v:submit('Create')))
+         v:submit('Create'))),
+      <h3>Source directories</h3>,
+      <p>The projects based on XProject are fully supported in the Console.  But if you projects
+         are not following the same conventions, you can still add their source directories here.
+         This will allow you to use simplest features, like browsing and displaying their XQDoc
+         comments.</p>,
+      <h4>Add</h4>,
+      <p>Add an existing source directory.</p>
    )
    else (
       (: TODO: Move this init process and button somewhere in the Tools area. :)

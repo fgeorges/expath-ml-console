@@ -74,11 +74,17 @@
    </match-path>
    <match-path matches="^/db/([0-9]+)/save-doc$">
       <add-query-param name="id">$1</add-query-param>
+      <add-query-param name="type">xml</add-query-param>
+      <dispatch>/database/save-doc.xq</dispatch>
+   </match-path>
+   <match-path matches="^/db/([0-9]+)/save-json$">
+      <add-query-param name="id">$1</add-query-param>
+      <add-query-param name="type">json</add-query-param>
       <dispatch>/database/save-doc.xq</dispatch>
    </match-path>
    <match-path matches="^/db/([0-9]+)/save-text$">
       <add-query-param name="id">$1</add-query-param>
-      <add-query-param name="text">true</add-query-param>
+      <add-query-param name="type">text</add-query-param>
       <dispatch>/database/save-doc.xq</dispatch>
    </match-path>
    <match-path matches="^/db/([0-9]+)/delete$">
@@ -218,11 +224,11 @@ TODO: Just temporary, to use this code from somewhere, during development...
    <match-path matches="^/project/_/init-console$">
       <dispatch>/project/init-console.xq</dispatch>
    </match-path>
-   <match-path matches="^/project/_/add$">
-      <dispatch>/project/add.xq</dispatch>
+   <match-path matches="^/project/_/add$-xproject">
+      <dispatch>/project/xproject/add.xq</dispatch>
    </match-path>
-   <match-path matches="^/project/_/create$">
-      <dispatch>/project/create.xq</dispatch>
+   <match-path matches="^/project/_/create$-xproject">
+      <dispatch>/project/xproject/create.xq</dispatch>
    </match-path>
    <match-path matches="^/project$">
       <dispatch>/project/index.xq</dispatch>
