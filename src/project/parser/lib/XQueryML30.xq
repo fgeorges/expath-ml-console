@@ -2734,7 +2734,7 @@ declare function p:transition($input as xs:string,
                               $end as xs:integer,
                               $result as xs:integer,
                               $current-state as xs:integer,
-                              $previous-state as xs:integer) as xs:integer+
+                              $previous-state as xs:integer) (:as xs:integer+:)
 {
   if ($current-state = 0) then
     let $result := $result idiv 4096
