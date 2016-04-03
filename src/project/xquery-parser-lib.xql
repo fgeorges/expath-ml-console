@@ -78,11 +78,6 @@ declare function xqp:parse($href as xs:string, $module as xs:string)
    </module>
 };
 
-declare function xqp:DEBUG-parse-1($module as xs:string)
-{
-   xqp:parse-1($module)
-};
-
 (:~
  : Impementation of `xqp:parse#1`.  Return "*raw*" components.
  :)
