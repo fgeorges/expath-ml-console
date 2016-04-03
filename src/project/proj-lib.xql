@@ -98,19 +98,38 @@ declare function proj:project($id as xs:string)
  : 
  : @todo Specific to XProject projects now, to generalize.
  :)
-declare function proj:add-config($id as xs:string, $dir as xs:string)
+declare function proj:add-config($id as xs:string, $type as xs:string, $info as element()*)
    as empty-sequence()
 {
-   if ( fn:exists(proj:project($id)) ) then
-      t:error('project-exists', 'There is already a project with the ID: ' || $id)
-   else
-      xdmp:document-insert(
-         'http://expath.org/ml/console/project/' || $id || '.xml',
-         <project id="{ $id }" type="xproject" xmlns="http://expath.org/ns/ml/console">
-            <dir>{ $dir }</dir>
-         </project>,
-         ( (:permissions:) ),
-         $proj:projects-coll)
+   let $uri := 'http://expath.org/ml/console/project/' || $id || '.xml'
+   return
+      if ( fn:exists(proj:project($id)) ) then
+         t:error('project-exists', 'There is already a project with the ID: ' || $id)
+      else if ( fn:doc-available($uri) ) then
+         t:error('inconsistent',
+            'No project with the ID: ' || $id || ', but the project file exists at: ' || $uri)
+      else
+         xdmp:document-insert(
+            $uri,
+            <project id="{ $id }" type="{ $type }" xmlns="http://expath.org/ns/ml/console"> {
+               $info
+            }
+            </project>,
+            ( (:permissions:) ),
+            $proj:projects-coll)
+};
+
+(:~
+ : A key/value pair to be added to a project config file.
+ : 
+ : @param name The key, used to construct an element with that name.  Must be a valid NCName.
+ : 
+ : @param value The value, used as the text content of the new element.
+ :)
+declare function proj:config-key-value($name as xs:string, $value as xs:string)
+   as element()
+{
+   element { fn:QName('http://expath.org/ns/ml/console', $name) } { $value }
 };
 
 declare function proj:directory($proj as element(mlc:project))
@@ -144,6 +163,9 @@ declare function proj:source($proj as element(mlc:project), $src as xs:string)
 declare function proj:sources($proj as element(mlc:project))
    as xs:string*
 {
+(:
+    TODO: This is specific to projects of type `xproject` (because of the "|| 'src/'"...)
+:)
    proj:directory($proj)
       ! proj:sources-1(. || 'src/')
 };

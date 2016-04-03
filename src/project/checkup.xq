@@ -5,10 +5,12 @@ import module namespace a    = "http://expath.org/ns/ml/console/admin"   at "../
 import module namespace t    = "http://expath.org/ns/ml/console/tools"   at "../lib/tools.xql";
 import module namespace v    = "http://expath.org/ns/ml/console/view"    at "../lib/view.xql";
 
-declare default element namespace "http://www.w3.org/1999/xhtml";
+import module namespace srcdir   = "http://expath.org/ns/ml/console/project/srcdir/checkup"
+   at "srcdir/checkup.xql";
+import module namespace xproject = "http://expath.org/ns/ml/console/project/xproject/checkup"
+   at "xproject/checkup.xql";
 
-declare namespace mlc = "http://expath.org/ns/ml/console";
-declare namespace xp  = "http://expath.org/ns/project";
+declare default element namespace "http://www.w3.org/1999/xhtml";
 
 declare function local:one($seq as item()*) as element()
 {
@@ -26,14 +28,9 @@ declare function local:exists($seq as item()*) as element()
       <span class="label alert-danger">empty</span>
 };
 
-declare function local:string($item as item()?) as element()
+declare function local:string($item as item()?, $exists as xs:boolean) as element()
 {
-   local:string($item, fn:exists($item))
-};
-
-declare function local:string($item as item()?, $ok as xs:boolean) as element()
-{
-   if ( $ok ) then
+   if ( $exists ) then
       <span class="label alert-success">{ xs:string($item) }</span>
    else
       <span class="label alert-danger">empty</span>
@@ -41,33 +38,19 @@ declare function local:string($item as item()?, $ok as xs:boolean) as element()
 
 declare function local:page() as element()+
 {
-   let $id       := t:mandatory-field('id')
-   let $conf     := fn:doc('http://expath.org/ml/console/config.xml')
-   let $projects := $conf/mlc:console/mlc:projects/mlc:project
+   let $id   := t:mandatory-field('id')
+   let $proj := proj:project($id)
    return (
       <p>Back to { v:proj-link('../' || $id, $id) }</p>,
-      <p>Console config file: { local:one($conf) }</p>,
-      <p>Config root element: { local:one($conf/mlc:console) }</p>,
-      <p>Project elements: { local:exists($projects) }</p>,
-      if ( fn:exists($projects) ) then local:page-1($id, $projects) else ()
-   )
-};
-
-declare function local:page-1(
-   $id       as xs:string, 
-   $projects as element(mlc:project)+
-) as element()+
-{
-   let $proj := $projects[@id eq $id]
-   let $desc := proj:descriptor($proj)
-   let $dir  := proj:directory($proj)
-   return (
       <p>Project element: { local:one($proj) }</p>,
-      <p>Project dir: { $dir ! local:string(., a:file-exists(.)) }</p>,
-      <p>Project file: {
-          local:string($dir || 'xproject/project.xml', fn:exists($desc))
-      } </p>,
-      <p>Title: { local:string($desc/xp:title) }</p>
+      if ( $proj/@type eq 'srcdir' ) then
+         srcdir:page($id, $proj, local:one#1, local:exists#1, local:string#2)
+      else if ( $proj/@type eq 'xproject' ) then
+         xproject:page($id, $proj, local:one#1, local:exists#1, local:string#2)
+      else if ( fn:exists($proj) ) then
+         t:error('unknown', 'Unknown type of project: ' || $proj/@type)
+      else
+         ()
    )
 };
 

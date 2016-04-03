@@ -21,9 +21,9 @@ declare function local:page() as element()+
          else
             for $proj  in $projects
             let $id    := xs:string($proj/@id)
-            let $title := proj:descriptor($proj)/xs:string(xp:title)
+            let $title := proj:descriptor($proj)/xs:string(xp:title) ! (' - ' || .)
             return
-               <li>{ v:proj-link('project/' || $id, $id) } - { $title }</li>
+               <li>{ v:proj-link('project/' || $id, $id) }{ $title }</li>
    }
    </ul>,
    <h3>XProject</h3>,
@@ -52,7 +52,11 @@ declare function local:page() as element()+
       This will allow you to use simplest features, like browsing and displaying their XQDoc
       comments.</p>,
    <h4>Add</h4>,
-   <p>Add an existing source directory.</p>
+   <p>Add an existing source directory.</p>,
+   v:form('project/_/add-srcdir', (
+      v:input-text('id',  'ID',        'The ID of the project'),
+      v:input-text('dir', 'Directory', 'Absolute path to the source directory'),
+      v:submit('Add')))
 };
 
 v:console-page('./', 'project', 'Projects', local:page#0)
