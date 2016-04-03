@@ -78,26 +78,35 @@ declare function xqp:parse($href as xs:string, $module as xs:string)
    </module>
 };
 
+declare function xqp:DEBUG-parse-1($module as xs:string)
+{
+   xqp:parse-1($module)
+};
+
 (:~
  : Impementation of `xqp:parse#1`.  Return "*raw*" components.
  :)
 declare %private function xqp:parse-1($module as xs:string)
-   as element((:function|section:))*
+   as element((:function|section|error:))*
 {
-   let $ast   := parser:parse($module)
-   let $mod   := $ast/Module/(LibraryModule|MainModule)
-   for $fun   at $pos in $mod/Prolog/AnnotatedDecl/FunctionDecl
-   let $pivot := if ( $pos eq 1 and $mod[self::MainModule] ) then $fun/../../.. else $fun/..
-   let $comms := $pivot/preceding-sibling::node()[1][self::text()]/xqp:comment(.)
-   let $sects := $comms[section]
-   return (
-      $sects ! <section><head>{ section/node() }</head>{ node() except section }</section>,
-      <function> {
-         $comms except $sects,
-         xqp:signature($fun)
-      }
-      </function>
-   )
+   let $ast := parser:parse($module)
+   return
+      if ( fn:exists($ast/self::ERROR) ) then
+         <error>{ $ast }</error>
+      else
+         let $mod   := $ast/Module/(LibraryModule|MainModule)
+         for $fun   at $pos in $mod/Prolog/AnnotatedDecl/FunctionDecl
+         let $pivot := if ( $pos eq 1 and $mod[self::MainModule] ) then $fun/../../.. else $fun/..
+         let $comms := $pivot/preceding-sibling::node()[1][self::text()]/xqp:comment(.)
+         let $sects := $comms[section]
+         return (
+            $sects ! <section><head>{ section/node() }</head>{ node() except section }</section>,
+            <function> {
+               $comms except $sects,
+               xqp:signature($fun)
+            }
+            </function>
+         )
 };
 
 (:~

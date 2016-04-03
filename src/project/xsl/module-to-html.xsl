@@ -17,6 +17,16 @@
       <xsl:sequence select="error((), concat('Unknown node in toc: ', $path))"/>
    </xsl:template>
 
+   <xsl:template match="module[error]">
+      <p><b>Error</b>: parsing error.</p>
+      <p>The module might be using MarkLogic extensions to XQuery not supported by the parser.
+         <a href="https://github.com/jpcs/xqueryparser.xq/issues/6">Yet</a>...</p>
+      <p>Error returned by the parser:</p>
+      <pre>
+         <xsl:value-of select="xdmp:quote(error/*)"/>
+      </pre>
+   </xsl:template>
+
    <xsl:template match="module">
       <p>Table of contents:</p>
       <xsl:choose>
