@@ -4,6 +4,8 @@ import module namespace proj = "http://expath.org/ns/ml/console/project" at "pro
 import module namespace a    = "http://expath.org/ns/ml/console/admin"   at "../lib/admin.xql";
 import module namespace v    = "http://expath.org/ns/ml/console/view"    at "../lib/view.xql";
 
+import module namespace xproject = "http://expath.org/ns/ml/console/project/xproject" at "xproject-lib.xql";
+
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
 declare namespace mlc  = "http://expath.org/ns/ml/console";
@@ -21,7 +23,8 @@ declare function local:page() as element()+
          else
             for $proj  in $projects
             let $id    := xs:string($proj/@id)
-            let $title := proj:descriptor($proj)/xs:string(xp:title) ! (' - ' || .)
+            (: TODO: Should not use XProject-specific stuff here... :)
+            let $title := xproject:descriptor($proj)/xs:string(xp:title) ! (' - ' || .)
             return
                <li>{ v:proj-link('project/' || $id, $id) }{ $title }</li>
    }
