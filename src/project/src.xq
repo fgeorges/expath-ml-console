@@ -7,7 +7,21 @@ import module namespace a    = "http://expath.org/ns/ml/console/admin"   at "../
 import module namespace t    = "http://expath.org/ns/ml/console/tools"   at "../lib/tools.xql";
 import module namespace v    = "http://expath.org/ns/ml/console/view"    at "../lib/view.xql";
 
+import module namespace srcdir   = "http://expath.org/ns/ml/console/project/srcdir"   at "srcdir-lib.xql";
+import module namespace xproject = "http://expath.org/ns/ml/console/project/xproject" at "xproject-lib.xql";
+
+declare namespace mlc  = "http://expath.org/ns/ml/console";
 declare namespace xdmp = "http://marklogic.com/xdmp";
+
+declare function local:source($proj as element(mlc:project), $src as xs:string) as text()?
+{
+   if ( $proj/@type eq 'srcdir' ) then
+      srcdir:source($proj, $src)
+   else if ( $proj/@type eq 'xproject' ) then
+      xproject:source($proj, $src)
+   else
+      t:error('unknown', 'Unknown type of project: ' || $proj/@type)
+};
 
 declare function local:page($id as xs:string, $src as xs:string, $root as xs:string)
    as element()+
@@ -17,21 +31,7 @@ declare function local:page($id as xs:string, $src as xs:string, $root as xs:str
       <p>In { v:proj-link($root || $id, $id) },
          in <a href="{ $root }{ $id }/src">sources</a>.</p>
       {
-(: DEBUG: Plug one of the Console source file instead of the actual $src... :)
-(:
-         let $file := (
-                  'lib/admin.xql',
-                  'lib/tools.xql',
-                  'project/xquery-parser-lib.xql'
-               )[3]
-         let $mod := xqp:parse(
-                        $file,
-                        a:get-from-directory(
-                           '/Users/fgeorges/projects/expath/ml-console/src/',
-                           $file,
-                           fn:false()))
-:)
-         let $mod := xqp:parse($src, proj:project($id) ! proj:source(., $src))
+         let $mod := xqp:parse($src, proj:project($id) ! local:source(., $src))
          return
             xdmp:xslt-invoke('xsl/module-to-html.xsl', $mod)
       }

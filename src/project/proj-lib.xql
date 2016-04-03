@@ -9,7 +9,6 @@ import module namespace a = "http://expath.org/ns/ml/console/admin" at "../lib/a
 import module namespace t = "http://expath.org/ns/ml/console/tools" at "../lib/tools.xql";
 
 declare namespace mlc  = "http://expath.org/ns/ml/console";
-declare namespace xp   = "http://expath.org/ns/project";
 declare namespace xdmp = "http://marklogic.com/xdmp";
 
 (:~
@@ -138,46 +137,9 @@ declare function proj:directory($proj as element(mlc:project))
    $proj/mlc:dir
 };
 
-declare function proj:descriptor($proj as element(mlc:project))
-   as element(xp:project)?
-{
-   proj:directory($proj)
-      ! a:get-from-directory(., 'xproject/project.xml', fn:true())
-      / *
-};
-
 declare function proj:readme($proj as element(mlc:project))
    as text()?
 {
    proj:directory($proj)
       ! a:get-from-directory(., 'README.md', fn:false())
-};
-
-declare function proj:source($proj as element(mlc:project), $src as xs:string)
-   as text()?
-{
-   proj:directory($proj)
-      ! a:get-from-directory(. || 'src/', $src, fn:false())
-};
-
-declare function proj:sources($proj as element(mlc:project))
-   as xs:string*
-{
-(:
-    TODO: This is specific to projects of type `xproject` (because of the "|| 'src/'"...)
-:)
-   proj:directory($proj)
-      ! proj:sources-1(. || 'src/')
-};
-
-(: TODO: Store the module extension in xproject/marklogic.xml.
- :)
-declare variable $exts := ('xq', 'xql', 'xqy', 'xqm');
-
-declare function proj:sources-1($dir as xs:string)
-   as xs:string*
-{
-   a:browse-files($dir, function($file as xs:string) as xs:string? {
-      fn:substring-after($file, $dir)[fn:tokenize(., '\.')[fn:last()] = $exts]
-   })
 };
