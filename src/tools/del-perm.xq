@@ -61,7 +61,7 @@ declare function local:page()
                || fn:string-join(fn:tokenize($uri, '/') ! fn:encode-for-uri(.), '/'))
          )
          else (
-            <p>Permission "<code>{ $capability }</code>" successfully added to
+            <p>Permission "<code>{ $capability }</code>" successfully removed from
                "<code>{ $uri }</code>" for "<code>{ $role }</code>".</p>,
             <p>Back to <a href="docs">document manager</a>.</p>
          )
