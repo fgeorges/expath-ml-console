@@ -47,7 +47,7 @@ declare function a:database-id($db as item()) as xs:unsignedLong
 (:~
  : Invoke the function on the given database.
  :)
-declare function a:query-on-database(
+declare function a:query-database(
    $db  as item(),
    $fun as function() as item()*
 ) as item()*
@@ -62,7 +62,7 @@ declare function a:query-on-database(
 (:~
  : Invoke the function on the given database, in update transaction mode.
  :)
-declare function a:update-on-database(
+declare function a:update-database(
    $db  as item(),
    $fun as function() as item()*
 ) as item()*
@@ -71,7 +71,7 @@ declare function a:update-on-database(
       $fun,
       <options xmlns="xdmp:eval">
          <database>{ a:database-id($db) }</database>
-         <transaction-mode>update</transaction-mode>
+         <transaction-mode>update-auto-commit</transaction-mode>
       </options>)
 };
 

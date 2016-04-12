@@ -72,7 +72,7 @@ let $type := t:mandatory-field('type')
 let $id   := t:mandatory-field('id')
 let $db   := xs:unsignedLong($id)
 return (
-   a:update-on-database($db, function() {
+   a:update-database($db, function() {
       local:save($uri, $doc, $type)
    }),
    'Document saved in DB ' || xdmp:database-name($db) || ', at ' || $uri

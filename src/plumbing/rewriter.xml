@@ -191,6 +191,12 @@
    <match-path matches="^/tools/browse-classes$">
       <dispatch>/tools/browse-classes.xq</dispatch>
    </match-path>
+   <match-path matches="^/tools/add-coll$">
+      <dispatch>/tools/add-coll.xq</dispatch>
+   </match-path>
+   <match-path matches="^/tools/del-coll$">
+      <dispatch>/tools/del-coll.xq</dispatch>
+   </match-path>
    <match-path matches="^/tools/add-perm$">
       <dispatch>/tools/add-perm.xq</dispatch>
    </match-path>

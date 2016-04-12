@@ -153,18 +153,6 @@ declare function local:page--doc($db as element(a:database))
                   </td>
                </tr>
                <tr>
-                  <td>Collections</td>
-                  <td> {
-                     for $c in xdmp:document-get-collections($path)
-                     return
-                        <p style="margin-bottom: 5px"> {
-                           v:coll-link($db-root || 'colls?coll=' || fn:encode-for-uri($c), $c)
-                        }
-                        </p>
-                  }
-                  </td>
-               </tr>
-               <tr>
                   <td>Forest</td>
                   <td>{ xdmp:forest-name(xdmp:document-forest($path)) }</td>
                </tr>
@@ -205,6 +193,46 @@ declare function local:page--doc($db as element(a:database))
                </button>
                :)
             ),
+
+         <h3>Collections</h3>,
+         let $colls := xdmp:document-get-collections($path)
+         return
+            if ( fn:empty($colls) ) then
+               <p>This document is not part of any collection.</p>
+            else
+               <table class="table table-bordered">
+                  <thead>
+                     <th>Collection</th>
+                     <th>Remove</th>
+                  </thead>
+                  <tbody> {
+                     for $c in $colls
+                     order by $c
+                     return
+                        <tr>
+                           <td>{ v:coll-link($db-root || 'colls?coll=' || fn:encode-for-uri($c), $c) }</td>
+                           <td> {
+                              v:inline-form($webapp-root || 'tools/del-coll', (
+                                 v:input-hidden('collection', $c),
+                                 v:input-hidden('uri', $path),
+                                 v:input-hidden('database', $db/@id),
+                                 v:input-hidden('redirect', 'true'),
+                                 (: TODO: Replace with a Bootstrap character icon... :)
+                                 v:submit('Remove')))
+                           }
+                           </td>
+                        </tr>
+                  }
+                  </tbody>
+               </table>,
+
+         v:form($webapp-root || 'tools/add-coll', (
+            v:input-text('collection', 'Add collection', 'The collection URI to add the document to'),
+            v:input-hidden('uri', $path),
+            v:input-hidden('database', $db/@id),
+            v:input-hidden('redirect', 'true'),
+            (: TODO: Replace with a Bootstrap character icon... :)
+            v:submit('Add'))),
 
          <h3>Properties</h3>,
          let $props := xdmp:document-properties($path)
