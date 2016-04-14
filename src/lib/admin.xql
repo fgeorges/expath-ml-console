@@ -26,13 +26,22 @@ declare variable $repo-root := 'expath-repo/';
 declare variable $packages-file-path := '.expath-pkg/packages.xml';
 declare variable $attic-path := '.expath-pkg/attic/';
 
-(: ==== Database tools ======================================================== :)
+(:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ : Database tools
+ :
+ : Tools related to databases:
+ :
+ : - evaluate code on a specific database
+ : - read documents from a specific database
+ : - write documents to a specific database
+ :)
 
 (:~
  : Return a database ID.
  :
  : If `$db` is an xs:unsignedLong, it is returned as is.  If it is an a:database
- : element, its `@id` is returned.  Any other type of input is an error.
+ : element, its `@id` is returned.  If it is neither, it then must be the name
+ : of a database, which is then resolved to an ID.
  :)
 declare function a:database-id($db as item()) as xs:unsignedLong
 {
@@ -41,7 +50,7 @@ declare function a:database-id($db as item()) as xs:unsignedLong
    else if ( $db castable as xs:unsignedLong ) then
       xs:unsignedLong($db)
    else
-      t:error('not-db', 'The parameter is neither a database ID nor a database element.', $db)
+      xdmp:database($db)
 };
 
 (:~
@@ -290,6 +299,10 @@ declare function a:remove-docs-and-dirs($db as item(), $uris as xs:string+)
  : TODO: For now, use xdmp:directory($pkgdir, 'infinity') to get the URI of all
  : the documents.  Is it possible to remove directories as well? (with their
  : property document, everything...)
+ :
+ : @todo For now, use xdmp:directory($pkgdir, 'infinity') to get the URI of all
+ : the documents.  Is it possible to remove directories as well? (with their
+ : property document, everything...)
  :)
 declare function a:remove-directory($db as item(), $dir as xs:string)
 {
@@ -318,7 +331,14 @@ declare function a:database-dir-creation($db as item())
       a:database-id($db))
 };
 
-(: ==== File system tools ======================================================== :)
+(:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ : Filesystem tools
+ :
+ : Tools related to accessing the filesystem:
+ :
+ : - read documents from the filesystem
+ : - write documents to the filesystem
+ :)
 
 (:~
  : Get a raw file from the filesystem.
@@ -533,7 +553,11 @@ declare function a:browse-files(
    })
 };
 
-(: ==== Security tools ======================================================== :)
+(:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ : Security tools
+ :
+ : Access components from the security model.
+ :)
 
 (:~
  : Evaluate a query on the security database of the current database.
@@ -582,7 +606,12 @@ declare function a:role-name($role as xs:unsignedLong)
       map:entry('role', $role))
 };
 
-(: ==== Admin entities ======================================================== :)
+(:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ : Admin entities
+ :
+ : Represent admin components as XML elements (roles, groups, app servers and
+ : databases).
+ :)
 
 (:~
  : Return the roles on the current database.
@@ -867,18 +896,36 @@ declare function a:set-url-rewriter-if-not-yet(
  :
  : TODO: What if $db does not exists?
  :)
-declare function a:get-database($db as xs:unsignedLong)
+declare function a:get-database($db as item())
    as element(a:database)
 {
-   let $config := admin:get-configuration()
+   let $id       := a:database-id($db)
+   let $config   := admin:get-configuration()
+   let $schema   := admin:database-get-schema-database($config, $id)
+   let $security := admin:database-get-security-database($config, $id)
+   let $triggers := admin:database-get-triggers-database($config, $id)
    return
-      <a:database id="{ $db }">
-         <a:name>{ admin:database-get-name($config, $db) }</a:name>
-         <a:triple-index>{ admin:database-get-triple-index($config, $db) }</a:triple-index>
+      <a:database id="{ $id }">
+         <a:name>{ admin:database-get-name($config, $id) }</a:name>
+         <a:triple-index>{ admin:database-get-triple-index($config, $id) }</a:triple-index>
          <a:lexicons>
-            <a:uri>{ admin:database-get-uri-lexicon($config, $db) }</a:uri>
-            <a:coll>{ admin:database-get-collection-lexicon($config, $db) }</a:coll>
+            <a:uri>{ admin:database-get-uri-lexicon($config, $id) }</a:uri>
+            <a:coll>{ admin:database-get-collection-lexicon($config, $id) }</a:coll>
          </a:lexicons>
+         {
+            if ( $schema ne 0 ) then
+               <a:schema id="{ $schema }">{ admin:database-get-name($config, $schema) }</a:schema>
+            else
+               (),
+            if ( $security ne 0 ) then
+               <a:security id="{ $security }">{ admin:database-get-name($config, $security) }</a:security>
+            else
+               (),
+            if ( $triggers ne 0 ) then
+               <a:triggers id="{ $triggers }">{ admin:database-get-name($config, $triggers) }</a:triggers>
+            else
+               ()
+         }
       </a:database>
 };
 
@@ -934,7 +981,12 @@ declare function a:get-appserver-or-database($id as xs:unsignedLong)
          ()
 };
 
-(: ==== App server packages ======================================================== :)
+(:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ : App server packages
+ :
+ : Manage the packages on an app server (install them, uninstall them, list
+ : them, etc.)
+ :)
 
 (:~
  : Return true if `$as` is a WebDAV app server.
