@@ -30,22 +30,61 @@ declare variable $v:pages as element(pages) :=
    </pages>;
 
 (: TODO: Externalize! :)
-declare variable $v:semantic-prefixes :=
-   <declarations>
-      <decl prefix="dc">http://purl.org/dc/terms/</decl>
-      <decl prefix="doap">http://usefulinc.com/ns/doap#</decl>
-      <decl prefix="foaf">http://xmlns.com/foaf/0.1/</decl>
-      <decl prefix="frbr">http://purl.org/vocab/frbr/core</decl>
-      <decl prefix="org">http://www.w3.org/ns/org#</decl>
-      <decl prefix="owl">http://www.w3.org/2002/07/owl#</decl>
-      <decl prefix="time">http://www.w3.org/2006/time#</decl>
-      <decl prefix="prov">http://www.w3.org/ns/prov#</decl>
-      <decl prefix="rdf">http://www.w3.org/1999/02/22-rdf-syntax-ns#</decl>
-      <decl prefix="rdfs">http://www.w3.org/2000/01/rdf-schema#</decl>
-      <decl prefix="skos">http://www.w3.org/2004/02/skos/core#</decl>
-      <decl prefix="vcard">http://www.w3.org/2006/vcard/ns#</decl>
-      <decl prefix="xsd">http://www.w3.org/2001/XMLSchema#</decl>
-   </declarations>;
+declare variable $v:triple-prefixes :=
+   <triple-prefixes xmlns="http://expath.org/ns/ml/console">
+      <decl>
+         <prefix>dc</prefix>
+         <uri>http://purl.org/dc/terms/</uri>
+      </decl>
+      <decl>
+         <prefix>doap</prefix>
+         <uri>http://usefulinc.com/ns/doap#</uri>
+      </decl>
+      <decl>
+         <prefix>foaf</prefix>
+         <uri>http://xmlns.com/foaf/0.1/</uri>
+      </decl>
+      <decl>
+         <prefix>frbr</prefix>
+         <uri>http://purl.org/vocab/frbr/core</uri>
+      </decl>
+      <decl>
+         <prefix>org</prefix>
+         <uri>http://www.w3.org/ns/org#</uri>
+      </decl>
+      <decl>
+         <prefix>owl</prefix>
+         <uri>http://www.w3.org/2002/07/owl#</uri>
+      </decl>
+      <decl>
+         <prefix>time</prefix>
+         <uri>http://www.w3.org/2006/time#</uri>
+      </decl>
+      <decl>
+         <prefix>prov</prefix>
+         <uri>http://www.w3.org/ns/prov#</uri>
+      </decl>
+      <decl>
+         <prefix>rdf</prefix>
+         <uri>http://www.w3.org/1999/02/22-rdf-syntax-ns#</uri>
+      </decl>
+      <decl>
+         <prefix>rdfs</prefix>
+         <uri>http://www.w3.org/2000/01/rdf-schema#</uri>
+      </decl>
+      <decl>
+         <prefix>skos</prefix>
+         <uri>http://www.w3.org/2004/02/skos/core#</uri>
+      </decl>
+      <decl>
+         <prefix>vcard</prefix>
+         <uri>http://www.w3.org/2006/vcard/ns#</uri>
+      </decl>
+      <decl>
+         <prefix>xsd</prefix>
+         <uri>http://www.w3.org/2001/XMLSchema#</uri>
+      </decl>
+   </triple-prefixes>;
 
 (: ==== Generic view tools ======================================================== :)
 
@@ -616,7 +655,7 @@ declare function v:component-link($href as xs:string, $name as xs:string, $kind 
 (:~
  : Shorten a resource URI, if a prefix can be found for it.
  :
- : The first entry in `$v:semantic-prefixes` that matches $uri (that is, the
+ : The first entry in `$v:triple-prefixes` that matches $uri (that is, the
  : first one for which $uri starts with the text value of) is used.  If there
  : is no such entry, the function returns the original `$uri`.
  :)
@@ -628,27 +667,27 @@ declare function v:shorten-resource($uri as xs:string)
       if ( fn:empty($decl) ) then
          $uri
       else
-         $decl/@prefix || ':' || fn:substring-after($uri, xs:string($decl))
+         $decl/c:prefix || ':' || fn:substring-after($uri, $decl/c:uri)
 };
 
 (:~
  : Return the first matching prefix declaration, for a complete resource URI.
  :)
 declare function v:find-matching-prefix($uri as xs:string)
-   as element(decl)?
+   as element(c:decl)?
 {
-   v:find-matching-prefix($uri, $v:semantic-prefixes/decl)
+   v:find-matching-prefix($uri, $v:triple-prefixes/c:decl)
 };
 
 (:~
  : Return the first matching prefix declaration, for a complete resource URI.
  :)
-declare function v:find-matching-prefix($uri as xs:string, $decls as element(decl)*)
-   as element(decl)?
+declare function v:find-matching-prefix($uri as xs:string, $decls as element(c:decl)*)
+   as element(c:decl)?
 {
    if ( fn:empty($decls) ) then
       ()
-   else if ( fn:starts-with($uri, xs:string($decls[1])) ) then
+   else if ( fn:starts-with($uri, $decls[1]/c:uri) ) then
       $decls[1]
    else
       v:find-matching-prefix($uri, fn:remove($decls, 1))
