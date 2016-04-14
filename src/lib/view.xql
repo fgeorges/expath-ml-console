@@ -29,6 +29,7 @@ declare variable $v:pages as element(pages) :=
       <!--page name="devel"    title="Devel's evil"                  label="Devel"/-->
    </pages>;
 
+(: TODO: Externalize! :)
 declare variable $v:semantic-prefixes :=
    <declarations>
       <decl prefix="dc">http://purl.org/dc/terms/</decl>
@@ -580,17 +581,17 @@ declare function v:dir-link($href as xs:string, $name as xs:string)
 
 declare function v:rsrc-link($href as xs:string, $name as xs:string)
 {
-   v:component-link($href, $name, 'rsrc')
+   v:component-link($href, v:shorten-resource($name), 'rsrc')
 };
 
 declare function v:class-link($href as xs:string, $name as xs:string)
 {
-   v:component-link($href, $name, 'class')
+   v:component-link($href, v:shorten-resource($name), 'class')
 };
 
 declare function v:prop-link($href as xs:string, $name as xs:string)
 {
-   v:component-link($href, $name, 'prop')
+   v:component-link($href, v:shorten-resource($name), 'prop')
 };
 
 declare function v:db-link($href as xs:string, $name as xs:string)

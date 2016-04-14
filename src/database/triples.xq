@@ -121,12 +121,15 @@ declare function local:page--browse($db as element(a:database), $start as xs:int
 
 (:~
  : The page content, when browsing resource list.
+ :
+ : @todo Configurize the rule sets to use...
  :)
 declare function local:page--rsrc($db as element(a:database), $rsrc as xs:string)
    as element()+
 {
    <p>Database: { v:db-link('triples', $db/a:name) }</p>,
-   <p>All triples of { v:rsrc-link('triples?rsrc=' || fn:encode-for-uri($rsrc), $rsrc) }:</p>,
+   <p>Resource: { v:rsrc-link('triples?rsrc=' || fn:encode-for-uri($rsrc), $rsrc) }</p>,
+   <h3>Triples</h3>,
    <table class="table table-striped datatable">
       <thead>
          <th>Property</th>
@@ -135,18 +138,37 @@ declare function local:page--rsrc($db as element(a:database), $rsrc as xs:string
       </thead>
       <tbody> {
          (: TODO: Support windowing, in case one single resources has thousands of triples. :)
-         let $query :=
-               'SELECT ?p ?o WHERE {
-                   <' || $rsrc || '> ?p ?o
-                }
-                ORDER BY ?p'
-         for $r     in sem:sparql($query)
+         for $r in sem:sparql(
+                      'SELECT ?p ?o WHERE { ?s ?p ?o } ORDER BY ?p',
+                      map:entry('s', sem:iri($rsrc)),
+                      (),
+                      sem:ruleset-store('rdfs.rules', sem:store()))
          return
-            (: TODO: Abbreviate properties, based on configured prefixes (or well-known?) :)
             <tr>
                <td>{ local:display-value(map:get($r, 'p'), 'prop') }</td>
                <td>{ local:display-value(map:get($r, 'o'), 'rsrc') }</td>
                <td>{ local:display-type(map:get($r, 'o')) }</td>
+            </tr>
+      }
+      </tbody>
+   </table>,
+   <h3>Inbound links</h3>,
+   <table class="table table-striped datatable">
+      <thead>
+         <th>Property</th>
+         <th>Object</th>
+      </thead>
+      <tbody> {
+         (: TODO: Support windowing, in case one single resources has thousands of links. :)
+         for $r in sem:sparql(
+                      'SELECT ?s ?p WHERE { ?s ?p ?o } ORDER BY ?p',
+                      map:entry('o', sem:iri($rsrc)),
+                      (),
+                      sem:ruleset-store('rdfs.rules', sem:store()))
+         return
+            <tr>
+               <td>{ local:display-value(map:get($r, 'p'), 'prop') }</td>
+               <td>{ local:display-value(map:get($r, 's'), 'rsrc') }</td>
             </tr>
       }
       </tbody>
@@ -185,8 +207,8 @@ declare function local:display-type($v as xs:anyAtomicType)
 
 let $slashes := if ( fn:empty($path) ) then 0 else fn:count(fn:tokenize($path, '/'))
 let $root    := fn:string-join(for $i in 1 to $slashes + 2 return '..', '/') || '/'
-let $db-str  := t:mandatory-field('id')
-let $db      := xs:unsignedLong($db-str)
+let $name    := t:mandatory-field('name')
+let $db      := a:database-id($name)
 let $rsrc    := t:optional-field('rsrc', ())
 let $start   := xs:integer(t:optional-field('start', 1)[.])
 let $params  := 
