@@ -57,11 +57,11 @@ declare function local:save($uri as xs:string, $doc as xs:string, $type as xs:st
 {
    switch ( $type )
       case 'text' return
-         local:save-it($uri, xdmp:unquote($doc, (), 'format-json'))
-      case 'json' return
          local:save-it($uri, text { $doc })
       case 'xml' return
          local:save-it($uri, xdmp:unquote($doc))
+      case 'json' return
+         local:save-it($uri, xdmp:unquote($doc, (), 'format-json'))
       default return
          t:error('invalid-param', 'Unknown document type: ' || $type)
 };
