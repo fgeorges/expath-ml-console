@@ -29,9 +29,14 @@ declare variable $v:pages as element(pages) :=
       <!--page name="devel"    title="Devel's evil"                  label="Devel"/-->
    </pages>;
 
-(: TODO: Externalize! :)
+(: TODO: Make it possible to edit the list in the Console...:)
+declare variable $v:triple-prefixes-doc := 'http://expath.org/ml/console/triple-prefixes.xml';
+
 declare variable $v:triple-prefixes :=
    <triple-prefixes xmlns="http://expath.org/ns/ml/console">
+      {
+         fn:doc($v:triple-prefixes-doc)/c:triple-prefixes/c:decl
+      }
       <decl>
          <prefix>dc</prefix>
          <uri>http://purl.org/dc/terms/</uri>
