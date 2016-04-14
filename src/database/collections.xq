@@ -213,8 +213,8 @@ declare function local:page(
 };
 
 let $slashes := if ( fn:empty($path) ) then 0 else fn:count(fn:tokenize($path, '/'))
-let $db-str  := t:mandatory-field('id')
-let $db      := xs:unsignedLong($db-str)
+let $name    := t:mandatory-field('name')
+let $db      := a:database-id($name)
 let $coll    := t:optional-field('coll', ())[.]
 let $start   := xs:integer(t:optional-field('start', 1)[.])
 let $params  := 
