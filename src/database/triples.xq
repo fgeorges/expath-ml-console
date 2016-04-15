@@ -155,8 +155,8 @@ declare function local:page--rsrc($db as element(a:database), $rsrc as xs:string
    <h3>Inbound links</h3>,
    <table class="table table-striped datatable">
       <thead>
+         <th>Subject</th>
          <th>Property</th>
-         <th>Object</th>
       </thead>
       <tbody> {
          (: TODO: Support windowing, in case one single resources has thousands of links. :)
@@ -167,12 +167,30 @@ declare function local:page--rsrc($db as element(a:database), $rsrc as xs:string
                       sem:ruleset-store('rdfs.rules', sem:store()))
          return
             <tr>
-               <td>{ local:display-value(map:get($r, 'p'), 'prop') }</td>
                <td>{ local:display-value(map:get($r, 's'), 'rsrc') }</td>
+               <td>{ local:display-value(map:get($r, 'p'), 'prop') }</td>
             </tr>
       }
       </tbody>
-   </table>
+   </table>,
+   <h3>Documents</h3>,
+   <p>The triples with this subject (those stored, not inferred), are stored in the
+      following document(s):</p>,
+   <ul> {
+      let $uris := cts:uris('', (), cts:and-query(cts:triple-range-query(sem:iri($rsrc), (), ())))
+      return
+         if ( fn:empty($uris) ) then
+            <li><em>no triple stored in document</em></li>
+         else
+            for $uri in $uris
+            order by $uri
+            return
+               (: TODO: To make a link to the docujment browser... :)
+               <li>
+                  <a href="browse{ '/'[fn:not(fn:starts-with($uri, '/'))] }{ $uri }">{ $uri }</a>
+               </li>
+   }
+   </ul>
 };
 
 declare function local:display-value($v as xs:anyAtomicType, $kind as xs:string)
