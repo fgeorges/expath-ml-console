@@ -47,7 +47,13 @@ declare function local:page--no-lexicon($db as element(a:database))
 declare function local:page--init-path($init as xs:string)
    as element(h:p)
 {
-   let $relative := 'browse' || '/'[fn:not(fn:starts-with($init, '/'))] || $init
+   let $relative :=
+         if ( fn:exists($path) ) then
+            $db-root || 'browse' || '/'[fn:not(fn:starts-with($path, '/'))] || $path
+               || '/'[fn:not(fn:ends-with($path, '/') or fn:starts-with($init, '/'))]
+               || (if ( fn:ends-with($path, '/') and fn:starts-with($init, '/') ) then fn:substring($init, 2) else $init)
+         else
+            $db-root || 'browse' || '/'[fn:not(fn:starts-with($init, '/'))] || $init
    return (
       v:redirect($relative),
       <p>You are being redirected to <a href="{ $relative }">this page</a>...</p>
@@ -350,14 +356,31 @@ declare function local:create-doc-form(
    $path as xs:string?
 ) as element()+
 {
-   <p id="show-files-area">
-      <button class="btn btn-default"
+   <p>
+      <button class="btn btn-default" id="show-jump-area"
+              title="Display the upload area, to upload files or create empty documents"
+              onclick="$('#jump-area').slideToggle(); $('#show-jump-area span').toggle();">
+         <span>Jump to...</span>
+         <span style="display: none">Hide jump area</span>
+      </button>
+      <button class="btn btn-default" id="show-files-area"
               title="Display the upload area, to upload files or create empty documents"
               onclick="$('#files-area').slideToggle(); $('#show-files-area span').toggle();">
          <span>Add files...</span>
          <span style="display: none">Hide upload area</span>
       </button>
    </p>,
+
+   <div style="display: none" id="jump-area">
+      <h4>Go to</h4>
+      <p>Use this form to directly access a document or a directory by URI.</p>
+      {
+         v:form($db-root || 'browse' || '/'[fn:not(fn:starts-with($path, '/'))] || $path, (
+            v:input-text('init-path', 'URI', 'The URI of the directory or document to go to'),
+            v:submit('Go')
+         ))
+      }
+   </div>,
 
    <div style="display: none" id="files-area">
 
@@ -621,12 +644,11 @@ browse/http:// -> 5
 browse/http://example.com/ -> 6
 :)
 
-let $slashes := if ( fn:empty($path) ) then 0 else fn:count(fn:tokenize($path, '/'))
-let $name    := t:mandatory-field('name')
-let $db      := a:database-id($name)
-let $init    := t:optional-field('init-path', ())[.]
-let $start   := xs:integer(t:optional-field('start', 1)[.])
-let $params  := 
+let $name   := t:mandatory-field('name')
+let $db     := a:database-id($name)
+let $init   := t:optional-field('init-path', ())[.]
+let $start  := xs:integer(t:optional-field('start', 1)[.])
+let $params := 
       map:new((
          map:entry('db',    $db),
          map:entry('path',  $path),
