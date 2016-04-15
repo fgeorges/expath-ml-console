@@ -27,8 +27,8 @@ declare function local:page()
    as element()+
 {
    (: TODO: Check the params are there, and validate them... :)
-   let $db-id      := xs:unsignedLong(t:mandatory-field('database'))
-   let $db         := a:get-database($db-id)
+   let $name       := t:mandatory-field('database')
+   let $db         := a:get-database($name)
    let $back-url   := t:mandatory-field('back-url')
    let $back-label := t:mandatory-field('back-label')
    let $doc        := t:optional-field('doc', ())

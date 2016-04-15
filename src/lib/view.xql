@@ -566,10 +566,11 @@ declare function v:input-select-databases(
 ) as element(h:div)
 {
    v:input-select($id, $label,
-      for $db in $dbs
-      order by $db/a:name
+      for $db   in $dbs
+      let $name := $db/a:name
+      order by $name
       return
-         v:input-option($db/@id, $db/a:name))
+         v:input-option($name, $name))
 };
 
 declare function v:input-file($id as xs:string, $label as xs:string)

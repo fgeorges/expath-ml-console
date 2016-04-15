@@ -94,13 +94,13 @@
       <add-query-param name="type">text</add-query-param>
       <dispatch>/database/save-doc.xq</dispatch>
    </match-path>
-   <match-path matches="^/db/([0-9]+)/delete$">
+   <match-path matches="^/db/([-0-9a-zA-Z]+)/delete$">
       <add-query-param name="database">$1</add-query-param>
       <add-query-param name="top">../../</add-query-param>
       <dispatch>/tools/delete.xq</dispatch>
    </match-path>
-   <match-path matches="^/db/([0-9]+)/bulk-delete$">
-      <add-query-param name="database">$1</add-query-param>
+   <match-path matches="^/db/([-0-9a-zA-Z]+)/bulk-delete$">
+      <add-query-param name="name">$1</add-query-param>
       <dispatch>/database/bulk-delete.xq</dispatch>
    </match-path>
    <match-path matches="^/cxan$">

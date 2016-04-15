@@ -69,7 +69,7 @@ declare function local:page()
  :)
 declare function local:handle-file($file as item())
 {
-   let $db       := xs:unsignedLong(t:mandatory-field('database'))
+   let $db       := t:mandatory-field('database')
    let $uri      := t:mandatory-field('uri')
    let $format   := t:mandatory-field('format')
    let $prefix   := t:optional-field('prefix', ())[.]
@@ -126,7 +126,7 @@ declare function local:dir-exists($uri as xs:string)
  :)
 declare function local:handle-dir($dir as xs:string)
 {
-   let $db-id   := xs:unsignedLong(t:mandatory-field('database'))
+   let $db      := t:mandatory-field('database')
    let $uri     := t:mandatory-field('uri')
    let $include := t:optional-field('include', ())
    let $exclude := t:optional-field('exclude', ())
@@ -135,7 +135,7 @@ declare function local:handle-dir($dir as xs:string)
       if ( fn:exists($exists) ) then
          $exists
       else
-         let $result := a:load-dir-into-database($db-id, $uri, $dir, $include, $exclude)
+         let $result := a:load-dir-into-database($db, $uri, $dir, $include, $exclude)
          return
             <p>Directory succesfully uploaded at "{ $result }" from "{ $dir }".</p>
 };
@@ -145,14 +145,14 @@ declare function local:handle-dir($dir as xs:string)
  :)
 declare function local:handle-zipdir($zip (: as binary() :))
 {
-   let $db-id  := xs:unsignedLong(t:mandatory-field('database'))
+   let $db     := t:mandatory-field('database')
    let $uri    := t:mandatory-field('uri')
    let $exists := local:dir-exists($uri)
    return
       if ( fn:exists($exists) ) then
          $exists
       else
-         let $result := a:load-zipdir-into-database($db-id, $uri, $zip)
+         let $result := a:load-zipdir-into-database($db, $uri, $zip)
          return
             <p>Directory succesfully uploaded at "{ $result }" from ZIP file.</p>
 };

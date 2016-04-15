@@ -17,7 +17,7 @@ declare namespace xdmp = "http://marklogic.com/xdmp";
  : document already exists for that URI and `$override` is false..
  :)
 declare function i:handle-file(
-   $db       as item(), (: element(a:database) | xs:unsidnedLong :)
+   $db       as item(), (: element(a:database) | xs:unsidnedLong | xs:string :)
    $content  as item(),
    $format   as xs:string,
    $uri      as xs:string,
