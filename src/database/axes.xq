@@ -40,19 +40,12 @@ declare function local:page()
          </ul>
 };
 
-let $db-str := t:mandatory-field('id')
-let $db     := xs:unsignedLong($db-str)
+let $db := t:mandatory-field('database')
 return
    v:console-page(
       '../../',
       'tools',
       'Temporal',
       function() {
-         (: TODO: Change a:eval-on-database() to take a function to invoke... :)
-         (: e.g.: a:on-database($db, local:page#0) :)
-         a:eval-on-database(
-            $db,
-            'declare variable $fun external;
-             $fun()',
-            map:entry('fun', local:page#0))
+         a:query-database($db, local:page#0)
       })
