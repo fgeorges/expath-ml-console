@@ -27,8 +27,7 @@ declare function local:page()
    as element()+
 {
    (: TODO: Check the params are there, and validate them... :)
-   let $name       := t:mandatory-field('database')
-   let $db         := a:get-database($name)
+   let $db         := t:mandatory-field('database')
    let $back-url   := t:mandatory-field('back-url')
    let $back-label := t:mandatory-field('back-label')
    let $doc        := t:optional-field('doc', ())
@@ -47,7 +46,7 @@ declare function local:page()
          )
          else (
             <p><b>Error</b>: The document "{ $doc }" does not exist on the
-               database "{ xs:string($db/a:name) }".</p>
+               database "{ $db }".</p>
          )
       )
       else (

@@ -27,15 +27,14 @@ declare option xdmp:update "true";
 declare function local:page()
    as element()+
 {
-   let $db-id      := xs:unsignedLong(t:mandatory-field('database'))
-   let $db         := a:get-database($db-id)
+   let $db         := t:mandatory-field('database')
    let $uri        := t:mandatory-field('uri')
    let $collection := t:mandatory-field('collection')
    let $redirect   := xs:boolean(t:optional-field('redirect', 'false'))
    return
       if ( fn:not(a:exists-on-database($db, $uri)) ) then (
          <p><b>Error</b>: The document "{ $uri }" does not exist on the
-            database "{ xs:string($db/a:name) }".</p>
+            database "{ $db }".</p>
       )
       else (
          a:update-database($db, function() {
@@ -43,7 +42,7 @@ declare function local:page()
          }),
          if ( $redirect ) then (
             v:redirect(
-               '../db/' || $db-id || '/browse'
+               '../db/' || $db || '/browse'
                || '/'[fn:not(fn:starts-with($uri, '/'))]
                || $uri)
          )

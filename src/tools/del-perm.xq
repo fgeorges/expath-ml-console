@@ -28,9 +28,7 @@ declare option xdmp:update "true";
 declare function local:page()
    as element()+
 {
-   (: TODO: Check the params are there, and validate them... :)
-   let $db-id      := xs:unsignedLong(t:mandatory-field('database'))
-   let $db         := a:get-database($db-id)
+   let $db         := t:mandatory-field('database')
    let $uri        := t:mandatory-field('uri')
    let $capability := t:mandatory-field('capability')
    let $role       := t:mandatory-field('role')
@@ -38,7 +36,7 @@ declare function local:page()
    return
       if ( fn:not(a:exists-on-database($db, $uri)) ) then (
          <p><b>Error</b>: The document "{ $uri }" does not exist on the
-            database "{ xs:string($db/a:name) }".</p>
+            database "{ $db }".</p>
       )
       else (
          a:eval-on-database(
@@ -56,7 +54,7 @@ declare function local:page()
                map:entry('role', $role)))),
          if ( $redirect ) then (
             v:redirect(
-               '../db/' || $db-id || '/browse'
+               '../db/' || $db || '/browse'
                || '/'[fn:not(fn:starts-with($uri, '/'))]
                || fn:string-join(fn:tokenize($uri, '/') ! fn:encode-for-uri(.), '/'))
          )
