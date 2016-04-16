@@ -624,21 +624,6 @@ declare function v:dir-link($href as xs:string, $name as xs:string)
    v:component-link($href, $name, 'dir')
 };
 
-declare function v:rsrc-link($href as xs:string, $name as xs:string)
-{
-   v:component-link($href, v:shorten-resource($name), 'rsrc')
-};
-
-declare function v:class-link($href as xs:string, $name as xs:string)
-{
-   v:component-link($href, v:shorten-resource($name), 'class')
-};
-
-declare function v:prop-link($href as xs:string, $name as xs:string)
-{
-   v:component-link($href, v:shorten-resource($name), 'prop')
-};
-
 declare function v:db-link($href as xs:string, $name as xs:string)
 {
    v:component-link($href, $name, 'db')
@@ -647,6 +632,41 @@ declare function v:db-link($href as xs:string, $name as xs:string)
 declare function v:as-link($href as xs:string, $name as xs:string)
 {
    v:component-link($href, $name, 'as')
+};
+
+(:~
+ : Create a link to an iri.
+ :
+ : If the `$iri` has a short name, then it appends `/the:resource` after the
+ : `$endpoint`.  If not, it uses `?rsrc=the-full-resource-iri` instead.  The
+ : name of the parameter to use in the latter case is `$param`.
+ :
+ : $endpoint The endpoint.
+ : $iri      The RDF resource.
+ :)
+declare function v:iri-link($endpoint as xs:string, $iri as xs:string, $kind as xs:string, $param as xs:string)
+{
+   let $curie := v:shorten-resource($iri)
+   return
+      if ( $curie ) then
+         v:component-link($endpoint || '/' || $curie, $curie, $kind)
+      else
+         v:component-link($endpoint || '?' || $param || '=' || fn:encode-for-uri($iri), $iri, $kind)
+};
+
+declare function v:rsrc-link($endpoint as xs:string, $iri as xs:string)
+{
+   v:iri-link($endpoint, $iri, 'rsrc', 'rsrc')
+};
+
+declare function v:class-link($endpoint as xs:string, $iri as xs:string)
+{
+   v:iri-link($endpoint, $iri, 'class', 'super')
+};
+
+declare function v:prop-link($endpoint as xs:string, $iri as xs:string)
+{
+   v:iri-link($endpoint, $iri, 'prop', 'rsrc')
 };
 
 declare function v:component-link($href as xs:string, $name as xs:string, $kind as xs:string)
@@ -663,38 +683,78 @@ declare function v:component-link($href as xs:string, $name as xs:string, $kind 
  :
  : The first entry in `$v:triple-prefixes` that matches $uri (that is, the
  : first one for which $uri starts with the text value of) is used.  If there
- : is no such entry, the function returns the original `$uri`.
+ : is no such entry, return the empty sequence.
  :)
 declare function v:shorten-resource($uri as xs:string)
-   as xs:string
+   as xs:string?
 {
-   let $decl := v:find-matching-prefix($uri)
+   let $decl := v:find-prefix-by-uri($uri)
    return
       if ( fn:empty($decl) ) then
-         $uri
+         ()
       else
          $decl/c:prefix || ':' || fn:substring-after($uri, $decl/c:uri)
 };
 
 (:~
- : Return the first matching prefix declaration, for a complete resource URI.
+ : Expand a CURIE notation to the full URI.
+ :
+ : The first entry in `$v:triple-prefixes` that matches the prefix of the CURIE
+ : is used.  If there is no such entry, the function returns the original one.
  :)
-declare function v:find-matching-prefix($uri as xs:string)
-   as element(c:decl)?
+declare function v:expand-curie($curie as xs:string)
+   as xs:string
 {
-   v:find-matching-prefix($uri, $v:triple-prefixes/c:decl)
+   let $prefix := fn:substring-before($curie, ':')
+   let $decl   := $prefix[.] ! v:find-prefix-by-prefix(.)
+   return
+      if ( fn:empty($decl) ) then
+         $curie
+      else
+         $decl/c:uri || fn:substring-after($curie, ':')
 };
 
 (:~
  : Return the first matching prefix declaration, for a complete resource URI.
  :)
-declare function v:find-matching-prefix($uri as xs:string, $decls as element(c:decl)*)
+declare function v:find-prefix-by-uri($uri as xs:string)
+   as element(c:decl)?
+{
+   v:find-matching-prefix(function($decl) {
+      fn:starts-with($uri, $decl/c:uri)
+   })
+};
+
+(:~
+ : Return the first matching prefix declaration, for a given prefix.
+ :)
+declare function v:find-prefix-by-prefix($prefix as xs:string)
+   as element(c:decl)?
+{
+   v:find-matching-prefix(function($decl) {
+      $decl/c:prefix eq $prefix
+   })
+};
+
+(:~
+ : Return the first matching prefix declaration, for a given predicate.
+ :)
+declare function v:find-matching-prefix($pred as function(element(c:decl)) as xs:boolean)
+   as element(c:decl)?
+{
+   v:find-matching-prefix($pred, $v:triple-prefixes/c:decl)
+};
+
+(:~
+ : Return the first matching prefix declaration, for a given predicate.
+ :)
+declare function v:find-matching-prefix($pred as function(element(c:decl)) as xs:boolean, $decls as element(c:decl)*)
    as element(c:decl)?
 {
    if ( fn:empty($decls) ) then
       ()
-   else if ( fn:starts-with($uri, $decls[1]/c:uri) ) then
+   else if ( $pred($decls[1]) ) then
       $decls[1]
    else
-      v:find-matching-prefix($uri, fn:remove($decls, 1))
+      v:find-matching-prefix($pred, fn:remove($decls, 1))
 };

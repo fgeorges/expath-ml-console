@@ -7,50 +7,12 @@ import module namespace sem = "http://marklogic.com/semantics" at "/MarkLogic/se
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
-declare namespace h      = "http://www.w3.org/1999/xhtml";
-declare namespace c      = "http://expath.org/ns/ml/console";
-declare namespace err    = "http://www.w3.org/2005/xqt-errors";
-declare namespace cts    = "http://marklogic.com/cts";
-declare namespace xdmp   = "http://marklogic.com/xdmp";
-declare namespace map    = "http://marklogic.com/xdmp/map";
-declare namespace sec    = "http://marklogic.com/xdmp/security";
-declare namespace sparql = "http://www.w3.org/2005/sparql-results#";
-
-declare variable $path := local:get-param-path();
-
-declare variable $root := local:get-root($path);
+declare namespace h   = "http://www.w3.org/1999/xhtml";
+declare namespace cts = "http://marklogic.com/cts";
+declare namespace map = "http://marklogic.com/xdmp/map";
 
 (: Fixed page size for now. :)
 declare variable $page-size := 100;
-
-(:~
- : The param "path", if any.
- :)
-declare function local:get-param-path()
-   as xs:string?
-{
-   let $path := t:optional-field('path', ())[.]
-   return
-      if ( fn:starts-with($path, '/http://') ) then
-         fn:substring($path, 2)
-      else
-         $path
-};
-
-(:~
- : The path to the webapp root, relative to current $path.
- :)
-declare function local:get-root($path as xs:string)
-   as xs:string
-{
-   if ( fn:empty($path) ) then
-      './'
-   else
-      let $toks  := fn:tokenize($path, '/')
-      let $count := fn:count($toks) + (1[fn:starts-with($path, '/')], 2)[1]
-      return
-         t:make-string('../', $count)
-};
 
 (:~
  : The overall page function.
@@ -58,20 +20,24 @@ declare function local:get-root($path as xs:string)
 declare function local:page(
    $name  as xs:string,
    $start as xs:integer,
-   $rsrc  as xs:string?
+   $rsrc  as xs:string?,
+   $curie as xs:string?
 ) as element()+
 {
    let $db := a:get-database($name)
    return
-      (: TODO: In this case, we should NOT return "200 OK". :)
+      (: TODO: In this case, we should return "404 Not found". :)
       if ( fn:empty($db) ) then (
          local:page--no-db($name)
       )
-      else if ( fn:empty($rsrc) ) then (
-         local:page--browse($db, $start)
+      else if ( fn:exists($rsrc) ) then (
+         local:page--rsrc($db, $rsrc, './')
+      )
+      else if ( fn:exists($curie) ) then (
+         local:page--rsrc($db, v:expand-curie($curie), '../')
       )
       else (
-         local:page--rsrc($db, $rsrc)
+         local:page--browse($db, $start)
       )
 };
 
@@ -113,7 +79,7 @@ declare function local:page--browse($db as element(a:database), $start as xs:int
             (', ', <a href="triples?start={ $start + $count }">next page</a>)),
          ':',
          $res ! map:get(., 's')
-            ! <li>{ v:rsrc-link('triples?rsrc=' || fn:encode-for-uri(.), .) }</li>
+            ! <li>{ v:rsrc-link('triples', .) }</li>
       )
    }
    </p>
@@ -124,11 +90,11 @@ declare function local:page--browse($db as element(a:database), $start as xs:int
  :
  : @todo Configurize the rule sets to use...
  :)
-declare function local:page--rsrc($db as element(a:database), $rsrc as xs:string)
+declare function local:page--rsrc($db as element(a:database), $rsrc as xs:string, $root as xs:string)
    as element()+
 {
-   <p>Database: { v:db-link('triples', $db/a:name) }</p>,
-   <p>Resource: { v:rsrc-link('triples?rsrc=' || fn:encode-for-uri($rsrc), $rsrc) }</p>,
+   <p>Database: { v:db-link($root || 'triples', $db/a:name) }</p>,
+   <p>Resource: { v:rsrc-link($root || 'triples', $rsrc) }</p>,
    <h3>Triples</h3>,
    <table class="table table-striped datatable">
       <thead>
@@ -145,8 +111,8 @@ declare function local:page--rsrc($db as element(a:database), $rsrc as xs:string
                       sem:ruleset-store('rdfs.rules', sem:store()))
          return
             <tr>
-               <td>{ local:display-value(map:get($r, 'p'), 'prop') }</td>
-               <td>{ local:display-value(map:get($r, 'o'), 'rsrc') }</td>
+               <td>{ local:display-value(map:get($r, 'p'), 'prop', $root) }</td>
+               <td>{ local:display-value(map:get($r, 'o'), 'rsrc', $root) }</td>
                <td>{ local:display-type(map:get($r, 'o')) }</td>
             </tr>
       }
@@ -167,8 +133,8 @@ declare function local:page--rsrc($db as element(a:database), $rsrc as xs:string
                       sem:ruleset-store('rdfs.rules', sem:store()))
          return
             <tr>
-               <td>{ local:display-value(map:get($r, 's'), 'rsrc') }</td>
-               <td>{ local:display-value(map:get($r, 'p'), 'prop') }</td>
+               <td>{ local:display-value(map:get($r, 's'), 'rsrc', $root) }</td>
+               <td>{ local:display-value(map:get($r, 'p'), 'prop', $root) }</td>
             </tr>
       }
       </tbody>
@@ -187,22 +153,24 @@ declare function local:page--rsrc($db as element(a:database), $rsrc as xs:string
             return
                (: TODO: To make a link to the docujment browser... :)
                <li>
-                  <a href="browse{ '/'[fn:not(fn:starts-with($uri, '/'))] }{ $uri }">{ $uri }</a>
+                  <a href="{ $root }browse{ '/'[fn:not(fn:starts-with($uri, '/'))] }{ $uri }">{ $uri }</a>
                </li>
    }
    </ul>
 };
 
-declare function local:display-value($v as xs:anyAtomicType, $kind as xs:string)
+declare function local:display-value($v as xs:anyAtomicType, $kind as xs:string, $root as xs:string)
    as element()
 {
    if ( sem:isIRI($v) ) then
       (: TODO: Display the link only when the resource exists (that is, there is
          at least one triple with that IRI as subject). :)
-      v:component-link(
-         'triples?rsrc=' || fn:encode-for-uri($v),
-         v:shorten-resource($v),
-         $kind)
+      if ( $kind eq 'rsrc' ) then
+         v:rsrc-link($root || 'triples', $v)
+      else if ( $kind eq 'prop' ) then
+         v:prop-link($root || 'triples', $v)
+      else
+         t:error('internal', 'Unexpected error - Unkown kind: ' || $kind)
    else
       <span>{ $v }</span>
 };
@@ -223,25 +191,14 @@ declare function local:display-type($v as xs:anyAtomicType)
       <span class="glyphicon glyphicon-font" title="String"/>
 };
 
-let $slashes := if ( fn:empty($path) ) then 0 else fn:count(fn:tokenize($path, '/'))
-let $root    := fn:string-join(for $i in 1 to $slashes + 2 return '..', '/') || '/'
-let $db      := t:mandatory-field('name')
-let $rsrc    := t:optional-field('rsrc', ())
-let $start   := xs:integer(t:optional-field('start', 1)[.])
-let $params  := 
-      map:new((
-         map:entry('db',    $db),
-         map:entry('rsrc',  $rsrc),
-         map:entry('start', $start),
-         map:entry('fun',   local:page#3)))
+let $db    := t:mandatory-field('name')
+let $rsrc  := t:optional-field('rsrc', ())
+let $curie := t:optional-field('curie', ())
+let $start := xs:integer(t:optional-field('start', 1)[.])
+let $root  := '../../' || '../'[$curie]
 return
    v:console-page($root, 'browser', 'Browse resources', function() {
-      a:eval-on-database(
-         $db,
-         'declare variable $db    external;
-          declare variable $start external;
-          declare variable $rsrc  external := ();
-          declare variable $fun   external;
-          $fun($db, $start, $rsrc)',
-         $params)
+      a:query-database($db, function() {
+         local:page($db, $start, $rsrc, $curie)
+      })
    })
