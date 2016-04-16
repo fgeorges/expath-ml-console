@@ -9,8 +9,6 @@ import module namespace tmp = "http://marklogic.com/xdmp/temporal"
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
-declare namespace map = "http://marklogic.com/xdmp/map";
-
 declare function local:page()
 {
    <p>Here are the temporal axes on this database:</p>,
@@ -42,10 +40,6 @@ declare function local:page()
 
 let $db := t:mandatory-field('database')
 return
-   v:console-page(
-      '../../',
-      'tools',
-      'Temporal',
-      function() {
-         a:query-database($db, local:page#0)
-      })
+   v:console-page('../../', 'tools', 'Temporal', function() {
+      a:query-database($db, local:page#0)
+   })

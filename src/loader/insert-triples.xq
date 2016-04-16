@@ -16,10 +16,7 @@ import module namespace sem = "http://marklogic.com/semantics"        at "/MarkL
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
-declare namespace map  = "http://marklogic.com/xdmp/map";
 declare namespace xdmp = "http://marklogic.com/xdmp";
-
-declare option xdmp:update "true";
 
 (:~
  : The overall page function.
@@ -39,27 +36,12 @@ declare function local:page($file, $format as xs:string)
    <p>Back to <a href="../loader">document manager</a>.</p>
 };
 
-let $db     := xs:unsignedLong(t:mandatory-field('database'))
+let $db     := t:mandatory-field('database')
 let $file   := t:mandatory-field('file')
 let $format := t:mandatory-field('format')
-let $params := 
-      map:new((
-         map:entry('file',   $file),
-         map:entry('format', $format),
-         map:entry('fun',    local:page#2)))
 return
-   v:console-page(
-      '../',
-      'tools',
-      'Tools',
-      function() {
-         a:eval-on-database(
-            $db,
-            'declare namespace xdmp = "http://marklogic.com/xdmp";
-             declare option xdmp:update "true";
-             declare variable $file   external;
-             declare variable $format external;
-             declare variable $fun    external;
-             $fun($file, $format)',
-            $params)
+   v:console-page('../', 'tools', 'Tools', function() {
+      a:update-database($db, function() {
+         local:page($file, $format)
       })
+   })

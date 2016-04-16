@@ -644,32 +644,19 @@ browse/http:// -> 5
 browse/http://example.com/ -> 6
 :)
 
-let $name   := t:mandatory-field('name')
-let $db     := a:database-id($name)
-let $init   := t:optional-field('init-path', ())[.]
-let $start  := xs:integer(t:optional-field('start', 1)[.])
-let $params := 
-      map:new((
-         map:entry('db',    $db),
-         map:entry('path',  $path),
-         map:entry('init',  $init),
-         map:entry('start', $start),
-         map:entry('fun',   local:page#4)))
+let $name  := t:mandatory-field('name')
+let $db    := a:database-id($name)
+let $init  := t:optional-field('init-path', ())[.]
+let $start := xs:integer(t:optional-field('start', 1)[.])
 return
    v:console-page(
       $webapp-root,
       'browser',
       'Browse documents',
       function() {
-         a:eval-on-database(
-            $db,
-            'declare variable $db    external;
-             declare variable $start external;
-             declare variable $path  external := ();
-             declare variable $init  external := ();
-             declare variable $fun   external;
-             $fun($db, $path, $init, $start)',
-            $params)
+         a:query-database($db, function() {
+            local:page($db, $path, $init, $start)
+         })
       },
       <script type="text/javascript">
          // initialize the jQuery File Upload widget

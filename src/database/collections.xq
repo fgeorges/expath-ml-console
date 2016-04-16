@@ -21,21 +21,21 @@ declare variable $webapp-root := $db-root || '../../';
 (:~
  : The page content, in case the DB does not exist.
  :)
-declare function local:page--no-db($id as xs:unsignedLong)
+declare function local:page--no-db($db as xs:string)
    as element(h:p)
 {
-   <p><b>Error</b>: There is no database with the ID <code>{ $id }</code>.</p>
+   <p><b>Error</b>: There is no database "<code>{ $db }</code>".</p>
 };
 
 (:~
  : The page content, in case the collection lexicon is not enabled on the DB.
  :)
-declare function local:page--no-lexicon($db as element(a:database))
+declare function local:page--no-lexicon($db as xs:string)
    as element(h:p)
 {
    <p><b>Error</b>: The collection lexicon is not enabled on the database
-      { v:db-link($db-root || 'colls', $db/a:name) }.  It is required to
-      browse the collections.</p>
+      { v:db-link($db-root || 'colls', $db) }.  It is required to browse
+      the collections.</p>
 };
 
 declare function local:display-coll($c as xs:string)
@@ -94,12 +94,12 @@ declare function local:browse-to(
  : The page content, in case of the 'coll' param.
  :)
 declare function local:page--show-coll(
-   $db    as element(a:database),
+   $db    as xs:string,
    $coll  as xs:string,
    $start as xs:integer
 ) as element()+
 {
-   <p>Database: { v:db-link($db-root || 'colls', $db/a:name) }</p>,
+   <p>Database: { v:db-link($db-root || 'colls', $db) }</p>,
    (: TODO: Cut it into pieces, to show links to individual "collection directories..." :)
    <p>Collection: { v:coll-link($db-root || 'colls?coll=' || fn:encode-for-uri($coll), $coll) }</p>,
    let $docs :=
@@ -128,10 +128,10 @@ declare function local:page--show-coll(
  : TODO: Displays only "/" and "http://*/" for now.  Find anything else that
  : ends with a "/" as well.  Maybe even "urn:*:" URIs?
  :)
-declare function local:page--empty-path($db as element(a:database), $start as xs:integer)
+declare function local:page--empty-path($db as xs:string, $start as xs:integer)
    as element()+
 {
-   <p>Database: { v:db-link('colls', $db/a:name) }</p>,
+   <p>Database: { v:db-link('colls', $db) }</p>,
    b:display-list(
       (),
       (: TODO: Retrieve collections with name with no '/', e.g. "country-data". :)
@@ -158,10 +158,10 @@ declare function local:page--empty-path($db as element(a:database), $start as xs
 (:~
  : The page content, in case of displaying a "collection dir".
  :)
-declare function local:page--dir($db as element(a:database), $start as xs:integer)
+declare function local:page--dir($db as xs:string, $start as xs:integer)
    as element()+
 {
-   <p>Database: { v:db-link($db-root || 'colls', $db/a:name) }</p>,
+   <p>Database: { v:db-link($db-root || 'colls', $db) }</p>,
    b:display-list(
       $path,
       b:get-children-coll($path, $start),
@@ -184,59 +184,40 @@ declare function local:page--dir($db as element(a:database), $start as xs:intege
  : The overall page function.
  :)
 declare function local:page(
-   $id    as xs:unsignedLong,
+   $name  as xs:string,
    $path  as xs:string?,
    $coll  as xs:string?,
    $start as xs:integer
 ) as element()+
 {
-   let $db := a:get-database($id)
+   let $db := a:get-database($name)
    return
-      (: TODO: In this case, we should NOT return "200 OK". :)
+      (: TODO: In this case, we should return "404 Not found". :)
       if ( fn:empty($db) ) then (
-         local:page--no-db($id)
+         local:page--no-db($name)
       )
       (: the collection lexicon is not required to show a specific collection by name :)
       else if ( fn:exists($coll) ) then (
-         local:page--show-coll($db, $coll, $start)
+         local:page--show-coll($name, $coll, $start)
       )
       (: TODO: In this case, we should NOT return "200 OK". :)
       else if ( fn:not($db/a:lexicons/xs:boolean(a:coll)) ) then (
-         local:page--no-lexicon($db)
+         local:page--no-lexicon($name)
       )
       else if ( fn:empty($path) ) then (
-         local:page--empty-path($db, $start)
+         local:page--empty-path($name, $start)
       )
       else (
-         local:page--dir($db, $start)
+         local:page--dir($name, $start)
       )
 };
 
-let $slashes := if ( fn:empty($path) ) then 0 else fn:count(fn:tokenize($path, '/'))
-let $name    := t:mandatory-field('name')
-let $db      := a:database-id($name)
-let $coll    := t:optional-field('coll', ())[.]
-let $start   := xs:integer(t:optional-field('start', 1)[.])
-let $params  := 
-      map:new((
-         map:entry('db',    $db),
-         map:entry('path',  $path),
-         map:entry('coll',  $coll),
-         map:entry('start', $start),
-         map:entry('fun',   local:page#4)))
+let $db    := t:mandatory-field('name')
+let $coll  := t:optional-field('coll', ())[.]
+let $start := xs:integer(t:optional-field('start', 1)[.])
 return
-   v:console-page(
-      $webapp-root,
-      'browser',
-      'Browse collections',
-      function() {
-         a:eval-on-database(
-            $db,
-            'declare variable $db    external;
-             declare variable $start external;
-             declare variable $path  external := ();
-             declare variable $coll  external := ();
-             declare variable $fun   external;
-             $fun($db, $path, $coll, $start)',
-            $params)
+   v:console-page($webapp-root, 'browser', 'Browse collections', function() {
+      a:query-database($db, function() {
+         local:page($db, $path, $coll, $start)
       })
+   })
