@@ -56,16 +56,16 @@ declare function local:get-root($path as xs:string)
  : The overall page function.
  :)
 declare function local:page(
-   $id    as xs:unsignedLong,
+   $name  as xs:string,
    $start as xs:integer,
    $super as xs:string?
 ) as element()+
 {
-   let $db := a:get-database($id)
+   let $db := a:get-database($name)
    return
       (: TODO: In this case, we should NOT return "200 OK". :)
       if ( fn:empty($db) ) then (
-         local:page--no-db($id)
+         local:page--no-db($name)
       )
       else if ( fn:empty($super) ) then (
          local:page--browse($db, $start)
@@ -78,10 +78,10 @@ declare function local:page(
 (:~
  : The page content, in case the DB does not exist.
  :)
-declare function local:page--no-db($id as xs:unsignedLong)
+declare function local:page--no-db($name as xs:string)
    as element(h:p)
 {
-   <p><b>Error</b>: The database "<code>{ $id }</code>" does not exist.</p>
+   <p><b>Error</b>: The database "<code>{ $name }</code>" does not exist.</p>
 };
 
 (:~
@@ -118,10 +118,7 @@ declare function local:page--browse($db as element(a:database), $start as xs:int
                $query,
                (),
                (),
-               sem:ruleset-store('range.rules',
-                  sem:ruleset-store('domain.rules',
-                     sem:ruleset-store('subClassOf.rules',
-                        sem:store()))))
+               sem:ruleset-store('rdfs.rules', sem:store()))
       let $count := fn:count($res)
       let $to    := $start + $count - 1
       return (
@@ -156,10 +153,7 @@ declare function local:page--super(
 ) as element()+
 {
    let $params := map:entry('super', sem:iri($super))
-   let $store  := sem:ruleset-store('range.rules',
-                     sem:ruleset-store('domain.rules',
-                        sem:ruleset-store('subClassOf.rules',
-                           sem:store())))
+   let $store  := sem:ruleset-store('rdfs.rules', sem:store())
    return (
       <p>Database: { v:db-link('classes', $db/a:name) }</p>,
       <p>Details of { v:class-link('classes?super=' || fn:encode-for-uri($super), $super) }:</p>,
@@ -245,8 +239,7 @@ declare function local:display-value($v as xs:anyAtomicType?)
 
 let $slashes := if ( fn:empty($path) ) then 0 else fn:count(fn:tokenize($path, '/'))
 let $root    := fn:string-join(for $i in 1 to $slashes + 2 return '..', '/') || '/'
-let $db-str  := t:mandatory-field('id')
-let $db      := xs:unsignedLong($db-str)
+let $db      := t:mandatory-field('name')
 let $super   := t:optional-field('super', ())
 let $start   := xs:integer(t:optional-field('start', 1)[.])
 let $params  := 

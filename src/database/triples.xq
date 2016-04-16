@@ -56,16 +56,16 @@ declare function local:get-root($path as xs:string)
  : The overall page function.
  :)
 declare function local:page(
-   $id    as xs:unsignedLong,
+   $name  as xs:string,
    $start as xs:integer,
    $rsrc  as xs:string?
 ) as element()+
 {
-   let $db := a:get-database($id)
+   let $db := a:get-database($name)
    return
       (: TODO: In this case, we should NOT return "200 OK". :)
       if ( fn:empty($db) ) then (
-         local:page--no-db($id)
+         local:page--no-db($name)
       )
       else if ( fn:empty($rsrc) ) then (
          local:page--browse($db, $start)
@@ -78,10 +78,10 @@ declare function local:page(
 (:~
  : The page content, in case the DB does not exist.
  :)
-declare function local:page--no-db($id as xs:unsignedLong)
+declare function local:page--no-db($name as xs:string)
    as element(h:p)
 {
-   <p><b>Error</b>: There is no database with ID <code>{ $id }</code>.</p>
+   <p><b>Error</b>: The database "<code>{ $name }</code>" does not exist.</p>
 };
 
 (:~
@@ -225,8 +225,7 @@ declare function local:display-type($v as xs:anyAtomicType)
 
 let $slashes := if ( fn:empty($path) ) then 0 else fn:count(fn:tokenize($path, '/'))
 let $root    := fn:string-join(for $i in 1 to $slashes + 2 return '..', '/') || '/'
-let $name    := t:mandatory-field('name')
-let $db      := a:database-id($name)
+let $db      := t:mandatory-field('name')
 let $rsrc    := t:optional-field('rsrc', ())
 let $start   := xs:integer(t:optional-field('start', 1)[.])
 let $params  := 

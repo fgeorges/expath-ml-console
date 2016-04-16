@@ -76,7 +76,7 @@
       <dispatch>/database/triples.xq</dispatch>
    </match-path>
    <match-path matches="^/db/([-0-9a-zA-Z]+)/classes$">
-      <add-query-param name="id">$1</add-query-param>
+      <add-query-param name="name">$1</add-query-param>
       <dispatch>/database/classes.xq</dispatch>
    </match-path>
    <match-path matches="^/db/([-0-9a-zA-Z]+)/save-xml$">
