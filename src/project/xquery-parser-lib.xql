@@ -406,6 +406,13 @@ declare function xqp:build-tag($tag as xs:string+, $lines as xs:string+) as elem
             <deprecated>{ $b }</deprecated>
          case 'error' return
             <error>{ $b }</error>
+         (: TODO: This is an "extension" to XQDoc, document them all... :)
+         case 'todo' return
+            <todo>{ $b }</todo>
          default return
-            <ERROR>Unknown tag: "{ $tag[1] }"</ERROR>
+            <ERROR>
+               <msg>Unknown tag: "{ $tag[1] }"</msg>
+               { $tag ! <string>{ . }</string> }
+               <content>{ $b }</content>
+            </ERROR>
 };

@@ -59,6 +59,9 @@ return
           }});
           $('.md-content').each(function() {{
              var elem = $(this);
-             elem.html(marked(elem.text()));
+             var md = marked(elem.text());
+             elem.html(md);
           }});
+          // TODO: Select nodes with class `md-content` AND `todo`...
+          $('div.todo p:first').prepend('<code class="todo">TODO</code> ');
        </script>))

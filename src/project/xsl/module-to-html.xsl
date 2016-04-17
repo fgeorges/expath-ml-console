@@ -121,14 +121,18 @@
       </xsl:if>
       <xsl:apply-templates select="comment/return"/>
       <xsl:apply-templates select="comment/body"/>
-      <!--
-          TODO: Display errors and tags (elemnts "ERROR", "param", "throws", "author"..)
-      -->
-      <xsl:for-each select="comment/(* except (head|body|param|return))">
-         <pre>
-            <xsl:value-of select="xdmp:quote(.)"/>
-         </pre>
-      </xsl:for-each>
+      <xsl:apply-templates select="comment/(* except (head|param|return|body))"/>
+   </xsl:template>
+
+   <xsl:template match="head"/>
+   <xsl:template match="param"/>
+   <xsl:template match="return"/>
+
+   <!-- TODO: Once they're all supported, turn it into a white list (error for all unknown...) -->
+   <xsl:template match="comment/*" priority="0">
+      <pre>
+         <xsl:value-of select="xdmp:quote(.)"/>
+      </pre>
    </xsl:template>
 
    <xsl:template match="return">
@@ -142,6 +146,12 @@
 
    <xsl:template match="body">
       <div class="md-content">
+         <xsl:apply-templates/>
+      </div>
+   </xsl:template>
+
+   <xsl:template match="todo">
+      <div class="md-content todo">
          <xsl:apply-templates/>
       </div>
    </xsl:template>
