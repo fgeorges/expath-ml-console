@@ -2,9 +2,10 @@ xquery version "3.0";
 
 module namespace check = "http://expath.org/ns/ml/console/project/xproject/checkup";
 
-import module namespace proj = "http://expath.org/ns/ml/console/project" at "../proj-lib.xql";
-import module namespace a    = "http://expath.org/ns/ml/console/admin"   at "../../lib/admin.xql";
-import module namespace v    = "http://expath.org/ns/ml/console/view"    at "../../lib/view.xql";
+import module namespace proj  = "http://expath.org/ns/ml/console/project" at "../proj-lib.xql";
+import module namespace xproj = "http://expath.org/ns/ml/console/project/xproject" at "../xproject-lib.xql";
+import module namespace a     = "http://expath.org/ns/ml/console/admin"   at "../../lib/admin.xql";
+import module namespace v     = "http://expath.org/ns/ml/console/view"    at "../../lib/view.xql";
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
@@ -19,7 +20,7 @@ declare function check:page(
    $string as function(item()?, xs:boolean) as element()
 ) as element()+
 {
-   let $desc := proj:descriptor($proj)
+   let $desc := xproj:descriptor($proj)
    let $dir  := proj:directory($proj)
    return (
       <p>Project dir: { $dir ! $string(., a:file-exists(.)) }</p>,
