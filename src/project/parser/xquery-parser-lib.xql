@@ -7,7 +7,7 @@ import module namespace parser = "http://github.com/jpcs/xqueryparser.xq"
 import module namespace xqdc = "XQDocComments"
    at "lib/XQDocComments.xq";
 
-import module namespace t = "http://expath.org/ns/ml/console/tools" at "../lib/tools.xql";
+import module namespace t = "http://expath.org/ns/ml/console/tools" at "../../lib/tools.xql";
 
 declare namespace xdmp = "http://marklogic.com/xdmp";
 

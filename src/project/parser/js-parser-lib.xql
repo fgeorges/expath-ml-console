@@ -7,7 +7,7 @@ import module namespace parser = "EcmaScript"
 import module namespace jsdc = "JSDocComments"
    at "lib/JSDocComments.xq";
 
-import module namespace t = "http://expath.org/ns/ml/console/tools" at "../lib/tools.xql";
+import module namespace t = "http://expath.org/ns/ml/console/tools" at "../../lib/tools.xql";
 
 declare namespace xdmp = "http://marklogic.com/xdmp";
 
