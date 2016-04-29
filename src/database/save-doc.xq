@@ -69,11 +69,10 @@ declare function local:save($uri as xs:string, $doc as xs:string, $type as xs:st
 let $uri  := t:mandatory-field('uri')
 let $doc  := t:mandatory-field('doc')
 let $type := t:mandatory-field('type')
-let $id   := t:mandatory-field('id')
-let $db   := xs:unsignedLong($id)
+let $db   := t:mandatory-field('name')
 return (
    a:update-database($db, function() {
       local:save($uri, $doc, $type)
    }),
-   'Document saved in DB ' || xdmp:database-name($db) || ', at ' || $uri
+   'Document saved in DB ' || $db || ', at ' || $uri
 )
