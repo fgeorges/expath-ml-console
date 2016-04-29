@@ -90,15 +90,7 @@
          <xsl:value-of select="comment/head"/>
       </div>
       <pre>
-         <xsl:value-of select="signature/@name"/>
-         <xsl:text>(</xsl:text>
-         <xsl:value-of separator="," select="
-             signature/param/concat('&#10;   $', @name, @type/concat(' as ', .))"/>
-         <xsl:if test="signature/param">
-            <xsl:text>&#10;</xsl:text>
-         </xsl:if>
-         <xsl:text>)</xsl:text>
-         <xsl:value-of select="signature/@type/concat(' as ', .)"/>
+         <xsl:apply-templates select="signature"/>
       </pre>
       <!--
           TODO: Do something more elaborate with the signature/param elements

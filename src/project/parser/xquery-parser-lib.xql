@@ -3,9 +3,9 @@ xquery version "3.0";
 module namespace xqp = "http://expath.org/ns/ml/console/parser/xquery";
 
 import module namespace parser = "http://github.com/jpcs/xqueryparser.xq"
-   at "parser/xqueryparser.xq";
+   at "xqueryparser.xq";
 import module namespace xqdc = "XQDocComments"
-   at "parser/XQDocComments.xq";
+   at "lib/XQDocComments.xq";
 
 import module namespace t = "http://expath.org/ns/ml/console/tools" at "../lib/tools.xql";
 
