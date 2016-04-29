@@ -372,13 +372,11 @@ declare function local:create-doc-form(
    </p>,
 
    <div style="display: none" id="jump-area">
-      <h4>Go to</h4>
+      <h4>Jump to</h4>
       <p>Use this form to directly access a document or a directory by URI.</p>
       {
-         v:form($db-root || 'browse' || '/'[fn:not(fn:starts-with($path, '/'))] || $path, (
-            v:input-text('init-path', 'URI', 'The URI of the directory or document to go to'),
-            v:submit('Go')
-         ))
+         v:one-liner-form($db-root || 'browse' || '/'[fn:not(fn:starts-with($path, '/'))] || $path, 'Go',
+            v:input-text('init-path', 'URI', 'The URI of a document or directory'))
       }
    </div>,
 

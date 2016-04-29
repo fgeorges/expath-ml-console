@@ -476,9 +476,15 @@ declare function v:form($action as xs:string, $content as element()+)
 declare function v:form($action as xs:string, $attrs as attribute()*, $content as element()+)
    as element(h:form)
 {
+   v:form($action, $attrs, $content, ())
+};
+
+declare function v:form($action as xs:string, $attrs as attribute()*, $content as element()+, $method as xs:string?)
+   as element(h:form)
+{
    let $class := attribute { 'class' } { 'form-horizontal' }[fn:empty($attrs[fn:node-name(.) eq xs:QName('class')])]
    return
-      v:form-impl($action, ($attrs, $class), $content)
+      v:form-impl($action, ($attrs, $class), $content, $method)
 };
 
 declare function v:inline-form($action as xs:string, $content as element()+)
@@ -493,17 +499,46 @@ declare function v:inline-form($action as xs:string, $attrs as attribute()*, $co
    let $class := attribute { 'class' } { 'form-inline'  }[fn:empty($attrs[fn:node-name(.) eq xs:QName('class')])]
    let $style := attribute { 'style' } { 'height: 12pt' }[fn:empty($attrs[fn:node-name(.) eq xs:QName('style')])]
    return
-      v:form-impl($action, ($attrs, $class, $style), $content)
+      v:form-impl($action, ($attrs, $class, $style), $content, ())
+};
+
+declare function v:one-liner-form($action as xs:string, $submit as xs:string, $content as element())
+   as element(h:form)
+{
+   v:form($action, (),
+      <div xmlns="http://www.w3.org/1999/xhtml" class="form-group">
+         { $content/label }
+         <div class="col-sm-9">
+            { $content/div/input }
+         </div>
+         <div class="col-sm-1">
+            <button type="submit" class="btn btn-default">{ $submit }</button>
+         </div>
+      </div>)
+};
+
+declare function v:one-liner-link($label as xs:string, $action as xs:string, $submit as xs:string)
+   as element(h:form)
+{
+   v:form($action, (),
+      <div xmlns="http://www.w3.org/1999/xhtml" class="form-group">
+         <label class="col-sm-2 control-label">{ $label }</label>
+         <div class="col-sm-10">
+            <button class="btn btn-default">{ $submit }</button>
+         </div>
+      </div>,
+      'get')
 };
 
 declare %private function v:form-impl(
    $action  as xs:string,
    $attrs   as attribute()*,
-   $content as element()+
+   $content as element()+,
+   $method  as xs:string?
 ) as element(h:form)
 {
    <form xmlns="http://www.w3.org/1999/xhtml"
-         method="post"
+         method="{ ($method, 'post')[1] }"
          action="{ $action }"
          enctype="multipart/form-data"> {
       $attrs,
