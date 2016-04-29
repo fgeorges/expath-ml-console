@@ -38,6 +38,22 @@ declare function local:page--no-lexicon($db as xs:string)
       the collections.</p>
 };
 
+declare function local:page--init-path($init as xs:string)
+   as element(h:p)
+{
+   let $relative :=
+         if ( fn:exists($path) ) then
+            $db-root || 'colls' || '/'[fn:not(fn:starts-with($path, '/'))] || $path
+               || '/'[fn:not(fn:ends-with($path, '/') or fn:starts-with($init, '/'))]
+               || (if ( fn:ends-with($path, '/') and fn:starts-with($init, '/') ) then fn:substring($init, 2) else $init)
+         else
+            $db-root || 'colls' || '/'[fn:not(fn:starts-with($init, '/'))] || $init
+   return (
+      v:redirect($relative),
+      <p>You are being redirected to <a href="{ $relative }">this page</a>...</p>
+   )
+};
+
 declare function local:display-coll($c as xs:string)
    as element(h:li)+
 {
@@ -187,6 +203,7 @@ declare function local:page(
    $name  as xs:string,
    $path  as xs:string?,
    $coll  as xs:string?,
+   $init  as xs:string?,
    $start as xs:integer
 ) as element()+
 {
@@ -204,6 +221,9 @@ declare function local:page(
       else if ( fn:not($db/a:lexicons/xs:boolean(a:coll)) ) then (
          local:page--no-lexicon($name)
       )
+      else if ( fn:exists($init) ) then (
+         local:page--init-path($init)
+      )
       else if ( fn:empty($path) ) then (
          local:page--empty-path($name, $start)
       )
@@ -214,10 +234,11 @@ declare function local:page(
 
 let $db    := t:mandatory-field('name')
 let $coll  := t:optional-field('coll', ())[.]
+let $init  := t:optional-field('init-path', ())[.]
 let $start := xs:integer(t:optional-field('start', 1)[.])
 return
    v:console-page($webapp-root, 'browser', 'Browse collections', function() {
       a:query-database($db, function() {
-         local:page($db, $path, $coll, $start)
+         local:page($db, $path, $coll, $init, $start)
       })
    })

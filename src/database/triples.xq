@@ -21,7 +21,8 @@ declare function local:page(
    $name  as xs:string,
    $start as xs:integer,
    $rsrc  as xs:string?,
-   $curie as xs:string?
+   $curie as xs:string?,
+   $init  as xs:string?
 ) as element()+
 {
    let $db := a:get-database($name)
@@ -36,9 +37,19 @@ declare function local:page(
       else if ( fn:exists($curie) ) then (
          local:page--rsrc($db, v:expand-curie($curie), '../')
       )
+      else if ( fn:exists($init) ) then (
+         local:page--init-curie($init)
+      )
       else (
          local:page--browse($db, $start)
       )
+};
+
+declare function local:page--init-curie($init as xs:string)
+   as element(h:p)
+{
+   v:redirect('triples/' || $init),
+   <p>You are being redirected to <a href="triples/{ $init }">this page</a>...</p>
 };
 
 (:~
@@ -194,11 +205,12 @@ declare function local:display-type($v as xs:anyAtomicType)
 let $db    := t:mandatory-field('name')
 let $rsrc  := t:optional-field('rsrc', ())
 let $curie := t:optional-field('curie', ())
+let $init  := t:optional-field('init-curie', ())
 let $start := xs:integer(t:optional-field('start', 1)[.])
 let $root  := '../../' || '../'[$curie]
 return
    v:console-page($root, 'browser', 'Browse resources', function() {
       a:query-database($db, function() {
-         local:page($db, $start, $rsrc, $curie)
+         local:page($db, $start, $rsrc, $curie, $init)
       })
    })
