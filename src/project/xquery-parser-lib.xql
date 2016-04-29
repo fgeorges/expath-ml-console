@@ -67,7 +67,7 @@ declare namespace xdmp = "http://marklogic.com/xdmp";
 declare function xqp:parse($href as xs:string, $module as xs:string)
    as element(module)
 {
-   <module href="{ $href }"> {
+   <module href="{ $href }" lang="xquery"> {
       let $components := xqp:parse-1($module)
       return
          if ( fn:exists($components[self::section]) ) then
@@ -267,9 +267,9 @@ declare function xqp:parse-simple-doc($line as xs:string) as element()
          fn:replace($line, '^\s*\(:~~+\s*(.*\S)\s*:\)\s*$', '$1')
       }
       </section>
-   else if ( fn:matches($line, '^\s*\(:~\s*.+\s*:\)~\s*$') ) then
+   else if ( fn:matches($line, '^\s*\(:~\s*.+\s*:\)\s*$') ) then
       <head> {
-         fn:replace($line, '^\s*\(:~\s*(.*\S)\s*:\)~\s*$', '$1')
+         fn:replace($line, '^\s*\(:~\s*(.*\S)\s*:\)\s*$', '$1')
       }
       </head>
    else
