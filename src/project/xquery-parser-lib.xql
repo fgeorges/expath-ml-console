@@ -213,7 +213,7 @@ declare function xqp:comment($text as xs:string) as element(comment)*
             <ERROR>{ xs:string($ast) }</ERROR>
          </comment>
       else
-         $docs ! <comment>{ xqp:parse-doc(fn:tokenize(., '&#10;')) }</comment>
+         $docs ! <comment>{ xqp:parse-doc(fn:tokenize(., '&#13;?&#10;')) }</comment>
 };
 
 declare function xqp:signature($fun as element(FunctionDecl)) as element(signature)
