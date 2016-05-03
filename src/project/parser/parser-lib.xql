@@ -6,13 +6,16 @@ import module namespace t = "http://expath.org/ns/ml/console/tools" at "../../li
 
 declare namespace map = "http://marklogic.com/xdmp/map";
 
-(:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ First section... :)
+(:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ : Overall parsing of the modules
+ :)
 
 (:~
  : Parse a module.
  : 
  : Return a `module` element, of the following format:
  :
+ : ```
  :     <module href="module uri">
  :        ( function
  :        | section )*
@@ -31,7 +34,7 @@ declare namespace map = "http://marklogic.com/xdmp/map";
  :        , {tag}* )
  :     </comment>
  : 
- :     <signature name="local-name" type="xs:string+"? >
+ :     <signature name="local-name" type="xs:string+"> (type optional)
  :        ( param* )
  :     </signature>
  : 
@@ -48,12 +51,13 @@ declare namespace map = "http://marklogic.com/xdmp/map";
  :        ( plain text )
  :     </param>
  : 
- :     <param name="param name" type="type def"? > (in `signature`)
+ :     <param name="param name" type="type def"> (in `signature`) (type optional)
  :        ( plain text )
  :     </param>
  : 
  :     {tag}
  :        := any other possible tag, plain text or with some attributes, TBD
+ : ```
  : 
  : @param href A path or URI to use to refer to the module.
  : 
@@ -61,6 +65,7 @@ declare namespace map = "http://marklogic.com/xdmp/map";
  : 
  : @param lang A map with info and functions about the specific language of the
  :     module.  It must contain the following entries:
+ :
  :     - `lang` - the language, as a string
  :     - `parse()` - the REx-generated parser for the language
  :     - `functions()` - get the function definitions out of the AST
@@ -74,7 +79,8 @@ declare namespace map = "http://marklogic.com/xdmp/map";
  :     - `param-type()` - return the type out of a parameter
  :     - `opening` - the opening comment tag (like "\(\:" or "/\*"), must be a valid regex
  :     - `closing` - the closing comment tag (like ":\)" or "\*/"), must be a valid regex
- :     - `continuation` - the beginning of each line in a comment (":" or "*"), must be a valid regex, not including surrounding whitespaces
+ :     - `continuation` - the beginning of each line in a comment (":" or "*"), must be a
+ :           valid regex, not including surrounding whitespaces
  :)
 declare function parser:parse($href as xs:string, $module as xs:string, $lang as item())
    as element(module)
@@ -120,15 +126,18 @@ declare %private function parser:parse-1($module as xs:string, $lang as item())
  : By "*nesting*", it actually only supports 1-level.  But it groups all functions
  : under the same section with the same `section` parent element.  From:
  : 
+ : ```
  :     <function> ( z ) </function>
  :     <section> ( 1 ) </section>
  :     <function> ( a ) </function>
  :     <function> ( b ) </function>
  :     <section> ( 2 ) </section>
  :     <function> ( c ) </function>
+ : ```
  : 
  : to:
  : 
+ : ```
  :     <function> ( z ) </function>
  :     <section> ( 1 )
  :        <function> ( a ) </function>
@@ -137,6 +146,7 @@ declare %private function parser:parse-1($module as xs:string, $lang as item())
  :     <section> ( 2 )
  :        <function> ( c ) </function>
  :     </section>
+ : ```
  : 
  : @param $comps The components to normalize.  It is a mix of `section` and
  : `function` elements.  It must contain at least one `section` element.
@@ -200,7 +210,9 @@ declare %private function parser:make-section(
       $acc
 };
 
-(:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bla bla short... :)
+(:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ : Parsing of the comments
+ :)
 
 (:~
  : Bla bla...
