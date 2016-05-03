@@ -30,19 +30,40 @@ declare function this:sources($proj as element(mlc:project))
    as xs:string*
 {
    proj:directory($proj)
-      ! this:sources-1(. || 'src/')
+      ! this:sources-1($proj, . || 'src/')
 };
 
 (: TODO: Store the module extension in xproject/marklogic.xml.
  :)
-declare variable $exts := ('xq', 'xql', 'xqy', 'xqm');
+declare variable $source-exts :=
+   <extensions>
+      <lang lang="xquery">
+         <ext>xq</ext>
+         <ext>xql</ext>
+         <ext>xqy</ext>
+         <ext>xqm</ext>
+      </lang>
+      <lang lang="javascript">
+         <ext>sjs</ext>
+      </lang>
+   </extensions>;
 
 (: TODO: Add filtering by extension to admin.xql...
  :)
-declare function this:sources-1($dir as xs:string)
+declare function this:sources-1($proj as element(mlc:project), $dir as xs:string)
    as xs:string*
 {
    a:browse-files($dir, function($file as xs:string) as xs:string? {
-      fn:substring-after($file, $dir)[fn:tokenize(., '\.')[fn:last()] = $exts]
+      let $name := fn:substring-after($file, $dir)
+      return
+         this:source-lang($proj, $name) ! <file lang="{ . }">{ $name }</file>
    })
+};
+
+declare function this:source-lang($proj as element(mlc:project), $path as xs:string)
+   as xs:string?
+{
+   let $ext  := fn:tokenize($path, '\.')[fn:last()]
+   return
+      $source-exts/lang[ext = $ext]/@lang
 };
