@@ -1,39 +1,56 @@
 xquery version "3.0";
 
 declare namespace xdmp = "http://marklogic.com/xdmp";
+declare namespace http = "xdmp:http";
 declare namespace zip  = "xdmp:zip";
 
-(: Choose a branch to be downloaded from GitHub, or a file accessible locally
-   on the server.  So either:
-
-   <config>
-      <branch>develop</branch>
-   </config>
-
-   or
-   
-   <config>
-      <file>/tmp/expath-ml-console-master.zip</file>
-   </config>
-:)
+(: Branch to download from GitHub, or a file accessible locally on the server:
+ :
+ : <config>
+ :    <branch>develop</branch>
+ : </config>
+ :
+ : or
+ : 
+ : <config>
+ :    <file>/tmp/expath-ml-console-master.zip</file>
+ : </config>
+ :)
 declare variable $config :=
    <config>
       <branch>feature/projects</branch>
    </config>;
 
-declare variable $branch := $config/branch/xs:string(.);
-declare variable $file   := $config/file/xs:string(.);
+declare function local:zip()
+{
+   let $branch := $config/branch/xs:string(.)[.]
+   let $file   := $config/file/xs:string(.)[.]
+   return
+      if ( fn:exists($branch) and fn:exists($file) ) then
+         fn:error((), 'Both branch and file specified: ' || $branch || ' - ' || $file)
+      else if ( fn:exists($branch) ) then
+         local:get($branch)
+      else if ( fn:exists($file) ) then
+         xdmp:external-binary($file)
+      else
+         fn:error((), 'Neither branch or file specified')
+};
 
-if $branch and $file -> error
-if $branch -> HTTP GET
-if $file -> filesystem read
+declare function local:get($branch as xs:string)
+   as document-node()
+{
+   let $base := 'https://codeload.github.com/fgeorges/expath-ml-console/zip/'
+   let $url  := $base || $branch
+   let $res  := xdmp:http-get($url)
+   return
+      if ( $res[1]/xs:integer(http:code) eq 200 ) then
+         $res[2]
+      else
+         fn:error((), 'HTTP GET on <' || $url || '> - ' || xdmp:quote($res[1])
+            || ' - ' || xdmp:quote($res[2]))
+};
 
-declare variable $base-url  := 'https://github.com/fgeorges/expath-ml-console/archive/';
-declare variable $extension := '.zip';
-declare variable $url       := $base-url || $branch || $extension;
-
-(: TODO: Needs more logic to differentiate between local file, and HTTP get, which branch, etc. :)
-let $zip   := xdmp:external-binary($file)
+let $zip   := local:zip()
 let $parts := xdmp:zip-manifest($zip)/zip:part
 let $src   := $parts[1]/fn:substring-before(., '/') || '/src/'
 let $trunk := $src || 'trunk/'
