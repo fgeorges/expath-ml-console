@@ -3,9 +3,10 @@ xquery version "3.0";
 declare namespace http = "xdmp:http";
 declare namespace xdmp = "http://marklogic.com/xdmp";
 declare namespace db   = "http://marklogic.com/manage/databases";
-declare namespace srv  = "http://marklogic.com/manage/servers";
 declare namespace fst  = "http://marklogic.com/manage/forests";
 declare namespace hst  = "http://marklogic.com/manage/hosts";
+declare namespace pkg  = "http://marklogic.com/manage/package";
+declare namespace srv  = "http://marklogic.com/manage/package/servers";
 
 declare variable $config :=
    <config>
@@ -78,10 +79,10 @@ declare function local:databases()
 };
 
 declare function local:servers()
-   as element(srv:list-item)+
+   as element()+
 {
-   local:get('servers?format=xml', 200)
-      / srv:server-default-list/srv:list-items/srv:list-item
+   local:get('servers?view=package&amp;format=xml', 200)
+      / pkg:set/srv:servers/*
 };
 
 declare function local:forests()
@@ -135,19 +136,14 @@ declare function local:compile-db($db as element())
 declare function local:compile-srv($srv as element())
    as element()?
 {
-   let $exists := fn:exists($servers[srv:nameref eq $srv/@name][srv:groupnameref eq $srv/@group])
-   (: TODO: Check whether the port number is already used... :)
-   (: See http://marklogic.markmail.org/thread/pfzt43jeqzmijmo6. :)
-   (:
-   let $bound  := $servers[xs:integer(srv:port) eq xs:integer($srv/@port)]/xs:string(srv:nameref)
-   :)
+   let $exists := fn:exists($servers[srv:config[srv:name eq $srv/@name][srv:group-name eq $srv/@group]])
+   let $bound  := $servers[srv:config/srv:package-http-properties/xs:integer(srv:port) eq xs:integer($srv/@port)]
+                     / xs:string(srv:config/srv:name)
    return
       if ( $exists and fn:not(xs:boolean($srv/@reuse)) ) then
          fn:error((), 'App server exists but cannot be reused: ' || $srv/@name)
-      (:
       else if ( $bound != $srv/@name ) then
          fn:error((), 'Port ' || $srv/@port || ' already bound to: ' || $bound)
-      :)
       else if ( $exists ) then
          ()
       else

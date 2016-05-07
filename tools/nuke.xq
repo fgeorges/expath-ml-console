@@ -36,7 +36,9 @@ declare function local:delete($url as xs:string)
 };
 
 (:
-local:delete('forests/emlc-content-001?level=full')
+Deleting the server provokes a restart.
+Deleting databases first is not an option as they are attached to the server.
+So needs to evaluate this script twice actually (delete the server, then the DBs).
 :)
 local:delete('servers/emlc?group-id=Default'),
 local:delete('databases/emlc-content?forest-delete=data'),
