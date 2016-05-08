@@ -15,7 +15,8 @@ report it to the EXPath [mailing list](http://expath.org/lists).
 
 ![Screenshot of the Console](doc/screenshot.png)
 
-This document contains the following sections:
+This document contains an overview of each main feature, as well as an
+install guide:
 
 - [Quick install](#quick-install)
 - [The package manager](#the-package manager)
