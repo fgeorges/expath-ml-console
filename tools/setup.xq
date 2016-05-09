@@ -8,6 +8,15 @@ declare namespace hst  = "http://marklogic.com/manage/hosts";
 declare namespace pkg  = "http://marklogic.com/manage/package";
 declare namespace srv  = "http://marklogic.com/manage/package/servers";
 
+(: The admin credentials of the MarkLogic instance, as well as the appserver to
+ : use for the Console and its content and modules databases.  The schemas and
+ : security databases must already exist, in case the corersponding (content or
+ : modules) database is created.
+ :
+ : In order to ensure a database or appserver is not reused if it already exists,
+ : set `reuse` to `false`.  To allow reusing it, e.g. in case of reinstalling the
+ : Console, set it to `true`.
+ :)
 declare variable $config :=
    <config>
       <user name="admin" password="admin"/>
