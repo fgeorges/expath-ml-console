@@ -42,7 +42,7 @@ against the modules database of the app server.  By default, the first
 script, `setup.xq` creates it as `emlc-modules`.
 
 If you kept the default values, you can access the Console on
-http://localhost:8010/.
+[http://localhost:8010/](http://localhost:8010/).
 
 For more information about the install procedure, see the [Install
 guide](#install-guide).
@@ -198,15 +198,16 @@ scripts are:
   in `setup.xq`, by default `emlc-modules`).
 
 To evaluate a script in QConsole, go to
-http://localhost:8000/qconsole/, copy the code in the text area,
-select the `Query Type` as `XQuery`, and press the `Run` button.  To
-select the database it is evaluated against, select it in the `Content
-Source` dropdown list on the top-left corner:
+[http://localhost:8000/qconsole/](http://localhost:8000/qconsole/),
+copy the code in the text area, select the `Query Type` as `XQuery`,
+and press the `Run` button.  To select the database it is evaluated
+against, select it in the `Content Source` dropdown list on the
+top-left corner:
 
 ![Screenshot of QConsole](doc/qconsole.png)
 
 If you kept the default values, you can access the Console on
-http://localhost:8010/.
+[http://localhost:8010/](http://localhost:8010/).
 
 ### Configure install
 
