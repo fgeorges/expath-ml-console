@@ -242,7 +242,7 @@ The default value in `install.xq` is:
 </config>
 ```
 
-It accepts one, and onlny one, of the following elements:
+It accepts one, and only one, of the following elements:
 
 - `branch` - the name of the branch to download from GitHub, and install locally
 - `file` - the path of a ZIP file downloaded from GitHub and accessible locally
