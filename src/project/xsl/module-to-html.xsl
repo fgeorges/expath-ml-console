@@ -27,7 +27,11 @@
       </pre>
    </xsl:template>
 
-   <xsl:template match="module">
+   <xsl:template match="module[empty(section|function)]">
+      <p>There is no function in this module.</p>
+   </xsl:template>
+
+   <xsl:template match="module[section|function]">
       <p>Table of contents:</p>
       <xsl:choose>
          <xsl:when test="exists(section) and empty(*[1][self::section])">
@@ -118,10 +122,9 @@
 
    <xsl:template match="head"/>
    <xsl:template match="param"/>
-   <xsl:template match="return"/>
 
    <!-- TODO: Once they're all supported, turn it into a white list (error for all unknown...) -->
-   <xsl:template match="comment/*" priority="0">
+   <xsl:template match="comment/*" priority="-1">
       <pre>
          <xsl:value-of select="xdmp:quote(.)"/>
       </pre>
