@@ -33,6 +33,8 @@ declare function proj:is-console-init()
  : Create the Console config file.
  : 
  : @todo Move to a Console-global library.
+ :
+ : @todo Is it still used, shouldn't I delete them...?
  :)
 declare function proj:init-console()
    as empty-sequence()
@@ -135,11 +137,4 @@ declare function proj:directory($proj as element(mlc:project))
    as xs:string
 {
    $proj/mlc:dir
-};
-
-declare function proj:readme($proj as element(mlc:project))
-   as text()?
-{
-   proj:directory($proj)
-      ! a:get-from-directory(., 'README.md', fn:false())
 };

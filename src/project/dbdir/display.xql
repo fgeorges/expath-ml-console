@@ -1,6 +1,6 @@
 xquery version "3.0";
 
-module namespace disp = "http://expath.org/ns/ml/console/project/srcdir/display";
+module namespace disp = "http://expath.org/ns/ml/console/project/dbdir/display";
 
 import module namespace v = "http://expath.org/ns/ml/console/view" at "../../lib/view.xql";
 
@@ -10,7 +10,7 @@ declare namespace mlc = "http://expath.org/ns/ml/console";
 
 declare function disp:page($proj as element(mlc:project)) as element()+
 {
-   <p>{ v:proj-link($proj/@id, $proj/@id) } - In <code>{ xs:string($proj/mlc:dir) }</code>.</p>,
+   <p>{ v:proj-link($proj/@id, $proj/@id) } - In <code>{ xs:string($proj/mlc:db) }</code>.</p>,
    $proj/mlc:title ! <p>{ xs:string(.) }</p>,
    <ul>
       <li><a href="{ $proj/@id }/src">Sources</a></li>

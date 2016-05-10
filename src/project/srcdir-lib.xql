@@ -10,6 +10,25 @@ import module namespace a    = "http://expath.org/ns/ml/console/admin"   at "../
 
 declare namespace mlc = "http://expath.org/ns/ml/console";
 
+declare function this:title($proj as element(mlc:project))
+   as xs:string?
+{
+   $proj/mlc:title
+};
+
+declare function this:info($proj as element(mlc:project))
+   as item()*
+{
+   <code>{ $proj/mlc:dir/xs:string(.) }</code>
+};
+
+declare function this:readme($proj as element(mlc:project))
+   as text()?
+{
+   proj:directory($proj)
+      ! a:get-from-directory(., 'README.md', fn:false())
+};
+
 declare function this:source($proj as element(mlc:project), $src as xs:string)
    as text()?
 {

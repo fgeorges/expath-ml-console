@@ -1,58 +1,62 @@
 xquery version "3.0";
 
 (:~
- : Information retrieval and manipulation for projects of type `xproject`.
+ : Information retrieval and manipulation for projects of type `dbdir`.
  :)
-module namespace this = "http://expath.org/ns/ml/console/project/xproject";
+module namespace this = "http://expath.org/ns/ml/console/project/dbdir";
 
 import module namespace proj = "http://expath.org/ns/ml/console/project" at "proj-lib.xql";
 import module namespace a    = "http://expath.org/ns/ml/console/admin"   at "../lib/admin.xql";
+import module namespace v    = "http://expath.org/ns/ml/console/view"    at "../lib/view.xql";
 
 declare namespace mlc = "http://expath.org/ns/ml/console";
-declare namespace xp  = "http://expath.org/ns/project";
-
-declare function this:descriptor($proj as element(mlc:project))
-   as element(xp:project)?
-{
-   proj:directory($proj)
-      ! a:get-from-directory(., 'xproject/project.xml', fn:true())
-      / *
-};
 
 declare function this:title($proj as element(mlc:project))
    as xs:string?
 {
-   this:descriptor($proj)/xp:title
+   $proj/mlc:title
 };
 
 declare function this:info($proj as element(mlc:project))
    as item()*
 {
-   <code>{ $proj/mlc:dir/xs:string(.) }</code>
+   v:db-link('db/' || $proj/mlc:db, $proj/mlc:db),
+   ' - ',
+   <code>{ $proj/mlc:root/xs:string(.) }</code>
+};
+
+declare function this:db($proj as element(mlc:project))
+   as xs:string
+{
+   $proj/mlc:db
+};
+
+declare function this:root($proj as element(mlc:project))
+   as xs:string
+{
+   $proj/mlc:root
 };
 
 declare function this:readme($proj as element(mlc:project))
    as text()?
 {
-   proj:directory($proj)
-      ! a:get-from-directory(., 'README.md', fn:false())
+   a:get-from-database($proj/mlc:db, $proj/mlc:root || 'README.md')/node()
 };
 
 declare function this:source($proj as element(mlc:project), $src as xs:string)
    as text()?
 {
-   proj:directory($proj)
-      ! a:get-from-directory(. || 'src/', $src, fn:false())
+   a:get-from-database($proj/mlc:db, $proj/mlc:root || $src)/node()
 };
 
 declare function this:sources($proj as element(mlc:project))
-   as xs:string*
+   as element(file)*
 {
-   proj:directory($proj)
-      ! this:sources-1($proj, . || 'src/')
+   this:root($proj)
+      ! this:sources-1($proj, this:db($proj), .)
 };
 
-(: TODO: Store the module extension in xproject/marklogic.xml.
+(: TODO: Store the module extension in the project config file.
  :)
 declare variable $source-exts :=
    <extensions>
@@ -69,10 +73,10 @@ declare variable $source-exts :=
 
 (: TODO: Add filtering by extension to admin.xql...
  :)
-declare function this:sources-1($proj as element(mlc:project), $dir as xs:string)
-   as xs:string*
+declare function this:sources-1($proj as element(mlc:project), $db as xs:string, $dir as xs:string)
+   as element(file)*
 {
-   a:browse-files($dir, function($file as xs:string) as xs:string? {
+   a:browse-db-files($db, $dir, function($file as xs:string) as element(file)? {
       let $name := fn:substring-after($file, $dir)
       return
          this:source-lang($proj, $name) ! <file lang="{ . }">{ $name }</file>

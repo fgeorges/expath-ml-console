@@ -248,6 +248,9 @@ TODO: Just temporary, to use this code from somewhere, during development...
    <match-path matches="^/project/_/add-srcdir$">
       <dispatch>/project/srcdir/add.xq</dispatch>
    </match-path>
+   <match-path matches="^/project/_/add-dbdir$">
+      <dispatch>/project/dbdir/add.xq</dispatch>
+   </match-path>
    <match-path matches="^/project$">
       <dispatch>/project/index.xq</dispatch>
    </match-path>

@@ -19,6 +19,7 @@ declare namespace pp    = "http://expath.org/ns/repo/packages";
 declare namespace map   = "http://marklogic.com/xdmp/map";
 declare namespace mlpkg = "http://marklogic.com/ns/expath-pkg";
 declare namespace xdmp  = "http://marklogic.com/xdmp";
+declare namespace cts   = "http://marklogic.com/cts";
 declare namespace zip   = "xdmp:zip";
 
 (: Non-configurable for now... :)
@@ -329,6 +330,22 @@ declare function a:database-dir-creation($db as item())
    admin:database-get-directory-creation(
       admin:get-configuration(),
       a:database-id($db))
+};
+
+(:~
+ : Deep browse directory, visiting only files.
+ :)
+declare function a:browse-db-files(
+   $db   as item(),
+   $path as xs:string,
+   $fn   as function(xs:string) as item()*
+) as item()*
+{
+   a:query-database($db, function() {
+      cts:uri-match($path || '*')
+         [fn:not(fn:ends-with(., '/'))]
+         ! $fn(.)
+   })
 };
 
 (:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

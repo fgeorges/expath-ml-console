@@ -1,6 +1,6 @@
 xquery version "3.0";
 
-module namespace check = "http://expath.org/ns/ml/console/project/srcdir/checkup";
+module namespace check = "http://expath.org/ns/ml/console/project/dbdir/checkup";
 
 import module namespace proj = "http://expath.org/ns/ml/console/project" at "../proj-lib.xql";
 import module namespace a    = "http://expath.org/ns/ml/console/admin"   at "../../lib/admin.xql";
@@ -18,9 +18,7 @@ declare function check:page(
    $string as function(item()?, xs:boolean) as element()
 ) as element()+
 {
-   let $dir := proj:directory($proj)
-   return (
-      <p>Project dir element: { $exists($dir) }</p>,
-      <p>Project dir: { $dir ! $string(., a:file-exists(.)) }</p>
-   )
+   <p>Project DB element: { $exists($proj/mlc:db) }</p>,
+   <p>Project DB: { $proj/mlc:db ! $string(., fn:exists(a:database-id(fn:data(.)))) }</p>,
+   <p>Root path element: { $exists($proj/mlc:root) }</p>
 };

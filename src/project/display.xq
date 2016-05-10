@@ -4,6 +4,10 @@ import module namespace proj = "http://expath.org/ns/ml/console/project" at "pro
 import module namespace t    = "http://expath.org/ns/ml/console/tools"   at "../lib/tools.xql";
 import module namespace v    = "http://expath.org/ns/ml/console/view"    at "../lib/view.xql";
 
+import module namespace g = "http://expath.org/ns/ml/console/project/global" at "global-lib.xql";
+
+import module namespace dbdir    = "http://expath.org/ns/ml/console/project/dbdir/display"
+   at "dbdir/display.xql";
 import module namespace srcdir   = "http://expath.org/ns/ml/console/project/srcdir/display"
    at "srcdir/display.xql";
 import module namespace xproject = "http://expath.org/ns/ml/console/project/xproject/display"
@@ -21,8 +25,10 @@ declare function local:page(
    $read as xs:string?
 ) as element()+
 {
-   if ( $proj/@type eq 'srcdir' ) then
-      srcdir:page($id, $proj, $read)
+   if ( $proj/@type eq 'dbdir' ) then
+      dbdir:page($proj)
+   else if ( $proj/@type eq 'srcdir' ) then
+      srcdir:page($proj)
    else if ( $proj/@type eq 'xproject' ) then
       xproject:page($id, $proj, $read)
    else
@@ -39,7 +45,7 @@ declare function local:page(
 
 let $id   := t:mandatory-field('id')
 let $proj := proj:project($id)
-let $read := proj:readme($proj)
+let $read := g:readme($proj)
 return
    v:console-page('../', 'project', t:exists($read, '', 'Project'),
       function () {

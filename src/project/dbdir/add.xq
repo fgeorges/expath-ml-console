@@ -7,29 +7,24 @@ import module namespace v    = "http://expath.org/ns/ml/console/view"    at "../
 
 declare namespace xp = "http://expath.org/ns/project";
 
-declare function local:page($id as xs:string, $title as xs:string, $dir as xs:string)
+declare function local:page($id as xs:string, $title as xs:string, $db as xs:string, $root as xs:string)
    as element()+
 {
-   if ( fn:empty(a:get-directory($dir)) ) then (
-      <p xmlns="http://www.w3.org/1999/xhtml">
-         <b>Error</b>: Project directory does not exist: <code>{ $dir }</code>.
-      </p>
-   )
-   else (
-      proj:add-config($id, 'srcdir', (
-         proj:config-key-value('title', $title),
-         proj:config-key-value('dir',   $dir))),
-      local:success($id, $dir)
-   )
+   proj:add-config($id, 'dbdir', (
+      proj:config-key-value('title', $title),
+      proj:config-key-value('db',    $db),
+      proj:config-key-value('root',  $root))),
+   local:success($id, $db, $root)
 };
 
-declare function local:success($id  as xs:string, $dir as xs:string) as element()+
+declare function local:success($id as xs:string, $db as xs:string, $root as xs:string) as element()+
 {
    <div xmlns="http://www.w3.org/1999/xhtml">
       <p>Successfuly added project { v:proj-link('../../project/' || $id, $id) }.</p>
       <ul>
          <li>ID - <code>{ $id }</code></li>
-         <li>Directory - <code>{ $dir }</code></li>
+         <li>Database - <code>{ $db }</code></li>
+         <li>Root - <code>{ $root }</code></li>
       </ul>
    </div>/*
 };
@@ -39,10 +34,11 @@ v:console-page(
    'project',
    'Project',
    function() {
+      let $db    := t:mandatory-field('database')
       let $id    := t:mandatory-field('id')
       let $title := t:optional-field('title', ())
-      let $dir   := t:mandatory-field('dir')
-      let $dir   := $dir || '/'[fn:not(fn:ends-with($dir, '/'))]
+      let $root  := t:optional-field('root', ())
+      let $root  := $root || '/'[$root][fn:not(fn:ends-with($root, '/'))]
       return
-         local:page($id, $title, $dir)
+         local:page($id, $title, $db, $root)
    })

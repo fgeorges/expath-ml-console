@@ -5,6 +5,8 @@ import module namespace a    = "http://expath.org/ns/ml/console/admin"   at "../
 import module namespace t    = "http://expath.org/ns/ml/console/tools"   at "../lib/tools.xql";
 import module namespace v    = "http://expath.org/ns/ml/console/view"    at "../lib/view.xql";
 
+import module namespace dbdir    = "http://expath.org/ns/ml/console/project/dbdir/checkup"
+   at "dbdir/checkup.xql";
 import module namespace srcdir   = "http://expath.org/ns/ml/console/project/srcdir/checkup"
    at "srcdir/checkup.xql";
 import module namespace xproject = "http://expath.org/ns/ml/console/project/xproject/checkup"
@@ -43,7 +45,9 @@ declare function local:page() as element()+
    return (
       <p>Back to { v:proj-link('../' || $id, $id) }</p>,
       <p>Project element: { local:one($proj) }</p>,
-      if ( $proj/@type eq 'srcdir' ) then
+      if ( $proj/@type eq 'dbdir' ) then
+         dbdir:page($id, $proj, local:one#1, local:exists#1, local:string#2)
+      else if ( $proj/@type eq 'srcdir' ) then
          srcdir:page($id, $proj, local:one#1, local:exists#1, local:string#2)
       else if ( $proj/@type eq 'xproject' ) then
          xproject:page($id, $proj, local:one#1, local:exists#1, local:string#2)
