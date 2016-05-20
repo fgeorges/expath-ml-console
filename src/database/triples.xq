@@ -119,6 +119,7 @@ declare function local:page--rsrc($db as element(a:database), $rsrc as xs:string
                       'SELECT ?p ?o WHERE { ?s ?p ?o } ORDER BY ?p',
                       map:entry('s', sem:iri($rsrc)),
                       (),
+                      (: TODO: For temporal documents, should be sem:store((), cts:collection-query('latest')) :)
                       sem:ruleset-store('rdfs.rules', sem:store()))
          return
             <tr>
@@ -141,6 +142,7 @@ declare function local:page--rsrc($db as element(a:database), $rsrc as xs:string
                       'SELECT ?s ?p WHERE { ?s ?p ?o } ORDER BY ?p',
                       map:entry('o', sem:iri($rsrc)),
                       (),
+                      (: TODO: For temporal documents, should be sem:store((), cts:collection-query('latest')) :)
                       sem:ruleset-store('rdfs.rules', sem:store()))
          return
             <tr>
