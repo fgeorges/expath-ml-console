@@ -2,10 +2,14 @@ xquery version "3.0";
 
 module namespace t = "http://expath.org/ns/ml/console/tools";
 
-declare namespace c    = "http://expath.org/ns/ml/console";
-declare namespace xdmp = "http://marklogic.com/xdmp";
+declare namespace c     = "http://expath.org/ns/ml/console";
+declare namespace err   = "http://www.w3.org/2005/xqt-errors";
+declare namespace mlerr = "http://marklogic.com/xdmp/error";
+declare namespace xdmp  = "http://marklogic.com/xdmp";
 
-(: ==== Simple tools ======================================================== :)
+(:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ : Simple tools
+ :)
 
 (:~
  : Ignore its parameter and always return the empty sequence.
@@ -38,6 +42,24 @@ declare function t:when($pred as xs:boolean, $then as item()*, $else as item()*)
 };
 
 (:~
+ : If `$pred` is false, return `$then`, if not, return the empty sequence.
+ :)
+declare function t:unless($pred as xs:boolean, $then as item()*)
+   as item()*
+{
+   t:when(fn:not($pred), $then, ())
+};
+
+(:~
+ : If `$pred` is false, return `$then`, if not, return `$else`.
+ :)
+declare function t:unless($pred as xs:boolean, $then as item()*, $else as item()*)
+   as item()*
+{
+   t:when(fn:not($pred), $then, $else)
+};
+
+(:~
  : If `$seq` is not empty, return `$then`, if not, return the empty sequence.
  :)
 declare function t:exists($seq as item()*, $then as item()*)
@@ -67,7 +89,34 @@ declare function t:default($seq as item()*, $default as item()*)
       $default
 };
 
-(: ==== Error handling ======================================================== :)
+(:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ : Error handling
+ :)
+
+(:~
+ : Catch a MarkLogic error.
+ :
+ : Evaluate the function and catch a MarkLogic error, only if it is with the code
+ : `$code`.  If there is an error, but with a different code, it is rethrown.  If
+ : there is no error, the return value of the function is returned.  If the given
+ : error is caught, then it is ignored and `()` is returned.
+ :
+ : @return `()` if the error is caught, or the original return value.
+ :)
+declare function t:catch-ml($code as xs:string, $fun as function() as item()*)
+   as item()*
+{
+   try {
+      $fun()
+   }
+   catch err:FOER0000 {
+      if ( $err:additional/mlerr:code eq $code ) then
+         ()
+      else
+         (: TODO: How to rethrow it? :)
+         fn:error($err:code, $err:description, $err:value)
+   }
+};
 
 (:~
  : TODO: Return an HTTP error instead... (or rather create a proper error handler?)
@@ -93,7 +142,7 @@ declare function t:error($code as xs:string, $msg as xs:string, $info as item()*
 };
 
 (:~
- : If $pred is true, throw an error.
+ : If `$pred` is true, throw an error.
  : 
  : `t:when` is not usable as it is not a macro.  For instance, in the following
  : example, evaluating `t:error` to get the value of its parameter would always
@@ -127,7 +176,9 @@ declare function t:error-when(
       ()
 };
 
-(: ==== HTTP request fields ======================================================== :)
+(:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ : HTTP request fields
+ :)
 
 (:~
  : Return a request field, or a default value if it has not been passed.
@@ -198,7 +249,33 @@ declare function t:mandatory-field-content-type($name as xs:string)
          t:error('TOOLS001', 'Mandatory field content-type not passed: ' || $name)
 };
 
-(: ==== XML tools ======================================================== :)
+(:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ : HTTP response helpers
+ :)
+
+(:~
+ : Set "404 Not found" on the HTTP response.
+ :)
+declare function t:respond-not-found($content as item()*)
+   as item()*
+{
+   xdmp:set-response-code(404, 'Not found'),
+   $content
+};
+
+(:~
+ : Set "501 Not implemented" on the HTTP response.
+ :)
+declare function t:respond-not-implemented($content as item()*)
+   as item()*
+{
+   xdmp:set-response-code(501, 'Not implemented'),
+   $content
+};
+
+(:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ : XML tools
+ :)
 
 (:~
  : Add an element as last child of a parent element. Return the modified parent.
@@ -232,7 +309,9 @@ declare function t:remove-child($parent as element(), $child as element())
       }
 };
 
-(: ==== String tools ======================================================== :)
+(:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ : String tools
+ :)
 
 (:~
  : Build a string by repeating `$str`, `$n` times.
@@ -246,7 +325,9 @@ declare function t:make-string($str as xs:string, $n as xs:integer)
       ()
 };
 
-(: ==== File and URI tools ======================================================== :)
+(:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ : File and URI tools
+ :)
 
 (:~
  : Given a path, strip the last component unless it ends with a slash.
@@ -285,7 +366,9 @@ declare function t:ensure-relative($file as xs:string)
       $file
 };
 
-(: ==== HTTP Content-Type parsing ======================================================== :)
+(:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ : HTTP Content-Type parsing
+ :)
 
 (:~
  : Parse a HTTP Content-Type value.
