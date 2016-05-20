@@ -59,7 +59,7 @@ declare function local:appservers-table($grp as element(a:group))
                </td>
                <td> {
                   if ( fn:exists($as/a:modules-db) ) then
-                     v:db-link('db/' || $as/a:modules-db/@id || '/browse', $as/a:modules-db)
+                     v:db-link('db/' || $as/a:modules-db, $as/a:modules-db)
                   else
                      fn:string($as/a:modules-path)
                }
