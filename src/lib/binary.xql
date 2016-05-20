@@ -14,6 +14,24 @@ declare function bin:is-binary($arg as node())
 };
 
 (:~
+ : Convert an `xs:hexBinary` item to a binary node.
+ :)
+declare function bin:hex-binary($arg as xs:hexBinary)
+   as binary()
+{
+    binary { $arg }
+};
+
+(:~
+ : Convert an `xs:base64Binary` item to a binary node.
+ :)
+declare function bin:base64-binary($arg as xs:base64Binary)
+   as binary()
+{
+    bin:hex-binary(xs:hexBinary($arg))
+};
+
+(:~
  : Return true if the parameter is a JSON node.
  : 
  : http://markmail.org/message/mypneadypxmj4xly
