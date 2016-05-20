@@ -7,6 +7,7 @@ module namespace v = "http://expath.org/ns/ml/console/view";
 
 import module namespace a   = "http://expath.org/ns/ml/console/admin"  at "admin.xql";
 import module namespace cfg = "http://expath.org/ns/ml/console/config" at "config.xql";
+import module namespace t   = "http://expath.org/ns/ml/console/tools"  at "../lib/tools.xql";
 
 declare namespace c    = "http://expath.org/ns/ml/console";
 declare namespace h    = "http://www.w3.org/1999/xhtml";
@@ -19,8 +20,9 @@ declare variable $v:pages as element(pages) :=
       <!--page name="web"      title="Web Applications Containers"   label="Web"/>
       <page name="cxan"     title="CXAN Config"                   label="CXAN"/>
       <page name="xproject" title="XProject Tools"                label="XProject"/>
-      <page name="xspec"    title="XSpec Tools"                   label="XSpec"/-->
-      <page name="browser"  title="Documents and triples browser" label="Browser"/>
+      <page name="xspec"    title="XSpec Tools"                   label="XSpec"/>
+      <page name="browser"  title="Documents and triples browser" label="Browser"/-->
+      <page name="db"       title="Database browser"              label="Databases"/>
       <page name="loader"   title="The document manager"          label="Loader"/>
       <page name="profiler" title="XQuery Profiler"               label="Profiler"/>
       <page name="project"  title="The project manager"           label="Projects"/>
@@ -131,10 +133,10 @@ declare function v:console-page-menu($page as xs:string, $root as xs:string)
 (:~
  : Format a console page.
  :
- : $page: the current page (must be the key of one menu)
- : $title: the title of the page (to appear on top of the page)
- : $root: '' if a top-level page, or '../' if in a sub-directory
- : $content: the actual HTML content, pasted as the content of the page
+ : @param page    the current page (must be the key of one menu)
+ : @param title   the title of the page (to appear on top of the page)
+ : @param root    `''` if a top-level page, or `'../'` if in a sub-directory
+ : @param content the actual HTML content, pasted as the content of the page
  :)
 declare function v:console-page(
    $root    as xs:string,
@@ -149,13 +151,11 @@ declare function v:console-page(
 (:~
  : Format a console page.
  :
- : $page: the current page (must be the key of one menu)
- : $title: the title of the page (to appear on top of the page)
- : $root: '' if a top-level page, or '../' if in a sub-directory
- : $content: the actual HTML content, pasted as the content of the page
- : $scripts: extra HTML "script" elements, to be added at the very end
- :
- : TODO: Shouldn't it set the response MIME type and HTTP code?
+ : @param page    the current page (must be the key of one menu)
+ : @param title   the title of the page (to appear on top of the page)
+ : @param root    `''` if a top-level page, or `'../'` if in a sub-directory
+ : @param content the actual HTML content, pasted as the content of the page
+ : @param scripts extra HTML "script" elements, to be added at the very end
  :)
 declare function v:console-page(
    $root    as xs:string,
@@ -302,6 +302,42 @@ declare function v:import-css($root as xs:string, $paths as xs:string+)
                   rel="stylesheet"
                   type="text/css"
                   href="{ $root }{ . }"/>
+};
+
+(:~
+ : Return an error message if `$db` does not exist, or eval `$fun` if it does.
+ :
+ : @param db  The name or the ID of a database.
+ : @param fun A 0-arity function, the value of which is returned when `$db` exists.
+ :)
+declare function v:ensure-db($db as item(), $fun as function() as item()*)
+   as item()*
+{
+   if ( fn:exists(a:get-database($db)) ) then
+      $fun()
+   else
+      t:respond-not-found(
+         <p><b>Error</b>: There is no such database: <code>{ $db }</code>.</p>)
+};
+
+(:~
+ : Return an error message if `$db` does not have URI lexicon, or eval `$fun` if it does.
+ :
+ : @param db  The name or the ID of a database, or an a:database element.
+ : @param fun A 0-arity function, the value of which is returned when there is a URI lexicon.
+ :)
+declare function v:ensure-uri-lexicon($db as item(), $fun as function() as item()*)
+   as item()*
+{
+   let $database := a:get-database($db)
+   return
+      if ( $database/a:lexicons/xs:boolean(a:uri) ) then
+         $fun()
+      else
+         t:respond-not-implemented(
+            <p><b>Error</b>: The URI lexicon is not enabled on the database
+               { xs:string($database/a:name) ! v:db-link('../' || ., .) }.
+               It is required to browse the directories.</p>)
 };
 
 (: ==== ACE editor tools ======================================================== :)
@@ -502,19 +538,37 @@ declare function v:inline-form($action as xs:string, $attrs as attribute()*, $co
       v:form-impl($action, ($attrs, $class, $style), $content, ())
 };
 
-declare function v:one-liner-form($action as xs:string, $submit as xs:string, $content as element())
+declare function v:one-liner-form($action as xs:string, $submit as xs:string, $content as element()+)
    as element(h:form)
 {
-   v:form($action, (),
+   v:one-liner-form($action, $submit, (), $content)
+};
+
+declare function v:one-liner-form($action as xs:string, $submit as xs:string, $method as xs:string?, $content as element()+)
+   as element(h:form)
+{
+   v:one-liner-form($action, $submit, $method, (), $content)
+};
+
+declare function v:one-liner-form(
+   $action  as xs:string,
+   $submit  as xs:string,
+   $method  as xs:string?,
+   $attrs   as attribute()*,
+   $content as element()+
+) as element(h:form)
+{
+   v:form($action, $attrs,
       <div xmlns="http://www.w3.org/1999/xhtml" class="form-group">
          { $content/label }
          <div class="col-sm-9">
-            { $content/div/input }
+            { $content/descendant-or-self::input }
          </div>
          <div class="col-sm-1">
             <button type="submit" class="btn btn-default">{ $submit }</button>
          </div>
-      </div>)
+      </div>,
+      $method)
 };
 
 declare function v:one-liner-link($label as xs:string, $action as xs:string, $submit as xs:string)
@@ -550,7 +604,14 @@ declare %private function v:form-impl(
 declare function v:input-text($id as xs:string, $label as xs:string, $placeholder as xs:string)
    as element(h:div)
 {
+   v:input-text($id, $label, $placeholder, ())
+};
+
+declare function v:input-text($id as xs:string, $label as xs:string, $placeholder as xs:string, $attrs as attribute()*)
+   as element(h:div)
+{
    <div xmlns="http://www.w3.org/1999/xhtml" class="form-group">
+      { $attrs }
       <label for="{ $id }" class="col-sm-2 control-label">{ $label }</label>
       <div class="col-sm-10">
          <input type="text" name="{ $id }" class="form-control" placeholder="{ $placeholder }"/>
@@ -649,14 +710,52 @@ declare function v:doc-link($href as xs:string, $name as xs:string)
    v:component-link($href, $name, 'doc')
 };
 
+declare function v:doc-link($db-root as xs:string, $uri as xs:string, $root as xs:string, $sep as xs:string)
+{
+   let $name := fn:tokenize($uri, $sep)[fn:last()]
+   return
+      v:doc-link($db-root || 'doc?uri=' || fn:encode-for-uri($uri) || '&amp;root=' || fn:encode-for-uri($root) || '&amp;sep=' || fn:encode-for-uri($sep), $name)
+};
+
 declare function v:coll-link($href as xs:string, $name as xs:string)
 {
    v:component-link($href, $name, 'coll')
 };
 
+declare function v:coll-link($db-root as xs:string, $uri as xs:string, $root as xs:string, $sep as xs:string)
+{
+   let $name := fn:tokenize($uri, $sep)[fn:last()]
+   return
+      v:coll-link($db-root || 'coll?uri=' || fn:encode-for-uri($uri) || '&amp;root=' || fn:encode-for-uri($root) || '&amp;sep=' || fn:encode-for-uri($sep), $name)
+};
+
 declare function v:dir-link($href as xs:string, $name as xs:string)
 {
    v:component-link($href, $name, 'dir')
+};
+
+declare function v:dir-link($db-root as xs:string, $uri as xs:string, $root as xs:string, $sep as xs:string)
+{
+   let $name := fn:tokenize($uri, $sep)[fn:last() - 1]
+   return
+      v:dir-link($db-root || 'dir?uri=' || fn:encode-for-uri($uri) || '&amp;root=' || fn:encode-for-uri($root) || '&amp;sep=' || fn:encode-for-uri($sep), $name || $sep)
+};
+
+declare function v:cdir-link($db-root as xs:string, $uri as xs:string, $root as xs:string, $sep as xs:string)
+{
+   let $name := fn:tokenize($uri, $sep)[fn:last() - 1]
+   return
+      v:dir-link($db-root || 'cdir?uri=' || fn:encode-for-uri($uri) || '&amp;root=' || fn:encode-for-uri($root) || '&amp;sep=' || fn:encode-for-uri($sep), $name || $sep)
+};
+
+declare function v:root-link($db-root as xs:string, $uri as xs:string, $sep as xs:string)
+{
+   v:dir-link($db-root || 'dir?uri=' || fn:encode-for-uri($uri) || '&amp;root=' || fn:encode-for-uri($uri) || '&amp;sep=' || fn:encode-for-uri($sep), $uri)
+};
+
+declare function v:croot-link($db-root as xs:string, $uri as xs:string, $sep as xs:string)
+{
+   v:dir-link($db-root || 'cdir?uri=' || fn:encode-for-uri($uri) || '&amp;root=' || fn:encode-for-uri($uri) || '&amp;sep=' || fn:encode-for-uri($sep), $uri)
 };
 
 declare function v:db-link($href as xs:string, $name as xs:string)
