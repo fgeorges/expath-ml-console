@@ -42,16 +42,19 @@ declare variable $attic-path := '.expath-pkg/attic/';
  :
  : If `$db` is an xs:unsignedLong, it is returned as is.  If it is an a:database
  : element, its `@id` is returned.  If it is neither, it then must be the name
- : of a database, which is then resolved to an ID.
+ : of a database, which is then resolved to an ID (if such a database does not
+ : exist, the empty sequence is returned).
  :)
-declare function a:database-id($db as item()) as xs:unsignedLong
+declare function a:database-id($db as item()) as xs:unsignedLong?
 {
    if ( $db instance of element(a:database) ) then
       xs:unsignedLong($db/@id)
    else if ( $db castable as xs:unsignedLong ) then
       xs:unsignedLong($db)
    else
-      xdmp:database($db)
+      t:catch-ml('XDMP-NOSUCHDB', function() {
+         xdmp:database($db)
+      })
 };
 
 (:~
@@ -275,20 +278,17 @@ declare function a:remove-doc($db as item(), $uri as xs:string)
 
 (:~
  : Remove documents and directories on a database.
+ :
+ : @param db   The database.
+ : @param docs The URIs of the documents to delete.
+ : @param dirs The URIs of the directories to delete.
  :)
-declare function a:remove-docs-and-dirs($db as item(), $uris as xs:string+)
+declare function a:remove-docs-and-dirs($db as item(), $docs as xs:string*, $dirs as xs:string*)
 {
-   a:eval-on-database(
-      $db,
-      'declare namespace xdmp = "http://marklogic.com/xdmp";
-       declare variable $uris external;
-       let $docs := $uris[fn:not(fn:ends-with(., "/"))]
-       let $dirs := $uris[fn:ends-with(., "/")]
-       return (
-          $docs ! xdmp:document-delete(.),
-          $dirs ! xdmp:directory(., "infinity")/xdmp:document-delete(fn:document-uri(.))
-       )',
-      map:entry('uris', $uris))
+   a:update-database($db, function() {
+      $docs ! xdmp:document-delete(.),
+      $dirs ! (. || '*') ! cts:uri-match(.) ! xdmp:document-delete(.)
+   })
 };
 
 (:~
@@ -366,20 +366,12 @@ declare function a:browse-db-files(
  :)
 declare function a:get-from-filesystem($file  as xs:string) as xs:string?
 {
-   try {
+   t:catch-ml('SVC-FILOPN', function() {
       (: the "true predicate" prevents the expression to be rewritten
-         "outside the try/catch" by the optimizer :)
+         "outside the try/catch" by the optimizer
+         TODO: Still needed with the anonymous function? :)
       xdmp:filesystem-file($file)[fn:true()]
-   }
-   catch err:FOER0000 {
-      (: TODO: Should all this be in a dedicated error module? :)
-      if ( $err:additional/mlerr:code eq 'SVC-FILOPN'
-              and $err:additional/mlerr:data/mlerr:datum = 'No such file or directory' ) then
-         ()
-      else
-         (: TODO: How to rethrow it? :)
-         fn:error($err:code, $err:description, $err:value)
-   }
+   })
 };
 
 (:~
@@ -391,18 +383,9 @@ declare function a:get-from-filesystem($file  as xs:string) as xs:string?
  :)
 declare function a:get-directory($dir as xs:string) as element(dir:directory)?
 {
-   try {
+   t:catch-ml('SVC-DIROPEN', function() {
       xdmp:filesystem-directory($dir)
-   }
-   catch err:FOER0000 {
-      (: TODO: Should all this be in a dedicated error module? :)
-      if ( $err:additional/mlerr:code eq 'SVC-DIROPEN'
-              and $err:additional/mlerr:data/mlerr:datum = 'No such file or directory' ) then
-         ()
-      else
-         (: TODO: How to rethrow it? :)
-         fn:error($err:code, $err:description, $err:value)
-   }
+   })
 };
 
 (:~
@@ -911,39 +894,46 @@ declare function a:set-url-rewriter-if-not-yet(
  :        <name>Admin</name>
  :     </databases>
  :
- : TODO: What if $db does not exists?
+ : Return nothing if $db does not exist.
  :)
 declare function a:get-database($db as item())
-   as element(a:database)
+   as element(a:database)?
 {
-   let $id       := a:database-id($db)
-   let $config   := admin:get-configuration()
-   let $schema   := admin:database-get-schema-database($config, $id)
-   let $security := admin:database-get-security-database($config, $id)
-   let $triggers := admin:database-get-triggers-database($config, $id)
-   return
-      <a:database id="{ $id }">
-         <a:name>{ admin:database-get-name($config, $id) }</a:name>
-         <a:triple-index>{ admin:database-get-triple-index($config, $id) }</a:triple-index>
-         <a:lexicons>
-            <a:uri>{ admin:database-get-uri-lexicon($config, $id) }</a:uri>
-            <a:coll>{ admin:database-get-collection-lexicon($config, $id) }</a:coll>
-         </a:lexicons>
-         {
-            if ( $schema ne 0 ) then
-               <a:schema id="{ $schema }">{ admin:database-get-name($config, $schema) }</a:schema>
-            else
-               (),
-            if ( $security ne 0 ) then
-               <a:security id="{ $security }">{ admin:database-get-name($config, $security) }</a:security>
-            else
-               (),
-            if ( $triggers ne 0 ) then
-               <a:triggers id="{ $triggers }">{ admin:database-get-name($config, $triggers) }</a:triggers>
-            else
-               ()
-         }
-      </a:database>
+   if ( $db instance of element(a:database) ) then
+      $db
+   else
+      let $id := a:database-id($db)
+      return
+         if ( fn:empty($id) ) then
+            ()
+         else
+            let $config   := admin:get-configuration()
+            let $schema   := admin:database-get-schema-database($config, $id)
+            let $security := admin:database-get-security-database($config, $id)
+            let $triggers := admin:database-get-triggers-database($config, $id)
+            return
+               <a:database id="{ $id }">
+                  <a:name>{ admin:database-get-name($config, $id) }</a:name>
+                  <a:triple-index>{ admin:database-get-triple-index($config, $id) }</a:triple-index>
+                  <a:lexicons>
+                     <a:uri>{ admin:database-get-uri-lexicon($config, $id) }</a:uri>
+                     <a:coll>{ admin:database-get-collection-lexicon($config, $id) }</a:coll>
+                  </a:lexicons>
+                  {
+                     if ( $schema ne 0 ) then
+                        <a:schema id="{ $schema }">{ admin:database-get-name($config, $schema) }</a:schema>
+                     else
+                        (),
+                     if ( $security ne 0 ) then
+                        <a:security id="{ $security }">{ admin:database-get-name($config, $security) }</a:security>
+                     else
+                        (),
+                     if ( $triggers ne 0 ) then
+                        <a:triggers id="{ $triggers }">{ admin:database-get-name($config, $triggers) }</a:triggers>
+                     else
+                        ()
+                  }
+               </a:database>
 };
 
 (:~
