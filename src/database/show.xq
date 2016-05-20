@@ -18,6 +18,27 @@ declare function local:db-link($name as xs:string?)
       <em>none</em>
 };
 
+declare function local:popover($title as xs:string, $content as xs:string)
+   as attribute()+
+{
+   attribute { 'data-toggle'    } { 'popover' },
+   attribute { 'data-trigger'   } { 'hover' },
+   attribute { 'data-placement' } { 'top' },
+   attribute { 'title'          } { $title },
+   attribute { 'data-content'   } { $content }
+};
+
+declare function local:input(
+   $name  as xs:string,
+   $label as xs:string,
+   $hint  as xs:string,
+   $title as xs:string,
+   $help  as xs:string
+) as element(div)
+{
+   v:input-text($name, $label, $hint, local:popover($title, $help))
+};
+
 declare function local:page($name as xs:string)
    as element()+
 {
@@ -33,18 +54,62 @@ declare function local:page($name as xs:string)
          <li>Triggers: { local:db-link($triggers) }</li>
       </ul>,
       <h3>Directories</h3>,
-      <p>You can browse documents in a directory-like fashion, or go straight to a specific
-         directory or document.</p>,
-      v:one-liner-link('Directories', $name || '/browse', 'Browse'),
-      v:one-liner-form($name || '/browse', 'Go',
-         v:input-text('init-path', 'Directory', 'The URI of a directory')),
-      v:one-liner-form($name || '/browse', 'Go',
-         v:input-text('init-path', 'Document', 'The URI of a document')),
+      <p>You can browse documents in a directory-like fashion:</p>,
+      v:one-liner-link('Directories', $name || '/roots', 'Browse'),
+      <p>Or go straight to a specific directory:</p>,
+      v:form($name || '/dir', attribute { 'id' } { 'dirGoDir' },
+         (local:input('uri', 'Directory', 'The URI of a directory', 'Diretory URI',
+             '&lt;p&gt;The URI of a directory.  It must end with the path separator.
+             Various URI schemes are supported:&lt;/p&gt;
+             &lt;ul&gt;
+                &lt;li&gt;starting with "/" or "http://" and using "/" as the path
+                separator&lt;/li&gt;
+                &lt;li&gt;starting with "urn:" and using ":" as the path
+                separator&lt;/li&gt;
+                &lt;li&gt;containing "/" as the path separator (the root being
+                everything before the first slash.)&lt;/li&gt;
+             &lt;/ul&gt;'),
+          local:input('root', 'Root', 'The root', 'URI root',
+             '&lt;p&gt;The part of the URI to be considered as the "root".  That is, the
+             first level of directory in the URI.&lt;/p&gt;
+             &lt;p&gt;If you leave it blank, the Console will try to infer it from the URI
+             (if it starts with "/", "http://" or "urn:").&lt;/p&gt;'),
+          local:input('sep', 'Separator', 'The path separator', 'Path separator',
+             '&lt;p&gt;The string used as a path separator in the URI.  Typically, it is "/",
+             but also ":" for URNs, but it can be different in specific cases.&lt;/p&gt;
+             &lt;p&gt;If you leave it blank, the Console will try to infer it from the URI
+             (if it starts with "/", "http://" or "urn:").&lt;/p&gt;'),
+          v:submit('Go')),
+         'get'),
+      <p>Or go straight to a specific document:</p>,
+      v:form($name || '/doc', attribute { 'id' } { 'dirGoDoc' },
+         (local:input('uri', 'Document', 'The URI of a document', 'Document URI',
+             '&lt;p&gt;The URI of a document.  Various URI schemes are supported:&lt;/p&gt;
+             &lt;ul&gt;
+                &lt;li&gt;starting with "/" or "http://" and using "/" as the path
+                separator&lt;/li&gt;
+                &lt;li&gt;starting with "urn:" and using ":" as the path
+                separator&lt;/li&gt;
+                &lt;li&gt;containing "/" as the path separator (the root being
+                everything before the first slash.)&lt;/li&gt;
+             &lt;/ul&gt;'),
+          local:input('root', 'Root', 'The root', 'URI root',
+             '&lt;p&gt;The part of the URI to be considered as the "root".  That is, the
+             first level of directory in the URI.&lt;/p&gt;
+             &lt;p&gt;If you leave it blank, the Console will try to infer it from the URI
+             (if it starts with "/", "http://" or "urn:").&lt;/p&gt;'),
+          local:input('sep', 'Separator', 'The path separator', 'Path separator',
+             '&lt;p&gt;The string used as a path separator in the URI.  Typically, it is "/",
+             but also ":" for URNs, but it can be different in specific cases.&lt;/p&gt;
+             &lt;p&gt;If you leave it blank, the Console will try to infer it from the URI
+             (if it starts with "/", "http://" or "urn:").&lt;/p&gt;'),
+          v:submit('Go')),
+         'get'),
       <h3>Collections</h3>,
       <p>You can browse collections in a directory-like fashion, or go straight to a specific
          collection prefix (to continue browsing) or to a specific collection (to list its
          documents).</p>,
-      v:one-liner-link('Collections', $name || '/colls', 'Browse'),
+      v:one-liner-link('Collections', $name || '/croots', 'Browse'),
       v:one-liner-form($name || '/colls', 'Go',
          v:input-text('init-path', 'Collection "prefix"', 'The beginning of the URI of a collection (dir-like)')),
       v:one-liner-form($name || '/colls', 'Go',
@@ -95,4 +160,45 @@ declare function local:page($name as xs:string)
 
 let $name := t:mandatory-field('name')
 return
-   v:console-page('../../', 'db', 'Database', function() { local:page($name) })
+   v:console-page('../../', 'db', 'Database', function() { local:page($name) },
+   <script type="text/javascript">
+      $(document).ready(function () {{
+         function formChange(form, field) {{
+            var uri  = field.val();
+            var root = $(':input[name=root]', form);
+            var sep  = $(':input[name=sep]',  form);
+            if ( root.val() || sep.val() ) {{
+               // if `root` or `sep` is set, do not change them
+            }}
+            // TODO: Externalize "/", "http://", "." and "urn:"
+            else if ( uri.startsWith('/') ) {{
+               root.val('/');
+               sep.val('/');
+            }}
+            else if ( uri.startsWith('http://') ) {{
+               root.val(uri.substring(0, uri.indexOf('/', 7) + 1));
+               sep.val('/');
+            }}
+            else if ( uri.startsWith('urn:') ) {{
+               root.val(uri.substring(0, uri.indexOf(':', 4) + 1));
+               sep.val(':');
+            }}
+            else if ( uri.indexOf('/') ) {{
+               root.val(uri.substring(0, uri.indexOf('/') + 1));
+               sep.val('/');
+            }}
+            else {{
+               console.log('Unknown URI format: ' + uri);
+            }}
+         }}
+         // set the change listener on #dirGoDir and #dirGoDoc
+         var dir = $('#dirGoDir');
+         var doc = $('#dirGoDoc');
+         $(':input[name=uri]', dir).change(function() {{
+            formChange(dir, $(this));
+         }});
+         $(':input[name=uri]', doc).change(function() {{
+            formChange(doc, $(this));
+         }});
+      }});
+   </script>)

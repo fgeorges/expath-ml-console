@@ -31,6 +31,7 @@ xquery version "3.0";
 
 import module namespace i = "http://expath.org/ns/ml/console/insert" at "insert-lib.xql";
 import module namespace a = "http://expath.org/ns/ml/console/admin"  at "../lib/admin.xql";
+import module namespace b = "http://expath.org/ns/ml/console/binary" at "../lib/binary.xql";
 import module namespace t = "http://expath.org/ns/ml/console/tools"  at "../lib/tools.xql";
 import module namespace v = "http://expath.org/ns/ml/console/view"   at "../lib/view.xql";
 
@@ -47,16 +48,17 @@ declare function local:page()
 {
    (: TODO: Check the params are there, and validate them... :)
    let $file   := t:optional-field('file', ())
+   let $new    := t:optional-field('new-file', 'false') ! xs:boolean(.)
    let $dir    := t:optional-field('dir', ())
    let $zipdir := t:optional-field('zipdir', ())
    let $count  := fn:count(($file, $dir, $zipdir))
    return
-      if ( $count ne 1 ) then
-         <p><b>Error</b>: Exactly 1 parameter out of "file", "dir" and "zipdir"
-            should be provided. Got { $count } of them.  File is "{ $file }", dir
-            is "{ $dir }" and zipdir is "{ $zipdir }".</p>
-      else if ( fn:exists($file) ) then
-         local:handle-file($file)
+      if ( fn:not($new) and $count ne 1 ) then
+         <p><b>Error</b>: Exactly 1 parameter out of "file", "new-file", "dir" and "zipdir"
+            should be provided.  Got { $count } of them.  File is "{ $file }", new file is
+            "{ $new }", dir is "{ $dir }" and zipdir is "{ $zipdir }".</p>
+      else if ( fn:exists($file) or $new ) then
+         local:handle-file($file, $new)
       else if ( fn:exists($dir) ) then
          local:handle-dir($dir)
       else
@@ -65,17 +67,41 @@ declare function local:page()
 };
 
 (:~
+ : Make sure `$file` has a value (use a default in case of a new file to be created).
+ :)
+declare function local:ensure-content($file as item()?, $new as xs:boolean, $format as xs:string)
+   as item()
+{
+   if ( fn:not($new) ) then
+      $file
+   else if ( $format eq 'text' ) then
+      'Hello, world!&#10;'
+   else if ( $format eq 'binary' ) then
+      (: 'Hello, world!&#10;' in base 64 :)
+      b:base64-binary(xs:base64Binary('SGVsbG8sIHdvcmxkIQo='))
+   else if ( $format eq 'xml' ) then
+      '&lt;hello&gt;World!&lt;/hello&gt;'
+   else if ( $format eq 'json' ) then
+      t:error('todo', 'Set a default content for format: "json"')
+   else
+      t:error('invalid-format', 'Format not known: "' || $format || '"')
+};
+
+(:~
  : Handle the case "insert a file".
  :)
-declare function local:handle-file($file as item())
+declare function local:handle-file($file as item()?, $new as xs:boolean)
 {
+   let $format   := t:mandatory-field('format')
+   let $content  := local:ensure-content($file, $new, $format)
    let $db       := t:mandatory-field('database')
    let $uri      := t:mandatory-field('uri')
-   let $format   := t:mandatory-field('format')
+   let $root     := t:mandatory-field('root')
+   let $sep      := t:mandatory-field('sep')
    let $prefix   := t:optional-field('prefix', ())[.]
    let $override := fn:not(t:optional-field('override', 'false') eq 'false')
    let $redirect := fn:not(t:optional-field('redirect', 'false') eq 'false')
-   let $res      := i:handle-file($db, $file, $format, $uri, $prefix, $override)
+   let $res      := i:handle-file($db, $content, $format, $uri, $prefix, $root, $sep, $override)
    return
       if ( fn:empty($res) ) then
          <p><b>Error</b>: File already exists at <code>{ $uri }</code> (prefix
@@ -83,9 +109,7 @@ declare function local:handle-file($file as item())
       else
          if ( $redirect ) then
             v:redirect(
-               '../db/' || $db || '/browse'
-               || '/'[fn:not(fn:starts-with($res, '/'))]
-               || $res)
+               '../db/' || $db || '/doc?uri=' || $res || '&amp;root=' || $root || '&amp;sep=' || $sep)
          else
             <p>File succesfully inserted at <code>{ $res }</code> as { $format }.</p>
 };

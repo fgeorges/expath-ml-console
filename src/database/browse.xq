@@ -9,7 +9,6 @@ import module namespace v   = "http://expath.org/ns/ml/console/view"   at "../li
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
 declare namespace h    = "http://www.w3.org/1999/xhtml";
-declare namespace cts  = "http://marklogic.com/cts";
 declare namespace xdmp = "http://marklogic.com/xdmp";
 declare namespace map  = "http://marklogic.com/xdmp/map";
 declare namespace sec  = "http://marklogic.com/xdmp/security";
@@ -72,8 +71,11 @@ declare function local:page--empty-path($db as element(a:database), $start as xs
    as element()+
 {
    <p>Database: { v:db-link('browse', $db/a:name) }</p>,
-   local:create-doc-form($db, ()),
+   b:create-doc-form($webapp-root, $db/a:name, (), (),
+      v:one-liner-form($db-root || 'browse' || '/'[fn:not(fn:starts-with($path, '/'))] || $path, 'Go', 'get',
+         v:input-text('init-path', 'URI', 'The URI of a document or directory'))),
    b:display-list(
+      (),
       (),
       ( '/'[fn:exists(b:get-children-uri('/', 1))],
         b:get-children-uri('http://', 1) ),
@@ -126,7 +128,7 @@ declare function local:page--doc($db as element(a:database))
       <p>
          { v:db-link($db-root || 'browse', $db/a:name) }
          { ' ' }
-         { b:uplinks($path, fn:false()) }
+         { (: TODO: Root and sep...! :) b:uplinks($path, '/', '/', fn:false()) }
          { ' ' }
          { v:doc-link($selfref, $filename) }
       </p>,
@@ -349,227 +351,6 @@ declare function local:page(
 };
 
 (:~
- : Create the "create document" form.
- :)
-declare function local:create-doc-form(
-   $db   as element(a:database),
-   $path as xs:string?
-) as element()+
-{
-   <p>
-      <button class="btn btn-default" id="show-jump-area"
-              title="Display the upload area, to upload files or create empty documents"
-              onclick="$('#jump-area').slideToggle(); $('#show-jump-area span').toggle();">
-         <span>Jump to...</span>
-         <span style="display: none">Hide jump area</span>
-      </button>
-      <button class="btn btn-default" id="show-files-area"
-              title="Display the upload area, to upload files or create empty documents"
-              onclick="$('#files-area').slideToggle(); $('#show-files-area span').toggle();">
-         <span>Add files...</span>
-         <span style="display: none">Hide upload area</span>
-      </button>
-   </p>,
-
-   <div style="display: none" id="jump-area">
-      <h4>Jump to</h4>
-      <p>Use this form to directly access a document or a directory by URI.</p>
-      {
-         v:one-liner-form($db-root || 'browse' || '/'[fn:not(fn:starts-with($path, '/'))] || $path, 'Go',
-            v:input-text('init-path', 'URI', 'The URI of a document or directory'))
-      }
-   </div>,
-
-   <div style="display: none" id="files-area">
-
-      <h4>Upload files</h4>
-
-      <form id="fileupload" method="POST" enctype="multipart/form-data">
-         <!-- The fileupload-buttonbar contains buttons to add/delete files and start/cancel the upload -->
-         <div class="row fileupload-buttonbar">
-            <div class="col-lg-7">
-               <!-- The fileinput-button span is used to style the file input field as button -->
-               <span class="btn btn-default fileinput-button">
-                  <i class="glyphicon glyphicon-plus"/>
-                  <span> Add files...</span>
-                  <input type="file" name="files[]" multiple="true"/>
-               </span>
-               <span> </span>
-               <button type="submit" class="btn btn-default start">
-                  <i class="glyphicon glyphicon-upload"/>
-                  <span> Start upload</span>
-               </button>
-               <span> </span>
-               <button type="reset" class="btn btn-default cancel">
-                  <i class="glyphicon glyphicon-ban-circle"></i>
-                  <span> Cancel upload</span>
-               </button>
-               <!-- The global file processing state -->
-               <span class="fileupload-process"></span>
-            </div>
-            <!-- The global progress state -->
-            <div class="col-lg-5 fileupload-progress fade">
-               <!-- The global progress bar -->
-               <div class="progress progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100">
-                  <div class="progress-bar progress-bar-success" style="width:0%;"></div>
-               </div>
-               <!-- The extended global progress state -->
-               <div class="progress-extended"> </div>
-            </div>
-         </div>
-         <!-- The table listing the files available for upload/download -->
-         <table role="presentation" class="table table-striped"><tbody class="files"></tbody></table>
-      </form>
-
-      <div id="blueimp-gallery" class="blueimp-gallery blueimp-gallery-controls" data-filter=":even">
-         <div class="slides"/>
-         <h3 class="title"/>
-         <a class="prev">‹</a>
-         <a class="next">›</a>
-         <a class="close">×</a>
-         <a class="play-pause"/>
-         <ol class="indicator"/>
-      </div>
-
-      <script id="template-upload" type="text/x-tmpl">
-         {{% for (var i=0, file; file=o.files[i]; i++) {{ %}}
-            <tr class="template-upload fade">
-               <input type="hidden" name="database" value="{ $db/@id }"/>
-               <input type="hidden" name="prefix"   value="{ $path }"/>
-               <td>
-                  <span class="preview"></span>
-               </td>
-               <td>
-                  <p class="name">{{%=file.name%}}</p>
-                  <strong class="error text-danger"></strong>
-               </td>
-               <td>
-                  <p class="size">Processing...</p>
-                  <div class="progress progress-striped active" role="progressbar"
-                       aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-                     <div class="progress-bar progress-bar-success" style="width:0%;"/>
-                  </div>
-               </td>
-               <td>
-                  <select name="format" required="true" class="form-control">
-                     {{%
-                        var format = 'binary';
-                        if ( file.name.endsWith('.xml') ) {{
-                           format = 'xml';
-                        }}
-                        else if ( file.name.match('\\.(txt|text|ttl)$') ) {{
-                           format = 'text';
-                        }}
-                     %}}
-                     {{% if ( format === 'xml' ) {{ %}}
-                        <option value="xml" selected="">XML</option>
-                     {{% }} else {{ %}}
-                        <option value="xml">XML</option>
-                     {{% }} %}}
-                     {{% if ( format === 'text' ) {{ %}}
-                        <option value="text" selected="">Text</option>
-                     {{% }} else {{ %}}
-                        <option value="text">Text</option>
-                     {{% }} %}}
-                     {{% if ( format === 'binary' ) {{ %}}
-                        <option value="binary" selected="">Binary</option>
-                     {{% }} else {{ %}}
-                        <option value="binary">Binary</option>
-                     {{% }} %}}
-                  </select>
-               </td>
-               <td>
-                  {{% if (! (i || o.options.autoUpload) ) {{ %}}
-                     <button class="btn btn-default start" disabled="true">
-                        <i class="glyphicon glyphicon-upload"></i>
-                        <span> Start</span>
-                     </button>
-                  {{% }} %}}
-                  {{% if (!i) {{ %}}
-                     <button class="btn btn-default cancel">
-                        <i class="glyphicon glyphicon-ban-circle"></i>
-                        <span> Cancel</span>
-                     </button>
-                  {{% }} %}}
-               </td>
-            </tr>
-         {{% }} %}}
-      </script>
-
-      <!--
-         TODO: Once a file has been uploaded, its name becomes a "clickable" link,
-         which downloads the file.  Change that to be a link to the document page
-         (just change the link to be a simple link, not to download anything...)
-      -->
-      <script id="template-download" type="text/x-tmpl">
-         {{% for (var i=0, file; file=o.files[i]; i++) {{ %}}
-            <tr class="template-download fade">
-               <td>
-                  <span class="preview">
-                     {{% if (file.thumbnailUrl) {{ %}}
-                        <a href="{{%=file.url%}}" title="{{%=file.name%}}" download="{{%=file.name%}}" data-gallery=""><img src="{{%=file.thumbnailUrl%}}"/></a>
-                     {{% }} %}}
-                  </span>
-               </td>
-               <td>
-                  <p class="name">
-                     {{% if (file.url) {{ %}}
-                        <!-- {{%=file.thumbnailUrl?'data-gallery':''%}} -->
-                        <!--a href="{{%=file.url%}}" title="{{%=file.name%}}" download="{{%=file.name%}}">{{%=file.name%}}</a-->
-                        <a href="{{%=file.url%}}" title="{{%=file.name%}}">{{%=file.name%}}</a>
-                     {{% }} else {{ %}}
-                        <span>{{%=file.name%}}</span>
-                     {{% }} %}}
-                  </p>
-                  {{% if (file.error) {{ %}}
-                     <div><span class="label label-danger">Error</span> {{%=file.error%}}</div>
-                  {{% }} %}}
-               </td>
-               <td>
-                  <span class="size">{{%=o.formatFileSize(file.size)%}}</span>
-               </td>
-               <td>
-                  {{% if (file.deleteUrl) {{ %}}
-                     <!-- {{% if (file.deleteWithCredentials) {{ %}} data-xhr-fields='{{"withCredentials":true}}'{{% }} %}} -->
-                     <button class="btn btn-default delete" data-type="{{%=file.deleteType%}}" data-url="{{%=file.deleteUrl%}}">
-                        <i class="glyphicon glyphicon-trash"></i>
-                        <span> Delete</span>
-                     </button>
-                     <input type="checkbox" name="delete" value="1" class="toggle"/>
-                  {{% }} else {{ %}}
-                     <button class="btn btn-default cancel">
-                        <i class="glyphicon glyphicon-ban-circle"></i>
-                        <span> Hide</span>
-                     </button>
-                  {{% }} %}}
-               </td>
-            </tr>
-         {{% }} %}}
-      </script>
-
-      <h4>Create document</h4>
-
-      {
-         v:form($webapp-root || 'loader/insert', (
-            v:input-text('uri', 'Document URI', 'relative to this directory'),
-            v:input-select('format', 'Format', (
-               v:input-option('xml',    'XML'),
-               v:input-option('text',   'Text'),
-               v:input-option('binary', 'Binary'))),
-            if ( fn:exists($path) ) then
-               v:input-hidden('prefix', $path)
-            else
-               (),
-            v:input-hidden('database', $db/@id),
-            v:input-hidden('redirect', 'true'),
-            v:input-hidden('file',     '&lt;hello&gt;World!&lt;/hello&gt;'),
-            v:submit('Create')))
-      }
-
-   </div>
-};
-
-(:~
  : TODO: Document... (especially the fact it accesses the entire URI index,
  : should be a problem with large databases, with a shit loads of documents.
  :
@@ -583,9 +364,12 @@ declare function local:display-list(
    $start as xs:integer
 ) as element()+
 {
-   local:create-doc-form($db, $path),
+   b:create-doc-form($webapp-root, $db/a:name, $path, (),
+      v:one-liner-form($db-root || 'browse' || '/'[fn:not(fn:starts-with($path, '/'))] || $path, 'Go', 'get',
+         v:input-text('init-path', 'URI', 'The URI of a document or directory'))),
    b:display-list(
       $path,
+      (),
       (: Do we really need to filter out "$path"?  Can't we get rid of it in get-children-uri()? :)
       b:get-children-uri($path, $start)[. ne $path],
       $start,
@@ -656,40 +440,4 @@ return
             local:page($db, $path, $init, $start)
          })
       },
-      <script type="text/javascript">
-         // initialize the jQuery File Upload widget
-         $('#fileupload').fileupload({{
-            url: '{ $webapp-root }loader/upload'
-         }});
-
-         // is any required field missing value?
-         function missingRequired(inputs) {{
-            return inputs.filter(function () {{
-               return ! ( this.value || !$(this).prop('required') );
-            }}).first().focus().length != 0;
-         }};
-
-         // event handler to set the additional input fields
-         $('#fileupload').bind('fileuploadsubmit', function (evt, data) {{
-            // the input elements
-            var inputs = data.context.find(':input');
-            // missing any required value?
-            if ( missingRequired(inputs) ) {{
-               data.context.find('button').prop('disabled', false);
-               return false;
-            }}
-            // set the form data from the input elements
-            data.formData = inputs.serializeArray();
-
-            // set the content type based on format
-            var format = inputs.filter('[name="format"]').val();
-
-// **********
-// TODO: Set the file content type from the input selection (xml/text/binary)
-//    - xml    -> application/xml
-//    - text   -> text/plain
-//    - binary -> application/octet-stream
-// A bit of a hack, but will be parsed properly on ML-side.  What about HTML?
-// **********
-         }});
-      </script>)
+      b:create-doc-javascript())

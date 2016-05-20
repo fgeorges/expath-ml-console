@@ -150,8 +150,9 @@ declare function local:page--empty-path($db as xs:string, $start as xs:integer)
    <p>Database: { v:db-link('colls', $db) }</p>,
    b:display-list(
       (),
+      (),
       (: TODO: Retrieve collections with name with no '/', e.g. "country-data". :)
-      ( '/'[fn:exists(b:get-children-coll('/', 1))],
+      ( <path sep="/">/</path>[fn:exists(b:get-children-coll('/', 1))],
         b:get-children-coll('http://', 1) ),
       $start,
       function($child as xs:string, $pos as xs:integer) {
@@ -180,6 +181,7 @@ declare function local:page--dir($db as xs:string, $start as xs:integer)
    <p>Database: { v:db-link($db-root || 'colls', $db) }</p>,
    b:display-list(
       $path,
+      (),
       b:get-children-coll($path, $start),
       $start,
       function($child as xs:string, $pos as xs:integer) {

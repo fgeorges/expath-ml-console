@@ -13,8 +13,10 @@ declare namespace xdmp = "http://marklogic.com/xdmp";
 (:~
  : Insert a document.
  :
- : Return the URI of the newly inserted document, or the empty sequence if a
+ : @return The URI of the newly inserted document, or the empty sequence if a
  : document already exists for that URI and `$override` is false..
+ :
+ : @todo To remove, use the version with `$root` and `$sep` instead.
  :)
 declare function i:handle-file(
    $db       as item(), (: element(a:database) | xs:unsidnedLong | xs:string :)
@@ -30,6 +32,37 @@ declare function i:handle-file(
             $uri
          else if ( fn:exists($prefix) ) then
             $prefix || '/'[fn:not(fn:ends-with($prefix, '/'))] || $uri
+         else
+            $uri
+   return
+      if ( fn:doc-available($doc-uri) and fn:not($override) ) then
+         ()
+      else
+         a:insert-into-database($db, $doc-uri, i:get-node($content, $format))
+};
+
+(:~
+ : Insert a document.
+ :
+ : @return The URI of the newly inserted document, or the empty sequence if a
+ : document already exists for that URI and `$override` is false..
+ :)
+declare function i:handle-file(
+   $db       as item(), (: element(a:database) | xs:unsidnedLong | xs:string :)
+   $content  as item(),
+   $format   as xs:string,
+   $uri      as xs:string,
+   $prefix   as xs:string?,
+   $root     as xs:string,
+   $sep      as xs:string,
+   $override as xs:boolean
+) as xs:string?
+{
+   let $doc-uri  :=
+         if ( fn:starts-with($uri, $root) ) then
+            $uri
+         else if ( fn:exists($prefix) ) then
+            $prefix || $sep[fn:not(fn:ends-with($prefix, $sep))] || $uri
          else
             $uri
    return
