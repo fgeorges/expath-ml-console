@@ -43,9 +43,10 @@ declare function local:page($db as element(a:database), $iscoll as xs:boolean, $
          [fn:position() ge $start and fn:position() lt $start + $b:page-size],
       $start,
       function($child as element(path), $pos as xs:integer) {
-         t:when($iscoll,
-            local:coll-item($child, $child/@sep),
-            local:dir-item($child, $child/@sep, $pos))
+         if ( $iscoll ) then
+            local:coll-item($child, $child/@sep)
+         else
+            local:dir-item($child, $child/@sep, $pos)
       },
       function($items as element(h:li)*) {
          if ( fn:exists($items) ) then (
@@ -150,10 +151,11 @@ declare function local:param-iscoll($type as xs:string) as xs:boolean
       t:error('unkown-enum', 'Unknown root type: ' || $type)
 };
 
-let $name   := t:mandatory-field('name')
-let $type   := t:mandatory-field('type')
-let $iscoll := local:param-iscoll($type)
-let $start  := xs:integer(t:optional-field('start', 1)[.])
+let $name    := t:mandatory-field('name')
+let $type    := t:mandatory-field('type')
+let $iscoll  := local:param-iscoll($type)
+let $start   := xs:integer(t:optional-field('start', 1)[.])
+let $lexicon := t:when($iscoll, v:ensure-coll-lexicon#2, v:ensure-uri-lexicon#2)
 return
    v:console-page(
       '../../',
@@ -165,7 +167,7 @@ return
          v:ensure-db($name, function() {
             let $db := a:get-database($name)
             return
-               v:ensure-uri-lexicon($db, function() {
+               $lexicon($db, function() {
                   a:query-database($db, function() {
                      local:page($db, $iscoll, $start)
                   })

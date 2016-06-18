@@ -334,10 +334,30 @@ declare function v:ensure-uri-lexicon($db as item(), $fun as function() as item(
       if ( $database/a:lexicons/xs:boolean(a:uri) ) then
          $fun()
       else
-         t:respond-not-implemented(
+         t:respond-not-implemented((
             <p><b>Error</b>: The URI lexicon is not enabled on the database
-               { xs:string($database/a:name) ! v:db-link('../' || ., .) }.
-               It is required to browse the directories.</p>)
+               { xs:string($database/a:name) ! v:db-link('../' || ., .) }.</p>,
+            <p>It is required to browse documents in a directory-like way.</p>))
+};
+
+(:~
+ : Return an error message if `$db` does not have collection lexicon, or eval `$fun` if it does.
+ :
+ : @param db  The name or the ID of a database, or an a:database element.
+ : @param fun A 0-arity function, the value of which is returned when there is a collection lexicon.
+ :)
+declare function v:ensure-coll-lexicon($db as item(), $fun as function() as item()*)
+   as item()*
+{
+   let $database := a:get-database($db)
+   return
+      if ( $database/a:lexicons/xs:boolean(a:coll) ) then
+         $fun()
+      else
+         t:respond-not-implemented((
+            <p><b>Error</b>: The collection lexicon is not enabled on the database
+               { xs:string($database/a:name) ! v:db-link('../' || ., .) }.</p>,
+            <p>It is required to browse collections in a directory-like way.</p>))
 };
 
 (: ==== ACE editor tools ======================================================== :)

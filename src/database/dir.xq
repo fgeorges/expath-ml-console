@@ -51,9 +51,10 @@ declare function local:page(
       b:get-children-uri($uri, $sep, $start),
       $start,
       function($child as element(path), $pos as xs:integer) {
-         t:when($iscoll,
-            local:coll-item($child, $root, $child/@sep),
-            local:dir-item($uri, $root, $child, $pos, $sep))
+         if ( $iscoll ) then
+            local:coll-item($child, $root, $child/@sep)
+         else
+            local:dir-item($uri, $root, $child, $pos, $sep)
       },
       function($items as element(h:li)+) {
          if ( fn:exists($items) ) then (
@@ -159,18 +160,18 @@ declare function local:param-iscoll($type as xs:string) as xs:boolean
       t:error('unkown-enum', 'Unknown root type: ' || $type)
 };
 
-let $name   := t:mandatory-field('name')
-let $root   := t:mandatory-field('root')
-let $sep    := t:mandatory-field('sep')
-let $type   := t:mandatory-field('type')
-let $iscoll := local:param-iscoll($type)
-let $prefix := t:optional-field('prefix', ())[.]
+let $name    := t:mandatory-field('name')
+let $root    := t:mandatory-field('root')
+let $sep     := t:mandatory-field('sep')
+let $type    := t:mandatory-field('type')
+let $iscoll  := local:param-iscoll($type)
+let $prefix  := t:optional-field('prefix', ())[.]
 (: TODO: Do we actually want to ensure $uri ends with the separator? :)
 (: And similarly that there is a separator between $prefix and the given URI? :)
 (:
-let $uri__  := t:mandatory-field('uri')[.]
-let $uri_   := if ( $uri__ and fn:ends-with($uri__, $sep) ) then $uri__ else $uri__ || $sep
-let $uri    := if ( fn:exists($prefix) ) then
+let $uri__   := t:mandatory-field('uri')[.]
+let $uri_    := if ( $uri__ and fn:ends-with($uri__, $sep) ) then $uri__ else $uri__ || $sep
+let $uri     := if ( fn:exists($prefix) ) then
                   if ( fn:ends-with($prefix, $sep) and fn:starts-with($uri_, $sep) ) then
                      $prefix || fn:substring($uri_, 2)
                   else if ( fn:ends-with($prefix, $sep) or fn:starts-with($uri_, $sep) ) then
@@ -180,9 +181,10 @@ let $uri    := if ( fn:exists($prefix) ) then
                else
                   $uri_
 :)
-let $uri_   := t:mandatory-field('uri')[.]
-let $uri    := if ( fn:exists($prefix) ) then $prefix || $uri_ else $uri_
-let $start  := xs:integer(t:optional-field('start', 1)[.])
+let $uri_    := t:mandatory-field('uri')[.]
+let $uri     := if ( fn:exists($prefix) ) then $prefix || $uri_ else $uri_
+let $start   := xs:integer(t:optional-field('start', 1)[.])
+let $lexicon := t:when($iscoll, v:ensure-coll-lexicon#2, v:ensure-uri-lexicon#2)
 return
    v:console-page(
       '../../',
@@ -194,7 +196,7 @@ return
          v:ensure-db($name, function() {
             let $db := a:get-database($name)
             return
-               v:ensure-uri-lexicon($db, function() {
+               $lexicon($db, function() {
                   a:query-database($db, function() {
                      local:page($db, $uri, $root, $sep, $iscoll, $start)
                   })
