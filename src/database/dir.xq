@@ -10,6 +10,8 @@ declare default element namespace "http://www.w3.org/1999/xhtml";
 declare namespace h   = "http://www.w3.org/1999/xhtml";
 declare namespace cts = "http://marklogic.com/cts";
 
+declare namespace xdmp = "http://marklogic.com/xdmp";
+
 (:~
  : The overall page function.
  : 
@@ -25,7 +27,7 @@ declare namespace cts = "http://marklogic.com/cts";
  :
  : TODO: The details of how to retrieve the children must be in lib/admin.xql.
  :
- : TODO: Lot of duplicated code with local:page--empty-path(), factorize out?
+ : TODO: Lot of duplicated code with local:page() in roots.xq, factorize out?
  :)
 declare function local:page(
    $db     as element(a:database),
@@ -48,7 +50,10 @@ declare function local:page(
    b:display-list(
       $uri,
       $root,
-      b:get-children-uri($uri, $sep, $start),
+      if ( $iscoll ) then
+         b:get-children-coll($uri, $sep, $start)
+      else
+         b:get-children-uri($uri, $sep, $start),
       $start,
       function($child as element(path), $pos as xs:integer) {
          if ( $iscoll ) then

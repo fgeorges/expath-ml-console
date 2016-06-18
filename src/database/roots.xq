@@ -20,7 +20,7 @@ declare namespace sec  = "http://marklogic.com/xdmp/security";
  : TODO: Displays only "/" and "http://*/" for now.  Find anything else that
  : ends with a "/" as well.  Maybe even "urn:*:" URIs?
  :
- : TODO: Lot of duplicated code with dir.xq, factorize out?
+ : TODO: Lot of duplicated code with local:page() in dir.xq, factorize out?
  :)
 declare function local:page($db as element(a:database), $iscoll as xs:boolean, $start as xs:integer)
    as element()+
