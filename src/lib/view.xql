@@ -745,6 +745,11 @@ declare function v:doc-link($db-root as xs:string, $uri as xs:string, $root as x
       v:component-link($db-root, 'doc', $uri, $root, $sep, $label, 'doc')
 };
 
+declare function v:doc-full-link($db-root as xs:string, $uri as xs:string, $root as xs:string, $sep as xs:string)
+{
+   v:component-link($db-root, 'doc', $uri, $root, $sep, $uri, 'doc')
+};
+
 declare function v:coll-link($href as xs:string, $name as xs:string)
 {
    v:component-link($href, $name, 'coll')

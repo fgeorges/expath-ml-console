@@ -49,7 +49,7 @@ declare function local:page(
             for $d in $docs
             return
                <li> {
-                  v:doc-link('', $d, $root, $sep)
+                  v:doc-full-link('', $d, $root, $sep)
                }
                </li>
          }
