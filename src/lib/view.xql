@@ -190,10 +190,11 @@ declare %private function v:eval-content(
       $content()
    }
    catch c:* {
-      <p><b>Error</b>: { $err:description }</p>
+      <p xmlns="http://www.w3.org/1999/xhtml"><b>Error</b>: { $err:description }</p>
    }
    catch * {
-      <p><b>SYSTEM ERROR</b> (please report this to the mailing list): { $err:description }</p>,
+      <p xmlns="http://www.w3.org/1999/xhtml"><b>SYSTEM ERROR</b>
+         (please report this to the mailing list): { $err:description }</p>,
       v:display-xml($err:additional)
    }
 };
@@ -317,7 +318,8 @@ declare function v:ensure-db($db as item(), $fun as function() as item()*)
       $fun()
    else
       t:respond-not-found(
-         <p><b>Error</b>: There is no such database: <code>{ $db }</code>.</p>)
+         <p xmlns="http://www.w3.org/1999/xhtml"><b>Error</b>:
+            There is no such database: <code>{ $db }</code>.</p>)
 };
 
 (:~
@@ -335,9 +337,11 @@ declare function v:ensure-uri-lexicon($db as item(), $fun as function() as item(
          $fun()
       else
          t:respond-not-implemented((
-            <p><b>Error</b>: The URI lexicon is not enabled on the database
+            <p xmlns="http://www.w3.org/1999/xhtml"><b>Error</b>:
+               The URI lexicon is not enabled on the database
                { xs:string($database/a:name) ! v:db-link('../' || ., .) }.</p>,
-            <p>It is required to browse documents in a directory-like way.</p>))
+            <p xmlns="http://www.w3.org/1999/xhtml">It is required to browse
+               documents in a directory-like way.</p>))
 };
 
 (:~
@@ -355,9 +359,11 @@ declare function v:ensure-coll-lexicon($db as item(), $fun as function() as item
          $fun()
       else
          t:respond-not-implemented((
-            <p><b>Error</b>: The collection lexicon is not enabled on the database
+            <p xmlns="http://www.w3.org/1999/xhtml"><b>Error</b>:
+               The collection lexicon is not enabled on the database
                { xs:string($database/a:name) ! v:db-link('../' || ., .) }.</p>,
-            <p>It is required to browse collections in a directory-like way.</p>))
+            <p xmlns="http://www.w3.org/1999/xhtml">It is required to browse
+               collections in a directory-like way.</p>))
 };
 
 (: ==== ACE editor tools ======================================================== :)
@@ -480,17 +486,19 @@ declare function v:edit-node(
 ) as element()+
 {
    v:ace-editor-xml($node, 'editor', $mode, $id, $uri, $top, '250pt'),
-   <button class="btn btn-default" onclick='saveDoc("{ $id }", "{ $type }");'>Save</button>,
-   <button class="btn btn-danger pull-right" onclick='deleteDoc("{ $id }");'>Delete</button>,
-   <form method="POST" action="{ $top }delete" style="display: none" id="{ $id }-delete">
-      <input type="hidden" name="doc"        value="{ $uri }"/>
-      <input type="hidden" name="back-label" value="the directory"/>
-      <input type="hidden" name="back-url"   value="browse{
-         '/'[fn:not(fn:starts-with($uri, '/'))]
-      }{
-         fn:string-join(fn:tokenize($uri, '/')[fn:position() lt fn:last()], '/')
-      }/"/>
-   </form>
+   <dummy xmlns="http://www.w3.org/1999/xhtml">
+      <button class="btn btn-default" onclick='saveDoc("{ $id }", "{ $type }");'>Save</button>
+      <button class="btn btn-danger pull-right" onclick='deleteDoc("{ $id }");'>Delete</button>
+      <form method="POST" action="{ $top }delete" style="display: none" id="{ $id }-delete">
+         <input type="hidden" name="doc"        value="{ $uri }"/>
+         <input type="hidden" name="back-label" value="the directory"/>
+         <input type="hidden" name="back-url"   value="browse{
+            '/'[fn:not(fn:starts-with($uri, '/'))]
+         }{
+            fn:string-join(fn:tokenize($uri, '/')[fn:position() lt fn:last()], '/')
+         }/"/>
+      </form>
+   </dummy>/*
 };
 
 (:~
@@ -825,7 +833,7 @@ declare function v:prop-link($endpoint as xs:string, $iri as xs:string)
 
 declare function v:component-link($href as xs:string, $name as xs:string, $kind as xs:string)
 {
-   <a href="{ $href }">
+   <a xmlns="http://www.w3.org/1999/xhtml" href="{ $href }">
       <code class="{ $kind }">{ $name }</code>
    </a>
 };
