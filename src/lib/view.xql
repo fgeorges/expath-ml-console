@@ -331,10 +331,29 @@ declare function v:ensure-db($db as item(), $fun as function() as item()*)
 declare function v:ensure-uri-lexicon($db as item(), $fun as function() as item()*)
    as item()*
 {
+   v:ensure-uri-lexicon($db, $fun, ())
+};
+
+(:~
+ : Return an error message if `$db` does not have URI lexicon, or eval `$fun` if it does.
+ :
+ : @param db  The name or the ID of a database, or an a:database element.
+ : @param fun A 0-arity function, the value of which is returned when there is a URI lexicon.
+ : @param msg A 1-arity function, the value of which is returned when there is no URI lexicon.
+ :    Its only parameter is the database element, `a:database`.
+ :)
+declare function v:ensure-uri-lexicon(
+   $db  as item(),
+   $fun as function() as item()*,
+   $msg as function(element(a:database)) as item()*?
+) as item()*
+{
    let $database := a:get-database($db)
    return
       if ( $database/a:lexicons/xs:boolean(a:uri) ) then
          $fun()
+      else if ( fn:exists($msg) ) then
+         $msg($database)
       else
          t:respond-not-implemented((
             <p xmlns="http://www.w3.org/1999/xhtml"><b>Error</b>:
@@ -353,10 +372,29 @@ declare function v:ensure-uri-lexicon($db as item(), $fun as function() as item(
 declare function v:ensure-coll-lexicon($db as item(), $fun as function() as item()*)
    as item()*
 {
+   v:ensure-coll-lexicon($db, $fun, ())
+};
+
+(:~
+ : Return an error message if `$db` does not have collection lexicon, or eval `$fun` if it does.
+ :
+ : @param db  The name or the ID of a database, or an a:database element.
+ : @param fun A 0-arity function, the value of which is returned when there is a collection lexicon.
+ : @param msg A 1-arity function, the value of which is returned when there is no collection lexicon.
+ :    Its only parameter is the database element, `a:database`.
+ :)
+declare function v:ensure-coll-lexicon(
+   $db  as item(),
+   $fun as function() as item()*,
+   $msg as function(element(a:database)) as item()*?
+) as item()*
+{
    let $database := a:get-database($db)
    return
       if ( $database/a:lexicons/xs:boolean(a:coll) ) then
          $fun()
+      else if ( fn:exists($msg) ) then
+         $msg($database)
       else
          t:respond-not-implemented((
             <p xmlns="http://www.w3.org/1999/xhtml"><b>Error</b>:
@@ -364,6 +402,46 @@ declare function v:ensure-coll-lexicon($db as item(), $fun as function() as item
                { xs:string($database/a:name) ! v:db-link('../' || ., .) }.</p>,
             <p xmlns="http://www.w3.org/1999/xhtml">It is required to browse
                collections in a directory-like way.</p>))
+};
+
+(:~
+ : Return an error message if `$db` does not have a triple index, or eval `$fun` if it does.
+ :
+ : @param db  The name or the ID of a database, or an a:database element.
+ : @param fun A 0-arity function, the value of which is returned when there is a triple index.
+ :)
+declare function v:ensure-triple-index($db as item(), $fun as function() as item()*)
+   as item()*
+{
+   v:ensure-triple-index($db, $fun, ())
+};
+
+(:~
+ : Return an error message if `$db` does not have a triple index, or eval `$fun` if it does.
+ :
+ : @param db  The name or the ID of a database, or an a:database element.
+ : @param fun A 0-arity function, the value of which is returned when there is a triple index.
+ : @param msg A 1-arity function, the value of which is returned when there is no triple index.
+ :    Its only parameter is the database element, `a:database`.
+ :)
+declare function v:ensure-triple-index(
+   $db  as item(),
+   $fun as function() as item()*,
+   $msg as function(element(a:database)) as item()*?
+) as item()*
+{
+   let $database := a:get-database($db)
+   return
+      if ( $database/xs:boolean(a:triple-index) ) then
+         $fun()
+      else if ( fn:exists($msg) ) then
+         $msg($database)
+      else
+         t:respond-not-implemented((
+            <p xmlns="http://www.w3.org/1999/xhtml"><b>Error</b>:
+               The triple index is not enabled on the database
+               { xs:string($database/a:name) ! v:db-link('../' || ., .) }.</p>,
+            <p xmlns="http://www.w3.org/1999/xhtml">It is required to browse triples.</p>))
 };
 
 (: ==== ACE editor tools ======================================================== :)
