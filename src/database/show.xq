@@ -1,5 +1,9 @@
 xquery version "3.0";
 
+(: TODO: Add a live completion mechanism (to suggest URIs of directories, documents,
+ : collections or triples, as the user types down...)
+ :)
+
 import module namespace a = "http://expath.org/ns/ml/console/admin"  at "../lib/admin.xql";
 import module namespace t = "http://expath.org/ns/ml/console/tools"  at "../lib/tools.xql";
 import module namespace v = "http://expath.org/ns/ml/console/view"   at "../lib/view.xql";
@@ -155,7 +159,7 @@ declare function local:coll-area($db as element(a:database), $name as xs:string)
    v:one-liner-link('Collections', $name || '/croots', 'Browse'),
 
    <p>Or go straight to a specific so-called "collection directory":</p>,
-   v:form($name || '/dir', attribute { 'id' } { 'dirGoDir' },
+   v:form($name || '/cdir', attribute { 'id' } { 'collGoDir' },
       (local:input('uri', 'Directory', 'The URI of a "collection directory"', 'Collection diretory URI',
           '&lt;p&gt;The URI of a "collection directory".  It must end with the path
           separator.  Various URI schemes are supported:&lt;/p&gt;
