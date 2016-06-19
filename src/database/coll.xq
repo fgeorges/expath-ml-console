@@ -30,34 +30,25 @@ declare function local:page(
       { ' ' }
       { b:uplinks($uri, $root, $sep, fn:false(), fn:true()) }
    </p>,
-   let $to    := $start + $b:page-size - 1
-   let $docs  :=
-         ( fn:collection($uri) ! fn:document-uri(.) )
-         [fn:position() ge $start and fn:position() le $to]
-   let $count := fn:count($docs)
-   return
-      if ( fn:exists($docs) ) then (
-         <p>
-            Content of <code>{ $uri }</code>, results { $start } to { $start + $count - 1 }{
-               t:when($start gt 1,
-                  (', ', <a href="coll?start={ $start - $b:page-size }&amp;uri={ $uri }&amp;root={ $root }&amp;sep={ $sep }">previous page</a>)),
-               t:when($count eq $b:page-size,
-                  (', ', <a href="coll?start={ $to + 1 }&amp;uri={ $uri }&amp;root={ $root }&amp;sep={ $sep }">next page</a>))
-            }:
-         </p>,
-         <ul> {
-            for $d in $docs
-            return
-               <li> {
-                  v:doc-full-link('', $d, $root, $sep)
-               }
-               </li>
+   b:display-list(
+      $uri,
+      $root,
+      $sep,
+      ( fn:collection($uri) ! fn:document-uri(.) )
+         [fn:position() ge $start and fn:position() lt $start + $b:page-size],
+      'coll',
+      $start,
+      function($child as xs:string, $pos as xs:integer) {
+         <li> {
+            v:doc-full-link('', $child, $root, $sep)
          }
-         </ul>
-      )
-      else (
-         <p>No document in the collection.</p>
-      )
+         </li>
+      },
+      function($items as element(h:li)+) {
+         t:when(fn:exists($items),
+            <ul>{ $items }</ul>,
+            <p>The collection is empty.</p>)
+      })
 };
 
 let $name  := t:mandatory-field('name')

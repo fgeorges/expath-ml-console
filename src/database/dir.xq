@@ -50,14 +50,16 @@ declare function local:page(
    b:display-list(
       $uri,
       $root,
+      $sep,
       if ( $iscoll ) then
          b:get-children-coll($uri, $sep, $start)
       else
          b:get-children-uri($uri, $sep, $start),
+      t:when($iscoll, 'cdir', 'dir'),
       $start,
-      function($child as element(path), $pos as xs:integer) {
+      function($child as xs:string, $pos as xs:integer) {
          if ( $iscoll ) then
-            local:coll-item($child, $root, $child/@sep)
+            local:coll-item($child, $root, $sep)
          else
             local:dir-item($uri, $root, $child, $pos, $sep)
       },

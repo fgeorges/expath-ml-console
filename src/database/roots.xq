@@ -35,12 +35,14 @@ declare function local:page($db as element(a:database), $iscoll as xs:boolean, $
    b:display-list(
       (),
       (),
+      (),
       (: TODO: Externalize "/", "http://", "." and "urn:" :)
       ( <path sep="/">/</path>[fn:exists(local:uris($iscoll, '/', '/'))],
         local:uris($iscoll, 'http://', '/'),
         local:uris($iscoll, '.', '/'),
         local:uris($iscoll, 'urn:', ':') )
          [fn:position() ge $start and fn:position() lt $start + $b:page-size],
+      t:when($iscoll, 'croots', 'roots'),
       $start,
       function($child as element(path), $pos as xs:integer) {
          if ( $iscoll ) then

@@ -108,16 +108,21 @@ declare function b:get-children-coll(
 };
 
 (:~
- : TODO: Document... (especially the fact it accesses the entire URI index,
+ : @todo Document... (especially the fact it accesses the entire URI index,
  : should be a problem with large databases, with a shit loads of documents.
- : TODO: The details of how to retrieve the children must be in lib/admin.xql.
+ :
+ : @todo The details of how to retrieve the children must be in lib/admin.xql.
+ :
+ : @param endpoint The endpoint being used (to generate "next" and "previous" links)
  :)
 declare function b:display-list(
    $path     as xs:string?,
    $root     as xs:string?,
-   $children as element(path)*,
+   $sep      as xs:string?,
+   $children as item()*,
+   $endpoint as xs:string,
    $start    as xs:integer,
-   $itemizer as function(element(path), xs:integer) as element()+,
+   $itemizer as function(item(), xs:integer) as element()+,
    $lister   as function(element()*) as element()+
 ) as element()+
 {
@@ -126,7 +131,6 @@ declare function b:display-list(
    )
    else (
       if ( fn:exists($path) ) then
-         let $sep   := $children[1]/@sep (: all paths in a same dir have the same separator :)
          let $count := fn:count($children)
          let $to    := $start + $count - 1
          return
@@ -134,9 +138,9 @@ declare function b:display-list(
                Content of <code>{ $path }</code>, results { $start } to { $to }{
                   (: TODO: These links do not work anymore! (must say 'dir' or 'cdir'... :)
                   t:when($start gt 1,
-                     (', ', <a href="./?start={ $start - $b:page-size }">previous page</a>)),
+                     (', ', <a href="{ b:nav-link($endpoint, $start - $b:page-size, $path, $root, $sep) }">previous page</a>)),
                   t:when($count eq $b:page-size,
-                     (', ', <a href="./?start={ $start + $count }">next page</a>))
+                     (', ', <a href="{ b:nav-link($endpoint, $start + $count, $path, $root, $sep) }">next page</a>))
                }:
             </p>
       else
@@ -147,6 +151,22 @@ declare function b:display-list(
          return
             $itemizer($child, $pos))
    )
+};
+
+declare function b:nav-link(
+   $endpoint as xs:string,
+   $start    as xs:integer,
+   $uri      as xs:string,
+   $root     as xs:string?,
+   $sep      as xs:string?
+) as xs:string
+{
+   $endpoint || '?' || fn:string-join(
+      (('start=' || $start),
+       ('uri='   || $uri),
+       ('root='  || $root)[$root],
+       ('sep='   || $sep)[$sep]),
+      '&amp;')
 };
 
 (:~
