@@ -48,12 +48,9 @@ declare %private function b:get-children-impl(
    $matcher
 ) as element(path)*
 {
-   let $add  := fn:false() (: fn:exists($base[.]) and fn:not(fn:ends-with($base, $sep)) :)
-   let $pref := $base || $sep[$add] || '*'
-   let $expr := $base || $sep[$add]
-   let $repl := '^(' || $expr || '([^' || $sep || ']*' || $sep || '){1}).*'
+   let $repl := '^(' || $base || '([^' || $sep || ']*' || $sep || ')).*'
    (: TODO: Any way to get rid of distinct-values? :)
-   let $vals := fn:distinct-values($matcher($pref) ! fn:replace(., $repl, '$1'))[. ne $base]
+   let $vals := fn:distinct-values($matcher($base || '*') ! fn:replace(., $repl, '$1'))[. ne $base]
    return
       if ( fn:exists($start) ) then
          $vals[fn:position() ge $start and fn:position() lt $start + $b:page-size] ! <path sep="{ $sep }">{ . }</path>
