@@ -7,6 +7,7 @@ import module namespace sem = "http://marklogic.com/semantics" at "/MarkLogic/se
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
+declare namespace c   = "http://expath.org/ns/ml/console";
 declare namespace h   = "http://www.w3.org/1999/xhtml";
 declare namespace map = "http://marklogic.com/xdmp/map";
 
@@ -20,7 +21,8 @@ declare function local:page(
    $name  as xs:string,
    $start as xs:integer,
    $super as xs:string?,
-   $curie as xs:string?
+   $curie as xs:string?,
+   $decls as element(c:decl)*
 ) as element()+
 {
    let $db := a:get-database($name)
@@ -33,7 +35,7 @@ declare function local:page(
          local:page--super($db, $super, $start, './')
       )
       else if ( $curie[.] ) then (
-         local:page--super($db, v:expand-curie($curie), $start, '../')
+         local:page--super($db, v:expand-curie($curie, $decls), $start, '../')
       )
       else (
          local:page--browse($db, $start)
@@ -206,9 +208,10 @@ let $super := t:optional-field('super', ())
 let $curie := t:optional-field('curie', ())
 let $start := xs:integer(t:optional-field('start', 1)[.])
 let $root  := '../../' || '../'[$curie]
+let $decls := v:triple-prefixes($db)
 return
    v:console-page($root, 'browser', 'Browse classes', function() {
       a:query-database($db, function() {
-         local:page($db, $start, $super, $curie)
+         local:page($db, $start, $super, $curie, $decls)
       })
    })

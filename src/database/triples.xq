@@ -7,6 +7,7 @@ import module namespace sem = "http://marklogic.com/semantics" at "/MarkLogic/se
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
+declare namespace c   = "http://expath.org/ns/ml/console";
 declare namespace h   = "http://www.w3.org/1999/xhtml";
 declare namespace cts = "http://marklogic.com/cts";
 declare namespace map = "http://marklogic.com/xdmp/map";
@@ -22,7 +23,8 @@ declare function local:page(
    $start as xs:integer,
    $rsrc  as xs:string?,
    $curie as xs:string?,
-   $init  as xs:string?
+   $init  as xs:string?,
+   $decls as element(c:decl)*
 ) as element()+
 {
    let $db := a:get-database($name)
@@ -32,16 +34,16 @@ declare function local:page(
          local:page--no-db($name)
       )
       else if ( fn:exists($rsrc) ) then (
-         local:page--rsrc($db, $rsrc, './')
+         local:page--rsrc($db, $rsrc, './', $decls)
       )
       else if ( fn:exists($curie) ) then (
-         local:page--rsrc($db, v:expand-curie($curie), '../')
+         local:page--rsrc($db, v:expand-curie($curie, $decls), '../', $decls)
       )
       else if ( fn:exists($init) ) then (
          local:page--init-curie($init)
       )
       else (
-         local:page--browse($db, $start)
+         local:page--browse($db, $start, $decls)
       )
 };
 
@@ -64,7 +66,7 @@ declare function local:page--no-db($name as xs:string)
 (:~
  : The page content, when browsing resource list.
  :)
-declare function local:page--browse($db as element(a:database), $start as xs:integer)
+declare function local:page--browse($db as element(a:database), $start as xs:integer, $decls as element(c:decl)*)
    as element()+
 {
    <p>Database: { v:db-link('triples', $db/a:name) }</p>,
@@ -90,7 +92,7 @@ declare function local:page--browse($db as element(a:database), $start as xs:int
             (', ', <a href="triples?start={ $start + $count }">next page</a>)),
          ':',
          $res ! map:get(., 's')
-            ! <li>{ v:rsrc-link('triples', .) }</li>
+            ! <li>{ v:rsrc-link('triples', ., $decls) }</li>
       )
    }
    </p>
@@ -101,11 +103,15 @@ declare function local:page--browse($db as element(a:database), $start as xs:int
  :
  : @todo Configurize the rule sets to use...
  :)
-declare function local:page--rsrc($db as element(a:database), $rsrc as xs:string, $root as xs:string)
-   as element()+
+declare function local:page--rsrc(
+   $db    as element(a:database),
+   $rsrc  as xs:string,
+   $root  as xs:string,
+   $decls as element(c:decl)*
+) as element()+
 {
    <p>Database: { v:db-link($root || 'triples', $db/a:name) }</p>,
-   <p>Resource: { v:rsrc-link($root || 'triples', $rsrc) }</p>,
+   <p>Resource: { v:rsrc-link($root || 'triples', $rsrc, $decls) }</p>,
    <h3>Triples</h3>,
    <table class="table table-striped datatable">
       <thead>
@@ -123,8 +129,8 @@ declare function local:page--rsrc($db as element(a:database), $rsrc as xs:string
                       sem:ruleset-store('rdfs.rules', sem:store()))
          return
             <tr>
-               <td>{ local:display-value(map:get($r, 'p'), 'prop', $root) }</td>
-               <td>{ local:display-value(map:get($r, 'o'), 'rsrc', $root) }</td>
+               <td>{ local:display-value(map:get($r, 'p'), 'prop', $root, $decls) }</td>
+               <td>{ local:display-value(map:get($r, 'o'), 'rsrc', $root, $decls) }</td>
                <td>{ local:display-type(map:get($r, 'o')) }</td>
             </tr>
       }
@@ -146,8 +152,8 @@ declare function local:page--rsrc($db as element(a:database), $rsrc as xs:string
                       sem:ruleset-store('rdfs.rules', sem:store()))
          return
             <tr>
-               <td>{ local:display-value(map:get($r, 's'), 'rsrc', $root) }</td>
-               <td>{ local:display-value(map:get($r, 'p'), 'prop', $root) }</td>
+               <td>{ local:display-value(map:get($r, 's'), 'rsrc', $root, $decls) }</td>
+               <td>{ local:display-value(map:get($r, 'p'), 'prop', $root, $decls) }</td>
             </tr>
       }
       </tbody>
@@ -164,7 +170,7 @@ declare function local:page--rsrc($db as element(a:database), $rsrc as xs:string
             for $uri in $uris
             order by $uri
             return
-               (: TODO: To make a link to the docujment browser... :)
+               (: TODO: Make a link to the new document browser... :)
                <li>
                   <a href="{ $root }browse{ '/'[fn:not(fn:starts-with($uri, '/'))] }{ $uri }">{ $uri }</a>
                </li>
@@ -172,20 +178,24 @@ declare function local:page--rsrc($db as element(a:database), $rsrc as xs:string
    </ul>
 };
 
-declare function local:display-value($v as xs:anyAtomicType, $kind as xs:string, $root as xs:string)
-   as element()
+declare function local:display-value(
+   $val   as xs:anyAtomicType,
+   $kind  as xs:string,
+   $root  as xs:string,
+   $decls as element(c:decl)*
+) as element()
 {
-   if ( sem:isIRI($v) ) then
+   if ( sem:isIRI($val) ) then
       (: TODO: Display the link only when the resource exists (that is, there is
          at least one triple with that IRI as subject). :)
       if ( $kind eq 'rsrc' ) then
-         v:rsrc-link($root || 'triples', $v)
+         v:rsrc-link($root || 'triples', $val, $decls)
       else if ( $kind eq 'prop' ) then
-         v:prop-link($root || 'triples', $v)
+         v:prop-link($root || 'triples', $val, $decls)
       else
          t:error('internal', 'Unexpected error - Unkown kind: ' || $kind)
    else
-      <span>{ $v }</span>
+      <span>{ $val }</span>
 };
 
 declare function local:display-type($v as xs:anyAtomicType)
@@ -210,9 +220,10 @@ let $curie := t:optional-field('curie', ())
 let $init  := t:optional-field('init-curie', ())
 let $start := xs:integer(t:optional-field('start', 1)[.])
 let $root  := '../../' || '../'[$curie]
+let $decls := v:triple-prefixes($db)
 return
    v:console-page($root, 'browser', 'Browse resources', function() {
       a:query-database($db, function() {
-         local:page($db, $start, $rsrc, $curie, $init)
+         local:page($db, $start, $rsrc, $curie, $init, $decls)
       })
    })

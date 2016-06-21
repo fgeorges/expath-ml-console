@@ -34,11 +34,8 @@ declare variable $v:pages as element(pages) :=
 (: TODO: Make it possible to edit the list in the Console...:)
 declare variable $v:triple-prefixes-doc := 'http://expath.org/ml/console/triple-prefixes.xml';
 
-declare variable $v:triple-prefixes :=
+declare variable $v:default-triple-prefixes :=
    <triple-prefixes xmlns="http://expath.org/ns/ml/console">
-      {
-         fn:doc($v:triple-prefixes-doc)/c:triple-prefixes/c:decl
-      }
       <decl>
          <prefix>dc</prefix>
          <uri>http://purl.org/dc/terms/</uri>
@@ -889,9 +886,15 @@ declare function v:as-link($href as xs:string, $name as xs:string)
  : $endpoint The endpoint.
  : $iri      The RDF resource.
  :)
-declare function v:iri-link($endpoint as xs:string, $iri as xs:string, $kind as xs:string, $param as xs:string)
+declare function v:iri-link(
+   $endpoint as xs:string,
+   $iri      as xs:string,
+   $decls    as element(c:decl)*,
+   $kind     as xs:string,
+   $param    as xs:string
+)
 {
-   let $curie := v:shorten-resource($iri)
+   let $curie := v:shorten-resource($iri, $decls)
    return
       if ( $curie ) then
          v:component-link($endpoint || '/' || $curie, $curie, $kind)
@@ -899,19 +902,19 @@ declare function v:iri-link($endpoint as xs:string, $iri as xs:string, $kind as 
          v:component-link($endpoint || '?' || $param || '=' || fn:encode-for-uri($iri), $iri, $kind)
 };
 
-declare function v:rsrc-link($endpoint as xs:string, $iri as xs:string)
+declare function v:rsrc-link($endpoint as xs:string, $iri as xs:string, $decls as element(c:decl)*)
 {
-   v:iri-link($endpoint, $iri, 'rsrc', 'rsrc')
+   v:iri-link($endpoint, $iri, $decls, 'rsrc', 'rsrc')
 };
 
-declare function v:class-link($endpoint as xs:string, $iri as xs:string)
+declare function v:class-link($endpoint as xs:string, $iri as xs:string, $decls as element(c:decl)*)
 {
-   v:iri-link($endpoint, $iri, 'class', 'super')
+   v:iri-link($endpoint, $iri, $decls, 'class', 'super')
 };
 
-declare function v:prop-link($endpoint as xs:string, $iri as xs:string)
+declare function v:prop-link($endpoint as xs:string, $iri as xs:string, $decls as element(c:decl)*)
 {
-   v:iri-link($endpoint, $iri, 'prop', 'rsrc')
+   v:iri-link($endpoint, $iri, $decls, 'prop', 'rsrc')
 };
 
 declare function v:component-link($href as xs:string, $name as xs:string, $kind as xs:string)
@@ -946,32 +949,28 @@ declare function v:component-link(
 (:~
  : Shorten a resource URI, if a prefix can be found for it.
  :
- : The first entry in `$v:triple-prefixes` that matches $uri (that is, the
- : first one for which $uri starts with the text value of) is used.  If there
- : is no such entry, return the empty sequence.
+ : The first entry in `$decls` that matches $uri (that is, the first one for which
+ : $uri starts with the text value of) is used.  If there is no such entry, return
+ : the empty sequence.
  :)
-declare function v:shorten-resource($uri as xs:string)
+declare function v:shorten-resource($uri as xs:string, $decls as element(c:decl)*)
    as xs:string?
 {
-   let $decl := v:find-prefix-by-uri($uri)
-   return
-      if ( fn:empty($decl) ) then
-         ()
-      else
-         $decl/c:prefix || ':' || fn:substring-after($uri, $decl/c:uri)
+   v:find-prefix-by-uri($uri, $decls)
+      ! ( c:prefix || ':' || fn:substring-after($uri, c:uri) )
 };
 
 (:~
  : Expand a CURIE notation to the full URI.
  :
- : The first entry in `$v:triple-prefixes` that matches the prefix of the CURIE
- : is used.  If there is no such entry, the function returns the original one.
+ : The first entry in `$decls` that matches the prefix of the CURIE is used.  If
+ : there is no such entry, the function returns the original one.
  :)
-declare function v:expand-curie($curie as xs:string)
+declare function v:expand-curie($curie as xs:string, $decls as element(c:decl)*)
    as xs:string
 {
    let $prefix := fn:substring-before($curie, ':')
-   let $decl   := $prefix[.] ! v:find-prefix-by-prefix(.)
+   let $decl   := $prefix[.] ! v:find-prefix-by-prefix(., $decls)
    return
       if ( fn:empty($decl) ) then
          $curie
@@ -982,10 +981,10 @@ declare function v:expand-curie($curie as xs:string)
 (:~
  : Return the first matching prefix declaration, for a complete resource URI.
  :)
-declare function v:find-prefix-by-uri($uri as xs:string)
+declare function v:find-prefix-by-uri($uri as xs:string, $decls as element(c:decl)*)
    as element(c:decl)?
 {
-   v:find-matching-prefix(function($decl) {
+   v:find-matching-prefix($decls, function($decl) {
       fn:starts-with($uri, $decl/c:uri)
    })
 };
@@ -993,10 +992,10 @@ declare function v:find-prefix-by-uri($uri as xs:string)
 (:~
  : Return the first matching prefix declaration, for a given prefix.
  :)
-declare function v:find-prefix-by-prefix($prefix as xs:string)
+declare function v:find-prefix-by-prefix($prefix as xs:string, $decls as element(c:decl)*)
    as element(c:decl)?
 {
-   v:find-matching-prefix(function($decl) {
+   v:find-matching-prefix($decls, function($decl) {
       $decl/c:prefix eq $prefix
    })
 };
@@ -1004,22 +1003,74 @@ declare function v:find-prefix-by-prefix($prefix as xs:string)
 (:~
  : Return the first matching prefix declaration, for a given predicate.
  :)
-declare function v:find-matching-prefix($pred as function(element(c:decl)) as xs:boolean)
-   as element(c:decl)?
-{
-   v:find-matching-prefix($pred, $v:triple-prefixes/c:decl)
-};
-
-(:~
- : Return the first matching prefix declaration, for a given predicate.
- :)
-declare function v:find-matching-prefix($pred as function(element(c:decl)) as xs:boolean, $decls as element(c:decl)*)
-   as element(c:decl)?
+declare function v:find-matching-prefix(
+   $decls as element(c:decl)*,
+   $pred  as function(element(c:decl)) as xs:boolean
+) as element(c:decl)?
 {
    if ( fn:empty($decls) ) then
       ()
    else if ( $pred($decls[1]) ) then
       $decls[1]
    else
-      v:find-matching-prefix($pred, fn:remove($decls, 1))
+      v:find-matching-prefix(fn:remove($decls, 1), $pred)
+};
+
+(:~
+ : Return the CURIE prefixes to use on database `$db`.
+ :
+ : The result is potentially assembled from several sources.  The first one is
+ : the prefix document (with name as in `$v:triple-prefixes-doc`) on the database
+ : itself.  Then the same file but on the current database (which is assumed to
+ : be the Console database).  Finally a set of hard-coded default values from
+ : `$v:default-triple-prefixes`.
+ :
+ : Each time, the document must contain an element `c:triple-prefixes`, containing
+ : elements `c:decl`.  If the document does not exist, it is simply ignored.  If
+ : the root element contains `@delegate` equals `never` (or `false`), then the
+ : look up stops and there is no delegation of finding prefix declaration in the
+ : next document.  If `@delegate` equals `after` (or `true`, or if not specified),
+ : then the result of the next step(s) is happened at the end.  If `@delegate`
+ : equals `before`, the result of the next step(s) is happened at the front.
+ :
+ : @return A set of `c:decl` elements, each with a `c:prefix` and a `c:uri` element.
+ :)
+declare function v:triple-prefixes($db as item()?)
+   as element(c:decl)*
+{
+   <triple-prefixes xmlns="http://expath.org/ns/ml/console"> {
+      v:triple-prefixes-1((
+         $db ! a:query-database(., function() { fn:doc($v:triple-prefixes-doc)/* }),
+         fn:doc($v:triple-prefixes-doc)/*,
+         $v:default-triple-prefixes))
+   }
+   </triple-prefixes>/*
+};
+
+(:~
+ : Helper for `v:triple-prefixes`, to reduce several prefix documents.
+ :)
+declare function v:triple-prefixes-1($docs as element(c:triple-prefixes)*)
+   as element(c:decl)*
+{
+   let $head := fn:head($docs)
+   let $tail := fn:tail($docs)
+   let $delg := $head/*/@delegate/xs:string(.)
+   return
+      if ( fn:empty($head) ) then (
+      )
+      else if ( $delg = ('never', 'false') ) then (
+         $head/c:decl
+      )
+      else if ( $delg = ('before') ) then (
+         v:triple-prefixes-1($tail),
+         $head/c:decl
+      )
+      else if ( $delg = ('after', 'true') or fn:empty($delg) ) then (
+         $head/c:decl,
+         v:triple-prefixes-1($tail)
+      )
+      else (
+         t:error('config', 'Unsupported @delegate value: ' || $delg)
+      )
 };
