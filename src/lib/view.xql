@@ -5,9 +5,8 @@ xquery version "3.0";
  :)
 module namespace v = "http://expath.org/ns/ml/console/view";
 
-import module namespace a   = "http://expath.org/ns/ml/console/admin"  at "admin.xql";
-import module namespace cfg = "http://expath.org/ns/ml/console/config" at "config.xql";
-import module namespace t   = "http://expath.org/ns/ml/console/tools"  at "../lib/tools.xql";
+import module namespace a = "http://expath.org/ns/ml/console/admin"  at "admin.xql";
+import module namespace t = "http://expath.org/ns/ml/console/tools"  at "../lib/tools.xql";
 
 declare namespace c    = "http://expath.org/ns/ml/console";
 declare namespace h    = "http://www.w3.org/1999/xhtml";
@@ -90,7 +89,9 @@ declare variable $v:default-triple-prefixes :=
       </decl>
    </triple-prefixes>;
 
-(: ==== Generic view tools ======================================================== :)
+(:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ : Generic view tools
+ :)
 
 (:~
  : Redirect to `$url`, using a 302 HTTP status code.
@@ -441,7 +442,9 @@ declare function v:ensure-triple-index(
             <p xmlns="http://www.w3.org/1999/xhtml">It is required to browse triples.</p>))
 };
 
-(: ==== ACE editor tools ======================================================== :)
+(:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ : ACE editor tools
+ :)
 
 declare variable $serial-options :=
    <options xmlns="xdmp:quote">
@@ -604,7 +607,9 @@ declare %private function v:ace-editor-xml(
    </pre>
 };
 
-(: ==== Form tools ======================================================== :)
+(:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ : Form tools
+ :)
 
 declare function v:form($action as xs:string, $content as element()+)
    as element(h:form)
@@ -801,7 +806,9 @@ declare function v:input-hidden($id as xs:string, $val as xs:string)
           type="hidden" name="{ $id }" value="{ $val }"/>
 };
 
-(: ==== Link display tools ======================================================== :)
+(:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ : Link display tools
+ :)
 
 declare function v:proj-link($href as xs:string, $name as xs:string)
 {
@@ -944,7 +951,9 @@ declare function v:component-link(
       $kind)
 };
 
-(: ==== Triple display tools ======================================================== :)
+(:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ : Triple display tools
+ :)
 
 (:~
  : Shorten a resource URI, if a prefix can be found for it.
