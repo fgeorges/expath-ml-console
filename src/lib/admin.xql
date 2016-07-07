@@ -38,57 +38,6 @@ declare variable $attic-path := '.expath-pkg/attic/';
  :)
 
 (:~
- : Return a database ID.
- :
- : If `$db` is an xs:unsignedLong, it is returned as is.  If it is an a:database
- : element, its `@id` is returned.  If it is neither, it then must be the name
- : of a database, which is then resolved to an ID (if such a database does not
- : exist, the empty sequence is returned).
- :)
-declare function a:database-id($db as item()) as xs:unsignedLong?
-{
-   if ( $db instance of element(a:database) ) then
-      xs:unsignedLong($db/@id)
-   else if ( $db castable as xs:unsignedLong ) then
-      xs:unsignedLong($db)
-   else
-      t:catch-ml('XDMP-NOSUCHDB', function() {
-         xdmp:database($db)
-      })
-};
-
-(:~
- : Invoke the function on the given database.
- :)
-declare function a:query-database(
-   $db  as item(),
-   $fun as function() as item()*
-) as item()*
-{
-   xdmp:invoke-function(
-      $fun,
-      <options xmlns="xdmp:eval">
-         <database>{ a:database-id($db) }</database>
-      </options>)
-};
-
-(:~
- : Invoke the function on the given database, in update transaction mode.
- :)
-declare function a:update-database(
-   $db  as item(),
-   $fun as function() as item()*
-) as item()*
-{
-   xdmp:invoke-function(
-      $fun,
-      <options xmlns="xdmp:eval">
-         <database>{ a:database-id($db) }</database>
-         <transaction-mode>update-auto-commit</transaction-mode>
-      </options>)
-};
-
-(:~
  : Eval the query on the given database, with the given parameters.
  :)
 declare function a:eval-on-database(
@@ -101,7 +50,7 @@ declare function a:eval-on-database(
       $query,
       $params,
       <options xmlns="xdmp:eval">
-         <database>{ a:database-id($db) }</database>
+         <database>{ t:database-id($db) }</database>
       </options>)
 };
 
@@ -114,7 +63,7 @@ declare function a:exists-on-database(
 ) as xs:boolean
 {
    a:eval-on-database(
-      a:database-id($db),
+      t:database-id($db),
       'declare variable $doc external;
        fn:doc-available($doc)',
       map:entry('doc', $doc))
@@ -131,7 +80,7 @@ declare function a:get-from-database(
 ) as node()?
 {
    a:eval-on-database(
-      a:database-id($db),
+      t:database-id($db),
       'declare variable $uri external;
        fn:doc($uri)',
       map:entry('uri', $uri))
@@ -285,7 +234,7 @@ declare function a:remove-doc($db as item(), $uri as xs:string)
  :)
 declare function a:remove-docs-and-dirs($db as item(), $docs as xs:string*, $dirs as xs:string*)
 {
-   a:update-database($db, function() {
+   t:update($db, function() {
       $docs ! xdmp:document-delete(.),
       $dirs ! (. || '*') ! cts:uri-match(.) ! xdmp:document-delete(.)
    })
@@ -329,7 +278,7 @@ declare function a:database-dir-creation($db as item())
 {
    admin:database-get-directory-creation(
       admin:get-configuration(),
-      a:database-id($db))
+      t:database-id($db))
 };
 
 (:~
@@ -341,7 +290,7 @@ declare function a:browse-db-files(
    $fn   as function(xs:string) as item()*
 ) as item()*
 {
-   a:query-database($db, function() {
+   t:query($db, function() {
       cts:uri-match($path || '*')
          [fn:not(fn:ends-with(., '/'))]
          ! $fn(.)
@@ -587,7 +536,7 @@ declare function a:eval-on-security-db(
 ) as item()*
 {
    a:eval-on-database(
-      xdmp:security-database(a:database-id($db)),
+      xdmp:security-database(t:database-id($db)),
       $query,
       $params)
 };
@@ -902,7 +851,7 @@ declare function a:get-database($db as item())
    if ( $db instance of element(a:database) ) then
       $db
    else
-      let $id := a:database-id($db)
+      let $id := t:database-id($db)
       return
          if ( fn:empty($id) ) then
             ()

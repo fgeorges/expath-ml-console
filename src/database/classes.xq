@@ -208,10 +208,10 @@ let $super := t:optional-field('super', ())
 let $curie := t:optional-field('curie', ())
 let $start := xs:integer(t:optional-field('start', 1)[.])
 let $root  := '../../' || '../'[$curie]
-let $decls := v:triple-prefixes($db)
+let $decls := a:triple-prefixes($db)
 return
    v:console-page($root, 'browser', 'Browse classes', function() {
-      a:query-database($db, function() {
+      t:query($db, function() {
          local:page($db, $start, $super, $curie, $decls)
       })
    })

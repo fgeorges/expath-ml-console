@@ -7,6 +7,63 @@ declare namespace err   = "http://www.w3.org/2005/xqt-errors";
 declare namespace mlerr = "http://marklogic.com/xdmp/error";
 declare namespace xdmp  = "http://marklogic.com/xdmp";
 
+declare variable $console-ns := 'http://expath.org/ns/ml/console';
+
+(:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ : Work on different databases
+ :)
+
+(:~
+ : Return a database ID.
+ :
+ : If `$db` is an xs:unsignedLong, it is returned as is.  If it is an a:database
+ : element, its `@id` is returned.  If it is neither, it then must be the name
+ : of a database, which is then resolved to an ID (if such a database does not
+ : exist, the empty sequence is returned).
+ :)
+declare function t:database-id($db as item()) as xs:unsignedLong?
+{
+   if ( $db instance of element() and fn:exists($db/@id) ) then
+      xs:unsignedLong($db/@id)
+   else if ( $db castable as xs:unsignedLong ) then
+      xs:unsignedLong($db)
+   else
+      t:catch-ml('XDMP-NOSUCHDB', function() {
+         xdmp:database($db)
+      })
+};
+
+(:~
+ : Invoke the function on the given database.
+ :)
+declare function t:query(
+   $db  as item(),
+   $fun as function() as item()*
+) as item()*
+{
+   xdmp:invoke-function(
+      $fun,
+      <options xmlns="xdmp:eval">
+         <database>{ t:database-id($db) }</database>
+      </options>)
+};
+
+(:~
+ : Invoke the function on the given database, in update transaction mode.
+ :)
+declare function t:update(
+   $db  as item(),
+   $fun as function() as item()*
+) as item()*
+{
+   xdmp:invoke-function(
+      $fun,
+      <options xmlns="xdmp:eval">
+         <database>{ t:database-id($db) }</database>
+         <transaction-mode>update-auto-commit</transaction-mode>
+      </options>)
+};
+
 (:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  : Simple tools
  :)

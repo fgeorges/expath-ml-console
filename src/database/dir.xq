@@ -204,7 +204,7 @@ return
             let $db := a:get-database($name)
             return
                $lexicon($db, function() {
-                  a:query-database($db, function() {
+                  t:query($db, function() {
                      local:page($db, $uri, $root, $sep, $iscoll, $start)
                   })
                })

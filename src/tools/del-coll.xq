@@ -37,7 +37,7 @@ declare function local:page()
             database "{ $db }".</p>
       )
       else (
-         a:update-database($db, function() {
+         t:update($db, function() {
             xdmp:document-remove-collections($uri, $collection)
          }),
          if ( $redirect ) then (

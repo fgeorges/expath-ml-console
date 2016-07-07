@@ -1,6 +1,5 @@
 xquery version "3.0";
 
-import module namespace a = "http://expath.org/ns/ml/console/admin"  at "../lib/admin.xql";
 import module namespace t = "http://expath.org/ns/ml/console/tools"  at "../lib/tools.xql";
 import module namespace v = "http://expath.org/ns/ml/console/view"   at "../lib/view.xql";
 
@@ -41,5 +40,5 @@ declare function local:page()
 let $db := t:mandatory-field('database')
 return
    v:console-page('../../', 'tools', 'Temporal', function() {
-      a:query-database($db, local:page#0)
+      t:query($db, local:page#0)
    })

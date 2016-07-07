@@ -240,7 +240,7 @@ let $init  := t:optional-field('init-path', ())[.]
 let $start := xs:integer(t:optional-field('start', 1)[.])
 return
    v:console-page($webapp-root, 'browser', 'Browse collections', function() {
-      a:query-database($db, function() {
+      t:query($db, function() {
          local:page($db, $path, $coll, $init, $start)
       })
    })

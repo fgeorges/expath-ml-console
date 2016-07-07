@@ -1,6 +1,5 @@
 xquery version "3.0";
 
-import module namespace a = "http://expath.org/ns/ml/console/admin" at "../lib/admin.xql";
 import module namespace t = "http://expath.org/ns/ml/console/tools" at "../lib/tools.xql";
 
 declare namespace map  = "http://marklogic.com/xdmp/map";
@@ -71,7 +70,7 @@ let $doc  := t:mandatory-field('doc')
 let $type := t:mandatory-field('type')
 let $db   := t:mandatory-field('name')
 return (
-   a:update-database($db, function() {
+   t:update($db, function() {
       local:save($uri, $doc, $type)
    }),
    'Document saved in DB ' || $db || ', at ' || $uri

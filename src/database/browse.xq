@@ -427,7 +427,7 @@ browse/http://example.com/ -> 6
 :)
 
 let $name  := t:mandatory-field('name')
-let $db    := a:database-id($name)
+let $db    := t:database-id($name)
 let $init  := t:optional-field('init-path', ())[.]
 let $start := xs:integer(t:optional-field('start', 1)[.])
 return
@@ -436,7 +436,7 @@ return
       'browser',
       'Browse documents',
       function() {
-         a:query-database($db, function() {
+         t:query($db, function() {
             local:page($db, $path, $init, $start)
          })
       },

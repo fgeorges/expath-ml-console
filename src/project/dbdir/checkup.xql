@@ -3,7 +3,7 @@ xquery version "3.0";
 module namespace check = "http://expath.org/ns/ml/console/project/dbdir/checkup";
 
 import module namespace proj = "http://expath.org/ns/ml/console/project" at "../proj-lib.xql";
-import module namespace a    = "http://expath.org/ns/ml/console/admin"   at "../../lib/admin.xql";
+import module namespace t    = "http://expath.org/ns/ml/console/tools"   at "../../lib/tools.xql";
 import module namespace v    = "http://expath.org/ns/ml/console/view"    at "../../lib/view.xql";
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
@@ -19,6 +19,6 @@ declare function check:page(
 ) as element()+
 {
    <p>Project DB element: { $exists($proj/mlc:db) }</p>,
-   <p>Project DB: { $proj/mlc:db ! $string(., fn:exists(a:database-id(fn:data(.)))) }</p>,
+   <p>Project DB: { $proj/mlc:db ! $string(., fn:exists(t:database-id(fn:data(.)))) }</p>,
    <p>Root path element: { $exists($proj/mlc:root) }</p>
 };

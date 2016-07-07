@@ -272,7 +272,7 @@ return
          v:ensure-db($name, function() {
             let $db := a:get-database($name)
             return
-               a:query-database($db, function() {
+               t:query($db, function() {
                   local:page($db, $uri, $root, $sep)
                })
          })
