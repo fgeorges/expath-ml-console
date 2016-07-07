@@ -234,6 +234,127 @@ declare function t:error-when(
 };
 
 (:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ : Config access
+ :
+ : @todo Should go to `config.xql`, after we cleaned it up?
+ :
+ : http://expath.org/ml/console/config.xml
+ : <config>
+ :    <triple-prefixes>
+ :       ...
+ :    </triple-prefixes>
+ : </config>
+ :)
+
+(: TODO: Make it possible to edit the list in the Console...:)
+declare variable $t:config-doc := 'http://expath.org/ml/console/config.xml';
+
+declare variable $t:default-config :=
+   <config xmlns="http://expath.org/ns/ml/console">
+      <triple-prefixes>
+         <decl>
+            <prefix>dc</prefix>
+            <uri>http://purl.org/dc/terms/</uri>
+         </decl>
+         <decl>
+            <prefix>doap</prefix>
+            <uri>http://usefulinc.com/ns/doap#</uri>
+         </decl>
+         <decl>
+            <prefix>foaf</prefix>
+            <uri>http://xmlns.com/foaf/0.1/</uri>
+         </decl>
+         <decl>
+            <prefix>frbr</prefix>
+            <uri>http://purl.org/vocab/frbr/core</uri>
+         </decl>
+         <decl>
+            <prefix>org</prefix>
+            <uri>http://www.w3.org/ns/org#</uri>
+         </decl>
+         <decl>
+            <prefix>owl</prefix>
+            <uri>http://www.w3.org/2002/07/owl#</uri>
+         </decl>
+         <decl>
+            <prefix>time</prefix>
+            <uri>http://www.w3.org/2006/time#</uri>
+         </decl>
+         <decl>
+            <prefix>prov</prefix>
+            <uri>http://www.w3.org/ns/prov#</uri>
+         </decl>
+         <decl>
+            <prefix>rdf</prefix>
+            <uri>http://www.w3.org/1999/02/22-rdf-syntax-ns#</uri>
+         </decl>
+         <decl>
+            <prefix>rdfs</prefix>
+            <uri>http://www.w3.org/2000/01/rdf-schema#</uri>
+         </decl>
+         <decl>
+            <prefix>skos</prefix>
+            <uri>http://www.w3.org/2004/02/skos/core#</uri>
+         </decl>
+         <decl>
+            <prefix>vcard</prefix>
+            <uri>http://www.w3.org/2006/vcard/ns#</uri>
+         </decl>
+         <decl>
+            <prefix>xsd</prefix>
+            <uri>http://www.w3.org/2001/XMLSchema#</uri>
+         </decl>
+      </triple-prefixes>
+   </config>;
+
+declare function t:config-triple-prefixes($db as item()?)
+   as element(c:decl)*
+{
+   t:config-component($db, fn:QName($console-ns, 'triple-prefixes'))/*
+};
+
+declare function t:config-component($db as item()?, $name as xs:QName)
+   as element((: $name :))*
+{
+   document {
+      t:config-component-1(
+         $name,
+         ($db ! t:query(., function() { fn:doc($t:config-doc)/* }),
+          fn:doc($t:config-doc)/*,
+          $t:default-config))
+   }/*
+};
+
+(:~
+ : Helper for `t:config-component`, to reduce several prefix documents.
+ :)
+declare function t:config-component-1($name as xs:QName, $docs as element(c:config)*)
+   as element()*
+{
+   let $head := fn:head($docs)
+   let $tail := fn:tail($docs)
+   let $comp := $head/*[fn:node-name(.) eq $name]
+   let $delg := ( $comp/@delegate/xs:string(.), $head/@delegate/xs:string(.) )[1]
+   return
+      if ( fn:empty($head) ) then (
+      )
+      else if ( $delg = ('never', 'false') ) then (
+         $comp
+      )
+      else if ( $delg = ('before') ) then (
+         t:config-component-1($name, $tail),
+         $comp
+      )
+      else if ( $delg = ('after', 'true') or fn:empty($delg) ) then (
+         $comp,
+         t:config-component-1($name, $tail)
+      )
+      else (
+         t:error('config', 'Unsupported @delegate value: ' || $delg)
+      )
+};
+
+(:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  : HTTP request fields
  :)
 

@@ -208,7 +208,7 @@ let $super := t:optional-field('super', ())
 let $curie := t:optional-field('curie', ())
 let $start := xs:integer(t:optional-field('start', 1)[.])
 let $root  := '../../' || '../'[$curie]
-let $decls := a:triple-prefixes($db)
+let $decls := t:config-triple-prefixes($db)
 return
    v:console-page($root, 'browser', 'Browse classes', function() {
       t:query($db, function() {
