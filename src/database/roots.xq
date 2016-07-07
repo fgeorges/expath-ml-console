@@ -14,6 +14,44 @@ declare namespace xdmp = "http://marklogic.com/xdmp";
 declare namespace map  = "http://marklogic.com/xdmp/map";
 declare namespace sec  = "http://marklogic.com/xdmp/security";
 
+(: TODO: First step towards configuring the browsing system... :)
+declare variable $uris-config :=
+   <uris>
+      <uri sep="/">
+         <root>
+            <fix>/</fix>
+         </root>
+      </uri>
+      <uri sep="/">
+         <root>
+            <start>http://</start>
+         </root>
+      </uri>
+      <uri sep="/">
+         <root>
+            <start>.</start>
+         </root>
+      </uri>
+      <uri sep=":">
+         <root>
+            <start>urn:</start>
+         </root>
+      </uri>
+   </uris>;
+
+declare function local:resolve($uri as element(uri), $iscoll as xs:boolean)
+   as element()*
+{
+   let $root := $uri/root
+   return
+      if ( fn:exists($root/fix) ) then
+         <path sep="{ $uri/@sep }">{ fn:string($root/fix) }</path>[fn:exists(local:uris($iscoll, $root/fix, $uri/@sep))]
+      else if ( fn:exists($root/start) ) then
+         local:uris($iscoll, $root/start, $uri/@sep)
+      else
+         t:error('invalid-config', 'Invalid URI root configuration: ' || xdmp:quote($uri))
+};
+
 (:~
  : The page content.
  : 
@@ -36,11 +74,7 @@ declare function local:page($db as element(a:database), $iscoll as xs:boolean, $
       (),
       (),
       (),
-      (: TODO: Externalize "/", "http://", "." and "urn:" :)
-      ( <path sep="/">/</path>[fn:exists(local:uris($iscoll, '/', '/'))],
-        local:uris($iscoll, 'http://', '/'),
-        local:uris($iscoll, '.', '/'),
-        local:uris($iscoll, 'urn:', ':') )
+      ( $uris-config/* ! local:resolve(., $iscoll) )
          [fn:position() ge $start and fn:position() lt $start + $b:page-size],
       t:when($iscoll, 'croots', 'roots'),
       $start,
