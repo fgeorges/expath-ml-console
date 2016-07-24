@@ -419,10 +419,13 @@ declare function v:edit-xml(
    $elem as node(),
    $id   as xs:string,
    $uri  as xs:string,
+   $dir  as xs:string,
+   $root as xs:string,
+   $sep  as xs:string,
    $top  as xs:string
 ) as element()+
 {
-   v:edit-node($elem, 'xml', 'xml', $id, $uri, $top)
+   v:edit-node($elem, 'xml', 'xml', $id, $uri, $dir, $root, $sep, $top)
 };
 
 (:~
@@ -435,10 +438,13 @@ declare function v:edit-json(
    $json as node(),
    $id   as xs:string,
    $uri  as xs:string,
+   $dir  as xs:string,
+   $root as xs:string,
+   $sep  as xs:string,
    $top  as xs:string
 ) as element()+
 {
-   v:edit-node($json, 'json', 'json', $id, $uri, $top)
+   v:edit-node($json, 'json', 'json', $id, $uri, $dir, $root, $sep, $top)
 };
 
 (:~
@@ -483,10 +489,13 @@ declare function v:edit-text(
    $mode as xs:string,
    $id   as xs:string,
    $uri  as xs:string,
+   $dir  as xs:string,
+   $root as xs:string,
+   $sep  as xs:string,
    $top  as xs:string
 ) as element()+
 {
-   v:edit-node($text, $mode, 'text', $id, $uri, $top)
+   v:edit-node($text, $mode, 'text', $id, $uri, $dir, $root, $sep, $top)
 };
 
 (:~
@@ -501,6 +510,9 @@ declare function v:edit-node(
    $type as xs:string,
    $id   as xs:string,
    $uri  as xs:string,
+   $dir  as xs:string,
+   $root as xs:string,
+   $sep  as xs:string,
    $top  as xs:string
 ) as element()+
 {
@@ -511,11 +523,8 @@ declare function v:edit-node(
       <form method="POST" action="{ $top }delete" style="display: none" id="{ $id }-delete">
          <input type="hidden" name="doc"        value="{ $uri }"/>
          <input type="hidden" name="back-label" value="the directory"/>
-         <input type="hidden" name="back-url"   value="browse{
-            '/'[fn:not(fn:starts-with($uri, '/'))]
-         }{
-            fn:string-join(fn:tokenize($uri, '/')[fn:position() lt fn:last()], '/')
-         }/"/>
+         <input type="hidden" name="back-url"   value="dir?uri={
+            fn:encode-for-uri($dir) }&amp;root={ fn:encode-for-uri($root) }&amp;sep={ fn:encode-for-uri($sep) }"/>
       </form>
    </dummy>/*
 };

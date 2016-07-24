@@ -20,6 +20,10 @@ declare function local:page($db as element(a:database), $uri as xs:string, $root
    let $db-name := xs:string($db/a:name)
    let $db-root := './'
    let $webapp  := '../../'
+   let $dir     := if ( fn:contains($uri, $sep) ) then
+                      fn:string-join(fn:tokenize($uri, $sep)[fn:position() lt fn:last()], $sep) || $sep
+                   else
+                      $root
    return (
       <p>
          { $db-name ! v:db-link('../' || ., .) }
@@ -35,7 +39,7 @@ declare function local:page($db as element(a:database), $uri as xs:string, $root
       )
       else (
          local:summary($uri),
-         local:content($uri, $db-root),
+         local:content($uri, $dir, $root, $sep, $db-root),
          local:collections($db, $uri, $db-root, $webapp, $root, $sep),
          local:properties($uri),
          local:permissions($db, $uri, $webapp)
@@ -85,18 +89,28 @@ declare function local:summary($uri as xs:string)
 (:~
  : The content section.
  :)
-declare function local:content($uri as xs:string, $db-root as xs:string)
+declare function local:content($uri as xs:string, $dir as xs:string, $root as xs:string, $sep as xs:string, $db-root as xs:string)
    as element()+
 {
    <h3>Content</h3>,
    let $doc := fn:doc($uri)
    let $id  := fn:generate-id($doc)
    return
+
+(:
+   TODO: If temporal, only display, if not then "edit" (buttons save + delete).
+   In fact, generalize the idea of the editor panel.
+   Have a plain one (to display), then allow some extension (that is, more
+   buttons, and some other config options to allow editing)...
+
+   let $tmp := a:is-temporal($uri)
+:)
+
       if ( bin:is-json($doc/node()) ) then (
-         v:edit-json($doc, $id, $uri, $db-root)
+         v:edit-json($doc, $id, $uri, $dir, $root, $sep, $db-root)
       )
       else if ( fn:exists($doc/*) ) then (
-         v:edit-xml($doc, $id, $uri, $db-root)
+         v:edit-xml($doc, $id, $uri, $dir, $root, $sep, $db-root)
       )
       else if ( fn:exists($doc/text()) and fn:empty($doc/node()[2]) ) then (
          (: TODO: Use the internal MarkLogic way to recognize XQuery modules? :)
@@ -105,7 +119,7 @@ declare function local:content($uri as xs:string, $db-root as xs:string)
                         'json'[fn:ends-with($uri, '.json')],
                         'text' )[1]
          return
-            v:edit-text($doc/text(), $mode, $id, $uri, $db-root)
+            v:edit-text($doc/text(), $mode, $id, $uri, $dir, $root, $sep, $db-root)
       )
       else (
          <p>Binary document display not supported.</p>
