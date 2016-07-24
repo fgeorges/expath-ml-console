@@ -9,6 +9,10 @@ import module namespace t     = "http://expath.org/ns/ml/console/tools"
    at "tools.xql";
 import module namespace admin = "http://marklogic.com/xdmp/admin"
    at "/MarkLogic/admin.xqy";
+import module namespace sec   = "http://marklogic.com/xdmp/security"
+   at "/MarkLogic/security.xqy";
+import module namespace tmp   = "http://marklogic.com/xdmp/temporal" 
+   at "/MarkLogic/temporal.xqy";
 
 declare namespace c     = "http://expath.org/ns/ml/console";
 declare namespace dir   = "http://marklogic.com/xdmp/directory";
@@ -32,27 +36,9 @@ declare variable $attic-path := '.expath-pkg/attic/';
  :
  : Tools related to databases:
  :
- : - evaluate code on a specific database
  : - read documents from a specific database
  : - write documents to a specific database
  :)
-
-(:~
- : Eval the query on the given database, with the given parameters.
- :)
-declare function a:eval-on-database(
-   $db     as item(),
-   $query  as xs:string,
-   $params as map:map
-) as item()*
-{
-   xdmp:eval(
-      $query,
-      $params,
-      <options xmlns="xdmp:eval">
-         <database>{ t:database-id($db) }</database>
-      </options>)
-};
 
 (:~
  : Check whether `$doc` is available on the database `$db`.
@@ -62,11 +48,9 @@ declare function a:exists-on-database(
    $doc as xs:string
 ) as xs:boolean
 {
-   a:eval-on-database(
-      t:database-id($db),
-      'declare variable $doc external;
-       fn:doc-available($doc)',
-      map:entry('doc', $doc))
+   t:query($db, function() {
+      fn:doc-available($doc)
+   })
 };
 
 (:~
@@ -79,11 +63,9 @@ declare function a:get-from-database(
    $uri as xs:string
 ) as node()?
 {
-   a:eval-on-database(
-      t:database-id($db),
-      'declare variable $uri external;
-       fn:doc($uri)',
-      map:entry('uri', $uri))
+   t:query($db, function() {
+      fn:doc($uri)
+   })
 };
 
 (:~
@@ -116,15 +98,10 @@ declare function a:insert-into-database(
    $doc as node()
 ) as xs:string
 {
-   a:eval-on-database(
-      $db,
-      'declare namespace xdmp = "http://marklogic.com/xdmp";
-       declare variable $uri external;
-       declare variable $doc external;
-       xdmp:document-insert($uri, $doc), $uri',
-      map:new((
-         map:entry('uri', $uri),
-         map:entry('doc', $doc))))
+   t:update($db, function() {
+      xdmp:document-insert($uri, $doc),
+      $uri
+   })
 };
 
 (:~
@@ -140,41 +117,44 @@ declare function a:load-dir-into-database(
    $exclude as xs:string?
 ) as xs:string
 {
-   a:eval-on-database(
-      $db,
-      'declare namespace dir  = "http://marklogic.com/xdmp/directory";
-       declare namespace xdmp = "http://marklogic.com/xdmp";
-       declare variable $uri     external;
-       declare variable $path    external;
-       declare variable $include external;
-       declare variable $exclude external;
-       declare function local:matches($d, $r, $i, $e) {
+   t:update($db, function() {
+      a:load-dir-into-database-1($uri, $path, '', ($include, '')[1], ($exclude, '')[1]),
+      $uri
+   })
+};
+
+declare function a:load-dir-into-database-1(
+   $uri     as xs:string,
+   $path    as xs:string,
+   $r       as xs:string,
+   $include as xs:string?,
+   $exclude as xs:string?
+) as empty-sequence()
+{
+   let $matches := function($d, $r, $i, $e) {
          let $f := fn:concat($r, $d/dir:filename)
          return
             $d
-               [$i eq "" or fn:matches($f, $i)]
-               [$e eq "" or fn:not(fn:matches($f, $e))]
-       };
-       declare function local:load($u, $p, $r) {
-         for $e in xdmp:filesystem-directory($p)/dir:entry[dir:type eq "directory" or local:matches(., $r, $include, $exclude)]
-         return
-            if ( $e/dir:type eq "file" ) then
-               xdmp:document-load(
-                  $e/dir:pathname,
-                  <options xmlns="xdmp:document-load">
-                     <uri>{ fn:string($u) }{ fn:string($e/dir:filename) }</uri>
-                  </options>)
-            else if ( $e/dir:type eq "directory" ) then
-               local:load(fn:concat($u, $e/dir:filename, "/"), $e/dir:pathname, fn:concat($r, $e/dir:filename, "/"))
-            else
-               fn:error((), fn:concat("dir:type is neither directory nor file: ", $e/dir:type))
-       };
-       local:load($uri, $path, ""), $uri',
-      map:new((
-         map:entry('uri',     $uri),
-         map:entry('path',    $path),
-         map:entry('include', ($include, '')[1]),
-         map:entry('exclude', ($exclude, '')[1]))))
+               [$i eq '' or fn:matches($f, $i)]
+               [$e eq '' or fn:not(fn:matches($f, $e))]
+      }
+   for $e in xdmp:filesystem-directory($path)/dir:entry[dir:type eq 'directory' or $matches(., $r, $include, $exclude)]
+   return
+      if ( $e/dir:type eq 'file' ) then
+         xdmp:document-load(
+            $e/dir:pathname,
+            <options xmlns="xdmp:document-load">
+               <uri>{ fn:string($uri) }{ fn:string($e/dir:filename) }</uri>
+            </options>)
+      else if ( $e/dir:type eq 'directory' ) then
+         a:load-dir-into-database-1(
+            fn:concat($uri, $e/dir:filename, '/'),
+            $e/dir:pathname,
+            fn:concat($r, $e/dir:filename, '/'),
+            $include,
+            $exclude)
+      else
+         fn:error((), fn:concat('dir:type is neither directory nor file: ', $e/dir:type))
 };
 
 (:~
@@ -188,28 +168,18 @@ declare function a:load-zipdir-into-database(
    $zip (: as binary() :)
 ) as xs:string
 {
-   a:eval-on-database(
-      $db,
-      'declare namespace xdmp = "http://marklogic.com/xdmp";
-       declare namespace zip  = "xdmp:zip";
-       declare variable $uri external;
-       declare variable $zip external;
-       declare function local:do-it() {
-          for $part in xdmp:zip-manifest($zip)/zip:part/fn:string(.)
-          (: encode each path part individually :)
-          let $path := fn:string-join(fn:tokenize($part, "/") ! fn:encode-for-uri(.), "/")
-          (: skip dir entries :)
-          where fn:not(fn:ends-with($part, "/"))
-          return
-             xdmp:document-insert(
-                fn:concat($uri, $path),
-                xdmp:zip-get($zip, $part))
-       };
-       local:do-it(),
-       $uri',
-      map:new((
-         map:entry('uri', $uri),
-         map:entry('zip', $zip))))
+   t:update($db, function() {
+      for $part in xdmp:zip-manifest($zip)/zip:part/fn:string(.)
+      (: encode each path part individually :)
+      let $path := fn:string-join(fn:tokenize($part, '/') ! fn:encode-for-uri(.), '/')
+      (: skip dir entries :)
+      where fn:not(fn:ends-with($part, '/'))
+      return
+         xdmp:document-insert(
+            fn:concat($uri, $path),
+            xdmp:zip-get($zip, $part)),
+      $uri
+   })
 };
 
 (:~
@@ -217,12 +187,9 @@ declare function a:load-zipdir-into-database(
  :)
 declare function a:remove-doc($db as item(), $uri as xs:string)
 {
-   a:eval-on-database(
-      $db,
-      'declare namespace xdmp = "http://marklogic.com/xdmp";
-       declare variable $uri external;
-       xdmp:document-delete($uri)',
-      map:entry('uri', $uri))
+   t:update($db, function() {
+      xdmp:document-delete($uri)
+   })
 };
 
 (:~
@@ -257,12 +224,9 @@ declare function a:remove-docs-and-dirs($db as item(), $docs as xs:string*, $dir
 declare function a:remove-directory($db as item(), $dir as xs:string)
 {
    if ( fn:ends-with($dir, '/') ) then
-      a:eval-on-database(
-         $db,
-         'declare namespace xdmp = "http://marklogic.com/xdmp";
-          declare variable $dir external;
-          xdmp:directory($dir, "infinity")/xdmp:document-delete(fn:document-uri(.))',
-         map:entry('dir', $dir))
+      t:query($db, function() {
+          xdmp:directory($dir, 'infinity')/xdmp:document-delete(fn:document-uri(.))
+      })
    else
       t:error('not-dir', 'The directory URI does not end with a forward slash: ' || $dir)
 };
@@ -509,50 +473,29 @@ declare function a:browse-files(
  :)
 
 (:~
- : Evaluate a query on the security database of the current database.
- :
- : This is needed by most functions in the MarkLogic sec:* library.
- :)
-declare function a:eval-on-security-db(
-   $query  as xs:string,
-   $params as map:map
-) as item()*
-{
-   a:eval-on-database(
-      xdmp:security-database(),
-      $query,
-      $params)
-};
-
-(:~
- : Evaluate a query on the security database of the `$db` database.
- :
- : This is needed by most functions in the MarkLogic sec:* library.
- :)
-declare function a:eval-on-security-db(
-   $db     as item(),
-   $query  as xs:string,
-   $params as map:map
-) as item()*
-{
-   a:eval-on-database(
-      xdmp:security-database(t:database-id($db)),
-      $query,
-      $params)
-};
-
-(:~
  : Return the name of a role, given its ID.  The scope is the current database.
  :)
 declare function a:role-name($role as xs:unsignedLong)
    as xs:string
 {
-   a:eval-on-security-db(
-      'import module namespace sec = "http://marklogic.com/xdmp/security"
-          at "/MarkLogic/security.xqy";
-       declare variable $role as xs:unsignedLong external;
-       sec:get-role-names($role)',
-      map:entry('role', $role))
+   t:query(xdmp:security-database(), function() {
+      sec:get-role-names($role)
+   })
+};
+
+(:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ : Temporal tools
+ :
+ : Tools for the bitemporal features.
+ :)
+
+(:~
+ : Return true if the document is a bitemporal document.
+ :)
+declare function a:is-temporal($uri as xs:string)
+   as xs:boolean
+{
+   tmp:collections() = xdmp:document-get-collections($uri)
 };
 
 (:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -568,20 +511,17 @@ declare function a:role-name($role as xs:unsignedLong)
 declare function a:get-roles()
    as element(a:roles)
 {
-   <a:roles> {
-      a:eval-on-security-db(
-         'import module namespace sec = "http://marklogic.com/xdmp/security"
-             at "/MarkLogic/security.xqy";
-          declare namespace a = "http://expath.org/ns/ml/console/admin";
-          let $ids  := sec:get-role-ids()
-          for $name at $pos in sec:get-role-names($ids)
-          return
-             <a:role id="{ $ids[$pos] }">
-                <a:name>{ $name }</a:name>
-             </a:role>',
-         map:new(()))
-   }
-   </a:roles>
+   t:query(xdmp:security-database(), function() {
+      <a:roles> {
+         let $ids  := sec:get-role-ids()
+         for $name at $pos in sec:get-role-names($ids)
+         return
+            <a:role id="{ $ids[$pos] }">
+               <a:name>{ $name }</a:name>
+            </a:role>
+      }
+      </a:roles>
+   })
 };
 
 (:~

@@ -39,19 +39,11 @@ declare function local:page()
             database "{ $db }".</p>
       )
       else (
-         a:eval-on-database(
-            $db,
-            'declare namespace xdmp = "http://marklogic.com/xdmp";
-             declare variable $uri  as xs:string external;
-             declare variable $cap  as xs:string external;
-             declare variable $role as xs:string external;
-             xdmp:document-add-permissions(
-                $uri,
-                xdmp:permission($role, $cap))',
-            map:new((
-               map:entry('uri',  $uri),
-               map:entry('cap',  $capability),
-               map:entry('role', $role)))),
+         t:query($db, function() {
+            xdmp:document-add-permissions(
+               $uri,
+               xdmp:permission($role, $capability))
+         }),
          if ( $redirect ) then (
             v:redirect(
                '../db/' || $db || '/browse'
