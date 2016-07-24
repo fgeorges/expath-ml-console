@@ -20,6 +20,10 @@ import module namespace v = "http://expath.org/ns/ml/console/view"  at "../lib/v
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
+declare namespace xdmp = "http://marklogic.com/xdmp";
+
+declare option xdmp:update "true";
+
 (:~
  : The overall page function.
  :)

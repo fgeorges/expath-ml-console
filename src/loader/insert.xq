@@ -40,6 +40,8 @@ declare default element namespace "http://www.w3.org/1999/xhtml";
 declare namespace prop = "http://marklogic.com/xdmp/property";
 declare namespace xdmp = "http://marklogic.com/xdmp";
 
+declare option xdmp:update "true";
+
 (:~
  : The overall page function.
  :)
