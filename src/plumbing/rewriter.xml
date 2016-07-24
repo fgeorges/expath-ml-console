@@ -1,7 +1,31 @@
 <rewriter xmlns="http://marklogic.com/xdmp/rewriter">
+
+   <!--
+       Catch all for *.xq, *.xqy and *.sjs.
+   -->
+   <match-path matches="\.(xq|xqy|sjs)$">
+      <error>Not allowed to invoke modules directly</error>
+   </match-path>
+
+   <!--
+       Home, resources and misc.
+   -->
    <match-path matches="^/$">
       <dispatch>/home.xq</dispatch>
    </match-path>
+   <match-path matches="^/(images|js|style)/.+$">
+      <dispatch>$0</dispatch>
+   </match-path>
+   <match-path matches="^/devel$">
+      <dispatch>/devel.xq</dispatch>
+   </match-path>
+   <match-path matches="^/help$">
+      <dispatch>/help.xq</dispatch>
+   </match-path>
+
+   <!--
+       App servers.
+   -->
    <match-path matches="^/appserver/([0-9]+)$">
       <add-query-param name="id">$1</add-query-param>
       <dispatch>/appserver/index.xq</dispatch>
@@ -27,6 +51,10 @@
       <add-query-param name="pkg">$2</add-query-param>
       <dispatch>/appserver/delete-pkg.xq</dispatch>
    </match-path>
+
+   <!--
+       Databases.
+   -->
    <match-path matches="^/db$">
       <dispatch>/database/index.xq</dispatch>
    </match-path>
@@ -136,6 +164,10 @@
       <add-query-param name="name">$1</add-query-param>
       <dispatch>/database/bulk-delete.xq</dispatch>
    </match-path>
+
+   <!--
+       CXAN.
+   -->
    <match-path matches="^/cxan$">
       <dispatch>/cxan/index.xq</dispatch>
    </match-path>
@@ -145,15 +177,10 @@
    <match-path matches="^/cxan/install$">
       <dispatch>/cxan/install.xq</dispatch>
    </match-path>
-   <match-path matches="^/devel$">
-      <dispatch>/devel.xq</dispatch>
-   </match-path>
-   <match-path matches="^/help$">
-      <dispatch>/help.xq</dispatch>
-   </match-path>
-   <match-path matches="^/(images|js|style)/.+$">
-      <dispatch>$0</dispatch>
-   </match-path>
+
+   <!--
+       Packages.
+   -->
    <match-path matches="^/pkg$">
       <dispatch>/repo/index.xq</dispatch>
    </match-path>
@@ -172,6 +199,10 @@
    <match-path matches="^/repo/show$">
       <dispatch>/repo/show.xq</dispatch>
    </match-path>
+
+   <!--
+       Browser and loader.
+   -->
    <match-path matches="^/browser$">
       <dispatch>/browser/index.xq</dispatch>
    </match-path>
@@ -189,6 +220,10 @@
       <!--dispatch>/loader/upload.sjs</dispatch-->
       <dispatch>/loader/upload.xq</dispatch>
    </match-path>
+
+   <!--
+       Profiler.
+   -->
    <match-path matches="^/profiler$">
       <dispatch>/profiler/index.xq</dispatch>
    </match-path>
@@ -201,6 +236,10 @@
    <match-path matches="^/profiler/xml-to-json$">
       <dispatch>/profiler/xml-to-json.xq</dispatch>
    </match-path>
+
+   <!--
+       Tools.
+   -->
    <match-path matches="^/tools$">
       <dispatch>/tools/index.xq</dispatch>
    </match-path>
@@ -243,6 +282,10 @@
    <match-path matches="^/tools/del-perm$">
       <dispatch>/tools/del-perm.xq</dispatch>
    </match-path>
+
+   <!--
+       Web.
+   -->
    <match-path matches="^/web$">
       <dispatch>/web/index.xq</dispatch>
    </match-path>
@@ -261,6 +304,10 @@
    <match-path matches="^/web/show$">
       <dispatch>/web/show.xq</dispatch>
    </match-path>
+
+   <!--
+       Projects.
+   -->
 <!--
 TODO: Just temporary, to use this code from somewhere, during development...
 -->
@@ -299,12 +346,20 @@ TODO: Just temporary, to use this code from somewhere, during development...
       <add-query-param name="src">$2</add-query-param>
       <dispatch>/project/src.xq</dispatch>
    </match-path>
+
+   <!--
+       Old stuff.
+   -->
    <match-path matches="^/xproject$">
       <dispatch>/xproject.xq</dispatch>
    </match-path>
    <match-path matches="^/xspec$">
       <dispatch>/xspec.xq</dispatch>
    </match-path>
+
+   <!--
+       Tests.
+   -->
 <!--
    TODO: I'd like to redirect "/test" to "/test/", but it seems it is
    not possible using the declarative XML rewriter.
@@ -334,7 +389,5 @@ TODO: Just temporary, to use this code from somewhere, during development...
    <match-path matches="^/test/profiler/([-a-z]+)$">
       <dispatch>/test/profiler/$1.xq</dispatch>
    </match-path>
-   <match-path matches=".xq$">
-      <error>Not allowed to invoke modules directly</error>
-   </match-path>
+
 </rewriter>
