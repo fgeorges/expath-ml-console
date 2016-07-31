@@ -212,6 +212,9 @@ declare function local:coll-area($db as element(a:database), $name as xs:string)
 
 (:~
  : @todo Factorize out with other `local:*-area()` functions?
+ :
+ : @todo Allow to browse restricted by collections, `rdf:type`, any query really...
+ : (but by `rdf:type` is mandatory...)
  :)
 declare function local:triples-area($db as element(a:database), $name as xs:string)
    as element()+

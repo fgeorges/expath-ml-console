@@ -8,49 +8,9 @@ import module namespace v   = "http://expath.org/ns/ml/console/view"   at "../li
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
-declare namespace h    = "http://www.w3.org/1999/xhtml";
-declare namespace cts  = "http://marklogic.com/cts";
-declare namespace xdmp = "http://marklogic.com/xdmp";
-declare namespace map  = "http://marklogic.com/xdmp/map";
-declare namespace sec  = "http://marklogic.com/xdmp/security";
-
-(: TODO: First step towards configuring the browsing system... :)
-declare variable $uris-config :=
-   <uris>
-      <uri sep="/">
-         <root>
-            <fix>/</fix>
-         </root>
-      </uri>
-      <uri sep="/">
-         <root>
-            <start>http://</start>
-         </root>
-      </uri>
-      <uri sep="/">
-         <root>
-            <start>.</start>
-         </root>
-      </uri>
-      <uri sep=":">
-         <root>
-            <start>urn:</start>
-         </root>
-      </uri>
-   </uris>;
-
-declare function local:resolve($uri as element(uri), $iscoll as xs:boolean)
-   as element()*
-{
-   let $root := $uri/root
-   return
-      if ( fn:exists($root/fix) ) then
-         <path sep="{ $uri/@sep }">{ fn:string($root/fix) }</path>[fn:exists(local:uris($iscoll, $root/fix, $uri/@sep))]
-      else if ( fn:exists($root/start) ) then
-         local:uris($iscoll, $root/start, $uri/@sep)
-      else
-         t:error('invalid-config', 'Invalid URI root configuration: ' || xdmp:quote($uri))
-};
+declare namespace c   = "http://expath.org/ns/ml/console";
+declare namespace h   = "http://www.w3.org/1999/xhtml";
+declare namespace cts = "http://marklogic.com/cts";
 
 (:~
  : The page content.
@@ -60,8 +20,12 @@ declare function local:resolve($uri as element(uri), $iscoll as xs:boolean)
  :
  : TODO: Lot of duplicated code with local:page() in dir.xq, factorize out?
  :)
-declare function local:page($db as element(a:database), $iscoll as xs:boolean, $start as xs:integer)
-   as element()+
+declare function local:page(
+   $db      as element(a:database),
+   $iscoll  as xs:boolean,
+   $start   as xs:integer,
+   $schemes as element(c:scheme)+
+) as element()+
 {
    <p>
       { xs:string($db/a:name) ! v:db-link('../' || ., .) }
@@ -74,22 +38,16 @@ declare function local:page($db as element(a:database), $iscoll as xs:boolean, $
       (),
       (),
       (),
-      ( $uris-config/* ! local:resolve(., $iscoll) )
-         [fn:position() ge $start and fn:position() lt $start + $b:page-size],
+      b:get-roots($iscoll, $start, $schemes),
       t:when($iscoll, 'croots', 'roots'),
       $start,
-      function($child as element(path), $pos as xs:integer) {
-         if ( $iscoll ) then
-            local:coll-item($child, $child/@sep)
-         else
-            local:dir-item($child, $child/@sep, $pos)
-      },
+      t:when($iscoll, local:coll-item#2, local:dir-item#2),
       function($items as element(h:li)*) {
          if ( fn:exists($items) ) then (
             <p>Choose the root to navigate:</p>,
             t:when($iscoll,
                <ul>{ $items }</ul>,
-               local:children($items))
+               b:dir-children($items, 'roots'))
          )
          else (
             <p>The database is empty.</p>
@@ -101,8 +59,7 @@ declare function local:page($db as element(a:database), $iscoll as xs:boolean, $
  : Format one root, in case of directory browsing (as opposed to collections).
  :)
 declare function local:dir-item(
-   $child as xs:string,
-   $sep   as xs:string,
+   $child as element(path),
    $pos   as xs:integer
 ) as element()+
 {
@@ -110,7 +67,7 @@ declare function local:dir-item(
       <input name="name-{ $pos }"       type="hidden" value="{ $child }"/>
       <input name="delete-dir-{ $pos }" type="checkbox"/>
       { ' ' }
-      { v:root-link('', $child, $sep) }
+      { v:root-link('', $child, $child/@sep) }
    </li>
 };
 
@@ -118,25 +75,27 @@ declare function local:dir-item(
  : Format one root, in case of collection browsing.
  :)
 declare function local:coll-item(
-   $child as xs:string,
-   $sep   as xs:string
+   $child as element(path),
+   $pos   as xs:integer
 ) as element()+
 {
-   if ( fn:ends-with($child, $sep) ) then (
-      (: display as a "dir" :)
-      <li>{ v:croot-link('', $child, $sep) }</li>,
-      (: and maybe as a "final collection" too :)
-      t:when(fn:exists(cts:collection-match($child)),
-         <li>{ v:coll-link('', $child, $child, $sep) }</li>)
-   )
-   (: if not it is a "final collection" :)
-   else (
-      <li>{ v:coll-link('', $child, $child, $sep) } </li>
-   )
+   let $sep := xs:string($child/@sep)
+   return
+      if ( fn:ends-with($child, $sep) ) then (
+         (: display as a "dir" :)
+         <li>{ v:croot-link('', $child, $sep) }</li>,
+         (: and maybe as a "final collection" too :)
+         t:when(fn:exists(cts:collection-match($child)),
+            <li>{ v:coll-link('', $child, $child, $sep) }</li>)
+      )
+      (: if not it is a "final collection" :)
+      else (
+         <li>{ v:coll-link('', $child, $child, $sep) } </li>
+      )
 };
 
 (:~
- : ...
+ : Return children URIs, in case of either a directory or a collection.
  :)
 declare function local:uris(
    $iscoll as xs:boolean,
@@ -145,51 +104,14 @@ declare function local:uris(
 ) as element(path)*
 {
    if ( $iscoll ) then
-      b:get-children-coll($base, $sep, ())
+      b:get-children-coll($base, $sep)
    else
-      b:get-children-uri($base, $sep, ())
-};
-
-(:~
- : @todo Duplicated in dir.xq.  To factorize out...
- :)
-declare function local:children($items as element(h:li)+) as element()+
-{
-   v:form(
-      '',
-      attribute { 'id' } { 'orig-form' },
-      <ul style="list-style-type: none"> {
-         $items
-      }
-      </ul>),
-   <button class="btn btn-danger"
-           title="Delete selected documents and directories"
-           onclick='deleteUris("orig-form", "hidden-form");'>
-      Delete
-   </button>,
-   v:inline-form(
-      'bulk-delete',
-      (attribute { 'id'    } { 'hidden-form' },
-       attribute { 'style' } { 'display: none' }),
-      v:input-hidden('back-url', 'roots'))
-};
-
-(:~
- : @todo Duplicated in dir.xq.  Have a t:* function for enumerations?
- :)
-declare function local:param-iscoll($type as xs:string) as xs:boolean
-{
-   if ( $type eq 'docs' ) then
-      fn:false()
-   else if ( $type eq 'coll' ) then
-      fn:true()
-   else
-      t:error('unkown-enum', 'Unknown root type: ' || $type)
+      b:get-children-uri($base, $sep)
 };
 
 let $name    := t:mandatory-field('name')
 let $type    := t:mandatory-field('type')
-let $iscoll  := local:param-iscoll($type)
+let $iscoll  := b:param-iscoll($type)
 let $start   := xs:integer(t:optional-field('start', 1)[.])
 let $lexicon := t:when($iscoll, v:ensure-coll-lexicon#2, v:ensure-uri-lexicon#2)
 return
@@ -201,11 +123,12 @@ return
          'Browse documents'),
       function() {
          v:ensure-db($name, function() {
-            let $db := a:get-database($name)
+            let $db      := a:get-database($name)
+            let $schemes := t:config-uri-schemes($db)
             return
                $lexicon($db, function() {
                   t:query($db, function() {
-                     local:page($db, $iscoll, $start)
+                     local:page($db, $iscoll, $start, $schemes)
                   })
                })
          })

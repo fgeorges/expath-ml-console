@@ -240,10 +240,29 @@ declare function t:error-when(
  :
  : http://expath.org/ml/console/config.xml
  : <config>
+ :    <uri-schemes>
+ :       ...
+ :    </uri-schemes>
  :    <triple-prefixes>
  :       ...
  :    </triple-prefixes>
  : </config>
+ :
+ : For instance, add the following in a document with the same URI as in the
+ : variable `$t:config-doc`.  Either on the target database (to apply only to
+ : browsing that database), or on the content database attached to the EXPath
+ : Console app server (to set the default for all databases).
+ :
+ : <config xmlns="http://expath.org/ns/ml/console">
+ :    <uri-schemes>
+ :       <scheme sep="/">
+ :          <root>
+ :             <start>.</start>
+ :          </root>
+ :          <regex match="1">(\.[^/]+/).*</regex>
+ :       </scheme>
+ :    </uri-schemes>
+ :  </config>
  :)
 
 (: TODO: Make it possible to edit the list in the Console...:)
@@ -251,6 +270,26 @@ declare variable $t:config-doc := 'http://expath.org/ml/console/config.xml';
 
 declare variable $t:default-config :=
    <config xmlns="http://expath.org/ns/ml/console">
+      <uri-schemes>
+         <scheme sep="/">
+            <root>
+               <fix>/</fix>
+            </root>
+            <regex>/.*</regex>
+         </scheme>
+         <scheme sep="/">
+            <root>
+               <start>http://</start>
+            </root>
+            <regex match="1">(http://[^/]+/).*</regex>
+         </scheme>
+         <scheme sep=":">
+            <root>
+               <start>urn:</start>
+            </root>
+            <regex match="1">(urn:[^:]+:).*</regex>
+         </scheme>
+      </uri-schemes>
       <triple-prefixes>
          <decl>
             <prefix>dc</prefix>
@@ -313,16 +352,26 @@ declare function t:config-triple-prefixes($db as item()?)
    t:config-component($db, fn:QName($console-ns, 'triple-prefixes'))/*
 };
 
+declare function t:config-uri-schemes($db as item()?)
+   as element(c:scheme)*
+{
+   t:config-component($db, fn:QName($console-ns, 'uri-schemes'))/*
+};
+
 declare function t:config-component($db as item()?, $name as xs:QName)
    as element((: $name :))*
 {
-   document {
-      t:config-component-1(
-         $name,
-         ($db ! t:query(., function() { fn:doc($t:config-doc)/* }),
-          fn:doc($t:config-doc)/*,
-          $t:default-config))
-   }/*
+   (: dont't use it twice if we are browsing the DB attached to the Console appserver... :)
+   (: TODO: Using a different doc URI for the default one would be cleaner... :)
+   let $database := $db[fn:not(t:database-id(.) eq xdmp:database())]
+   return
+      document {
+         t:config-component-1(
+            $name,
+            ($database ! t:query(., function() { fn:doc($t:config-doc)/* }),
+             fn:doc($t:config-doc)/*,
+             $t:default-config))
+      }/*
 };
 
 (:~

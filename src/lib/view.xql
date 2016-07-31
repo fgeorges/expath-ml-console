@@ -799,11 +799,15 @@ declare function v:dir-link($href as xs:string, $name as xs:string)
    v:component-link($href, $name, 'dir')
 };
 
+(: TODO: GEt rid of `$root`... :)
 declare function v:dir-link($db-root as xs:string, $uri as xs:string, $root as xs:string, $sep as xs:string)
 {
    let $label := fn:tokenize($uri, $sep)[fn:last() - 1] || $sep
    return
-      v:component-link($db-root, 'dir', $uri, $root, $sep, $label, 'dir')
+      v:component-link(
+         $db-root || 'dir?uri=' || fn:encode-for-uri($uri),
+         $label,
+         'dir')
 };
 
 declare function v:cdir-link($db-root as xs:string, $uri as xs:string, $root as xs:string, $sep as xs:string)
@@ -813,9 +817,13 @@ declare function v:cdir-link($db-root as xs:string, $uri as xs:string, $root as 
       v:component-link($db-root, 'cdir', $uri, $root, $sep, $label, 'dir')
 };
 
+(: TODO: GEt rid of `$sep`... :)
 declare function v:root-link($db-root as xs:string, $uri as xs:string, $sep as xs:string)
 {
-   v:component-link($db-root, 'dir', $uri, $uri, $sep, $uri, 'dir')
+   v:component-link(
+      $db-root || 'dir?uri=' || fn:encode-for-uri($uri),
+      $uri,
+      'dir')
 };
 
 declare function v:croot-link($db-root as xs:string, $uri as xs:string, $sep as xs:string)

@@ -7,10 +7,115 @@ import module namespace v = "http://expath.org/ns/ml/console/view"  at "../lib/v
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
+declare namespace c    = "http://expath.org/ns/ml/console";
+declare namespace h    = "http://www.w3.org/1999/xhtml";
 declare namespace cts  = "http://marklogic.com/cts";
+declare namespace xdmp = "http://marklogic.com/xdmp";
 
 (: Fixed page size for now. :)
 declare variable $b:page-size := 100;
+
+(:~
+ : Render directory children, by wrapping them in a delete form.
+ :)
+declare function b:dir-children($items as element(h:li)+, $back-url as xs:string) as element()+
+{
+   v:form(
+      '',
+      attribute { 'id' } { 'orig-form' },
+      <ul style="list-style-type: none"> {
+         $items
+      }
+      </ul>),
+   <button class="btn btn-danger"
+           title="Delete selected documents and directories"
+           onclick='deleteUris("orig-form", "hidden-form");'>
+      Delete
+   </button>,
+   v:inline-form(
+      'bulk-delete',
+      (attribute { 'id'    } { 'hidden-form' },
+       attribute { 'style' } { 'display: none' }),
+      v:input-hidden('back-url', $back-url))
+};
+
+(:~
+ : Return `true` if `$type` is `docs`, or `false` if it is `coll`.
+ :
+ : @error If `$type` is neither `docs` nor `coll`.
+ :)
+declare function b:param-iscoll($type as xs:string) as xs:boolean
+{
+   if ( $type eq 'docs' ) then
+      fn:false()
+   else if ( $type eq 'coll' ) then
+      fn:true()
+   else
+      t:error('unkown-enum', 'Unknown root type: ' || $type)
+};
+
+(:~
+ : Resolve a URI to a triplet "URI / root / separator".
+ :
+ : ```
+ : <path root="..." sep="...">...</path>
+ : ```
+ :)
+declare function b:resolve-path($uri as xs:string, $iscoll as xs:boolean, $schemes as element(c:scheme)+)
+   as element(path)
+{
+   b:resolve-path-1($uri, $iscoll, $schemes)
+};
+
+declare function b:resolve-path-1($uri as xs:string, $iscoll as xs:boolean, $schemes as element(c:scheme)*)
+   as element(path)
+{
+   if ( fn:empty($schemes) ) then
+      t:error('invalid-uri', 'URI not configured: ' || $uri)
+   else
+      let $match := b:scheme-match($uri, $iscoll, fn:head($schemes))
+      return
+         if ( fn:exists($match) ) then
+            $match
+         else
+            b:resolve-path-1($uri, $iscoll, fn:tail($schemes))
+};
+
+declare function b:scheme-match($uri as xs:string, $iscoll as xs:boolean, $scheme as element(c:scheme))
+   as element(path)?
+{
+   let $match := fn:analyze-string($uri, '^' || $scheme/c:regex || '$')
+   let $nr    := $scheme/c:regex/@match/xs:integer(.)
+   let $root  := ( $scheme/c:root/c:fix, $match/fn:match//fn:group[@nr eq $nr] )[1]
+   return
+      t:exists($match/fn:match,
+         <path root="{ $root }" sep="{ $scheme/@sep }">{ $uri }</path>)
+};
+
+(:~
+ : Return all roots on the database.
+ :)
+declare function b:get-roots($iscoll as xs:boolean, $start as xs:integer, $schemes as element(c:scheme)+)
+   as element(path)*
+{
+   let $uris := t:when($iscoll, b:get-children-coll#3, b:get-children-uri#3)
+   return
+      ( $schemes ! b:resolve-root(., function($root, $sep) { $uris($root, $sep, ()) }) )
+         [ fn:position() ge $start and fn:position() lt $start + $b:page-size ]
+};
+
+declare function b:resolve-root($uri as element(c:scheme), $uris as function(xs:string, xs:string) as element(path)*)
+   as element(path)*
+{
+   let $root := $uri/c:root
+   return
+      if ( fn:exists($root/c:fix) ) then
+         <path sep="{ $uri/@sep }">{ fn:string($root/c:fix) }</path>[fn:exists($uris($root/c:fix, $uri/@sep))]
+      else if ( fn:exists($root/c:start) ) then
+         $uris($root/c:start, $uri/@sep)
+      else
+         t:error('invalid-config', 'Invalid URI root configuration: ' || xdmp:quote($uri))
+};
 
 (:~
  : The path to the database root, relative to current $path.
