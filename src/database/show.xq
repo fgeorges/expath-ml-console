@@ -98,55 +98,12 @@ declare function local:dir-area($db as element(a:database), $name as xs:string)
    v:one-liner-link('Directories', $name || '/roots', 'Browse'),
 
    <p>Or go straight to a specific directory:</p>,
-   v:form($name || '/dir', attribute { 'id' } { 'dirGoDir' },
-      (local:input('uri', 'Directory', 'The URI of a directory', 'Diretory URI',
-          '&lt;p&gt;The URI of a directory.  It must end with the path separator.
-          Various URI schemes are supported:&lt;/p&gt;
-          &lt;ul&gt;
-             &lt;li&gt;starting with "/" or "http://" and using "/" as the path
-             separator&lt;/li&gt;
-             &lt;li&gt;starting with "urn:" and using ":" as the path
-             separator&lt;/li&gt;
-             &lt;li&gt;containing "/" as the path separator (the root being
-             everything before the first slash.)&lt;/li&gt;
-          &lt;/ul&gt;'),
-       local:input('root', 'Root', 'The root', 'URI root',
-          '&lt;p&gt;The part of the URI to be considered as the "root".  That is, the
-          first level of directory in the URI.&lt;/p&gt;
-          &lt;p&gt;If you leave it blank, the Console will try to infer it from the URI
-          (if it starts with "/", "http://" or "urn:").&lt;/p&gt;'),
-       local:input('sep', 'Separator', 'The path separator', 'Path separator',
-          '&lt;p&gt;The string used as a path separator in the URI.  Typically, it is "/",
-          but also ":" for URNs, but it can be different in specific cases.&lt;/p&gt;
-          &lt;p&gt;If you leave it blank, the Console will try to infer it from the URI
-          (if it starts with "/", "http://" or "urn:").&lt;/p&gt;'),
-       v:submit('Go')),
-      'get'),
+   v:one-liner-form($name || '/dir', 'Go', 'get',
+      v:input-text('uri', 'Directory', 'The URI of a directory')),
 
    <p>Or go straight to a specific document:</p>,
-   v:form($name || '/doc', attribute { 'id' } { 'dirGoDoc' },
-      (local:input('uri', 'Document', 'The URI of a document', 'Document URI',
-          '&lt;p&gt;The URI of a document.  Various URI schemes are supported:&lt;/p&gt;
-          &lt;ul&gt;
-             &lt;li&gt;starting with "/" or "http://" and using "/" as the path
-             separator&lt;/li&gt;
-             &lt;li&gt;starting with "urn:" and using ":" as the path
-             separator&lt;/li&gt;
-             &lt;li&gt;containing "/" as the path separator (the root being
-             everything before the first slash.)&lt;/li&gt;
-          &lt;/ul&gt;'),
-       local:input('root', 'Root', 'The root', 'URI root',
-          '&lt;p&gt;The part of the URI to be considered as the "root".  That is, the
-          first level of directory in the URI.&lt;/p&gt;
-          &lt;p&gt;If you leave it blank, the Console will try to infer it from the URI
-          (if it starts with "/", "http://" or "urn:").&lt;/p&gt;'),
-       local:input('sep', 'Separator', 'The path separator', 'Path separator',
-          '&lt;p&gt;The string used as a path separator in the URI.  Typically, it is "/",
-          but also ":" for URNs, but it can be different in specific cases.&lt;/p&gt;
-          &lt;p&gt;If you leave it blank, the Console will try to infer it from the URI
-          (if it starts with "/", "http://" or "urn:").&lt;/p&gt;'),
-       v:submit('Go')),
-      'get')
+   v:one-liner-form($name || '/doc', 'Go', 'get',
+      v:input-text('uri', 'Document', 'The URI of a document'))
 };
 
 (:~
@@ -324,8 +281,6 @@ return
             }}
 
             // set up the "go to" forms
-            setFormChange($('#dirGoDir'));
-            setFormChange($('#dirGoDoc'));
             setFormChange($('#collGoDir'));
             setFormChange($('#collGoColl'));
          }});
