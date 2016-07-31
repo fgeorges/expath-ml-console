@@ -8,22 +8,26 @@ import module namespace v   = "http://expath.org/ns/ml/console/view"   at "../li
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
+declare namespace c    = "http://expath.org/ns/ml/console";
 declare namespace xdmp = "http://marklogic.com/xdmp";
 declare namespace sec  = "http://marklogic.com/xdmp/security";
 
 (:~
  : The overall page function.
  :)
-declare function local:page($db as element(a:database), $uri as xs:string, $root as xs:string, $sep as xs:string)
+declare function local:page($db as element(a:database), $uri as xs:string, $schemes as element(c:scheme)+)
    as element()+
 {
-   let $db-name := xs:string($db/a:name)
-   let $db-root := './'
-   let $webapp  := '../../'
-   let $dir     := if ( fn:contains($uri, $sep) ) then
-                      fn:string-join(fn:tokenize($uri, $sep)[fn:position() lt fn:last()], $sep) || $sep
-                   else
-                      $root
+   let $resolved := b:resolve-path($uri, fn:false(), $schemes)
+   let $root     := xs:string($resolved/@root)
+   let $sep      := xs:string($resolved/@sep)
+   let $db-name  := xs:string($db/a:name)
+   let $db-root  := './'
+   let $webapp   := '../../'
+   let $dir      := if ( fn:contains($uri, $sep) ) then
+                       fn:string-join(fn:tokenize($uri, $sep)[fn:position() lt fn:last()], $sep) || $sep
+                    else
+                       $root
    return (
       <p>
          { $db-name ! v:db-link('../' || ., .) }
@@ -186,7 +190,6 @@ declare function local:collections(
       v:submit('Add')))
 };
 
-
 (:~
  : The properties section.
  :)
@@ -275,8 +278,6 @@ declare function local:permissions(
 
 let $name := t:mandatory-field('name')
 let $uri  := t:mandatory-field('uri')
-let $root := t:mandatory-field('root')
-let $sep  := t:mandatory-field('sep')
 return
    v:console-page(
       '../../',
@@ -284,10 +285,11 @@ return
       'Browse documents',
       function() {
          v:ensure-db($name, function() {
-            let $db := a:get-database($name)
+            let $db      := a:get-database($name)
+            let $schemes := t:config-uri-schemes($db)
             return
                t:query($db, function() {
-                  local:page($db, $uri, $root, $sep)
+                  local:page($db, $uri, $schemes)
                })
          })
       },

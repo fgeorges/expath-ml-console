@@ -770,11 +770,15 @@ declare function v:doc-link($href as xs:string, $name as xs:string)
    v:component-link($href, $name, 'doc')
 };
 
+(: TODO: GEt rid of `$root`... :)
 declare function v:doc-link($db-root as xs:string, $uri as xs:string, $root as xs:string, $sep as xs:string)
 {
    let $label := fn:tokenize($uri, $sep)[fn:last()]
    return
-      v:component-link($db-root, 'doc', $uri, $root, $sep, $label, 'doc')
+      v:component-link(
+         $db-root || 'doc?uri=' || fn:encode-for-uri($uri),
+         $label,
+         'doc')
 };
 
 declare function v:doc-full-link($db-root as xs:string, $uri as xs:string, $root as xs:string, $sep as xs:string)
