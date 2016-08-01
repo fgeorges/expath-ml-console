@@ -74,7 +74,7 @@ declare function local:page()
 declare function local:ensure-content($file as item()?, $new as xs:boolean, $format as xs:string)
    as item()
 {
-   if ( fn:not($new) ) then
+   if ( fn:exists($file) or fn:not($new) ) then
       $file
    else if ( $format eq 'text' ) then
       'Hello, world!&#10;'
@@ -84,7 +84,7 @@ declare function local:ensure-content($file as item()?, $new as xs:boolean, $for
    else if ( $format eq 'xml' ) then
       '&lt;hello&gt;World!&lt;/hello&gt;'
    else if ( $format eq 'json' ) then
-      t:error('todo', 'Set a default content for format: "json"')
+      '{ "hello": "World!" }&#10;'
    else
       t:error('invalid-format', 'Format not known: "' || $format || '"')
 };

@@ -27,6 +27,7 @@ declare function i:handle-file(
    $override as xs:boolean
 ) as xs:string?
 {
+   (: TODO: Get root and sep from the configured URI schemes... :)
    let $doc-uri  :=
          if ( fn:starts-with($uri, '/') or fn:starts-with($uri, 'http://') ) then
             $uri
