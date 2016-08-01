@@ -170,10 +170,7 @@ declare function local:page--rsrc(
             for $uri in $uris
             order by $uri
             return
-               (: TODO: Make a link to the new document browser... :)
-               <li>
-                  <a href="{ $root }browse{ '/'[fn:not(fn:starts-with($uri, '/'))] }{ $uri }">{ $uri }</a>
-               </li>
+               <li>{ v:doc-link($root, $uri) }</li>
    }
    </ul>
 };
