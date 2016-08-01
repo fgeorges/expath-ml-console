@@ -104,8 +104,8 @@ declare function local:handle-file($file as item()?, $new as xs:boolean)
    let $res      := i:handle-file($db, $content, $format, $uri, $prefix, $override)
    return
       if ( fn:empty($res) ) then
-         <p><b>Error</b>: File already exists at <code>{ $uri }</code> (prefix
-            is <code>{ $prefix }</code>).</p>
+         <p><b>Error</b>: File already exists at <code>{ $uri }</code>{ <z> (prefix
+            is <code>{ $prefix }</code>)</z>[$prefix]/node() }.</p>
       else
          if ( $redirect ) then
             v:redirect('../db/' || $db || '/doc?uri=' || $res)

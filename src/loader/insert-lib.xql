@@ -27,12 +27,12 @@ declare function i:handle-file(
 ) as xs:string?
 {
    let $doc-uri  :=
-         if ( fn:exists($prefix) and fn:not(i:absolute($uri)) ) then
+         if ( fn:exists($prefix) and fn:not(i:absolute($uri, $db)) ) then
             $prefix || $uri
          else
             $uri
    return
-      if ( fn:doc-available($doc-uri) and fn:not($override) ) then
+      if ( t:query($db, function() { fn:doc-available($doc-uri) }) and fn:not($override) ) then
          ()
       else
          a:insert-into-database($db, $doc-uri, i:get-node($content, $format))
