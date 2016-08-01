@@ -29,11 +29,18 @@ declare function local:page(
       <p>
          { xs:string($db/a:name) ! v:db-link('../' || ., .) }
          { ' ' }
-         { v:dir-link('croots', '[roots]') }
+         { v:component-link('croots', '[roots]', 'dir') }
          { ' ' }
-         { b:uplinks($uri, $root, $sep, fn:false(), fn:true()) }
-         { ' ' }
-         { v:coll-link('', $uri, $root, $sep) }
+         {
+            if ( fn:exists($root) ) then (
+               b:uplinks($uri, $root, $sep, fn:false(), fn:true()),
+               ' ',
+               v:coll-link('', $uri, $sep)
+            )
+            else (
+               v:coll-link('', $uri)
+            )
+         }
       </p>,
       b:display-list(
          $uri,
@@ -45,7 +52,7 @@ declare function local:page(
          $start,
          function($child as xs:string, $pos as xs:integer) {
             <li> {
-               v:doc-full-link('', $child, $root, $sep)
+               v:doc-link('', $child)
             }
             </li>
          },

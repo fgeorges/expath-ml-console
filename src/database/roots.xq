@@ -30,7 +30,7 @@ declare function local:page(
    <p>
       { xs:string($db/a:name) ! v:db-link('../' || ., .) }
       { ' ' }
-      { v:dir-link(t:when($iscoll, 'croots', 'roots'), '[roots]') }
+      { v:component-link(t:when($iscoll, 'croots', 'roots'), '[roots]', 'dir') }
    </p>,
    t:unless($iscoll,
       b:create-doc-form('../../', $db/a:name, (), (), ())),
@@ -67,7 +67,7 @@ declare function local:dir-item(
       <input name="name-{ $pos }"       type="hidden" value="{ $child }"/>
       <input name="delete-dir-{ $pos }" type="checkbox"/>
       { ' ' }
-      { v:root-link('', $child, $child/@sep) }
+      { v:root-link('', $child) }
    </li>
 };
 
@@ -83,14 +83,14 @@ declare function local:coll-item(
    return
       if ( fn:ends-with($child, $sep) ) then (
          (: display as a "dir" :)
-         <li>{ v:croot-link('', $child, $sep) }</li>,
+         <li>{ v:croot-link('', $child) }</li>,
          (: and maybe as a "final collection" too :)
          t:when(fn:exists(cts:collection-match($child)),
-            <li>{ v:coll-link('', $child, $child, $sep) }</li>)
+            <li>{ v:coll-link('', $child, $sep) }</li>)
       )
       (: if not it is a "final collection" :)
       else (
-         <li>{ v:coll-link('', $child, $child, $sep) } </li>
+         <li>{ v:coll-link('', $child, $sep) } </li>
       )
 };
 

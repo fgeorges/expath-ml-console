@@ -24,7 +24,7 @@ declare function local:page($db as element(a:database), $uri as xs:string, $sche
    let $db-name  := xs:string($db/a:name)
    let $db-root  := './'
    let $webapp   := '../../'
-   let $dir      := if ( fn:contains($uri, $sep) ) then
+   let $dir      := if ( fn:exists($sep) and fn:contains($uri, $sep) ) then
                        fn:string-join(fn:tokenize($uri, $sep)[fn:position() lt fn:last()], $sep) || $sep
                     else
                        $root
@@ -32,11 +32,18 @@ declare function local:page($db as element(a:database), $uri as xs:string, $sche
       <p>
          { $db-name ! v:db-link('../' || ., .) }
          { ' ' }
-         { v:dir-link('roots', '[roots]') }
+         { v:component-link('roots', '[roots]', 'dir') }
          { ' ' }
-         { b:uplinks($uri, $root, $sep, fn:false(), fn:false()) }
-         { ' ' }
-         { v:doc-link('', $uri, $root, $sep) }
+         {
+            if ( fn:exists($root) ) then (
+               b:uplinks($uri, $root, $sep, fn:false(), fn:false()),
+               ' ',
+               v:doc-link('', $uri, $sep)
+            )
+            else (
+               v:doc-link('', $uri)
+            )
+         }
       </p>,
       if ( fn:not(fn:doc-available($uri)) ) then (
          <p>The document <code>{ $uri }</code> does not exist.</p>
@@ -166,7 +173,7 @@ declare function local:collections(
                order by $c
                return
                   <tr>
-                     <td>{ v:coll-link($db-root || 'coll?uri=' || fn:encode-for-uri($c), $c) }</td>
+                     <td>{ v:coll-link($db-root, $c) }</td>
                      <td> {
                         v:inline-form($root || 'tools/del-coll', (
                            v:input-hidden('collection', $c),

@@ -765,92 +765,6 @@ declare function v:proj-link($href as xs:string, $name as xs:string)
    v:component-link($href, $name, 'proj')
 };
 
-declare function v:doc-link($href as xs:string, $name as xs:string)
-{
-   v:component-link($href, $name, 'doc')
-};
-
-(: TODO: GEt rid of `$root`... :)
-declare function v:doc-link($db-root as xs:string, $uri as xs:string, $root as xs:string, $sep as xs:string)
-{
-   let $label := fn:tokenize($uri, $sep)[fn:last()]
-   return
-      v:component-link(
-         $db-root || 'doc?uri=' || fn:encode-for-uri($uri),
-         $label,
-         'doc')
-};
-
-(: TODO: GEt rid of `$root` and `$sep`... :)
-declare function v:doc-full-link($db-root as xs:string, $uri as xs:string, $root as xs:string, $sep as xs:string)
-{
-   v:component-link(
-      $db-root || 'doc?uri=' || fn:encode-for-uri($uri),
-      $uri,
-      'doc')
-};
-
-declare function v:coll-link($href as xs:string, $name as xs:string)
-{
-   v:component-link($href, $name, 'coll')
-};
-
-(: TODO: GEt rid of `$root`... :)
-declare function v:coll-link($db-root as xs:string, $uri as xs:string, $root as xs:string, $sep as xs:string)
-{
-   let $label := fn:tokenize($uri, $sep)[fn:last()]
-   return
-      v:component-link(
-         $db-root || 'coll?uri=' || fn:encode-for-uri($uri),
-         $label,
-         'coll')
-};
-
-declare function v:dir-link($href as xs:string, $name as xs:string)
-{
-   v:component-link($href, $name, 'dir')
-};
-
-(: TODO: GEt rid of `$root`... :)
-declare function v:dir-link($db-root as xs:string, $uri as xs:string, $root as xs:string, $sep as xs:string)
-{
-   let $label := fn:tokenize($uri, $sep)[fn:last() - 1] || $sep
-   return
-      v:component-link(
-         $db-root || 'dir?uri=' || fn:encode-for-uri($uri),
-         $label,
-         'dir')
-};
-
-(: TODO: GEt rid of `$root`... :)
-declare function v:cdir-link($db-root as xs:string, $uri as xs:string, $root as xs:string, $sep as xs:string)
-{
-   let $label := fn:tokenize($uri, $sep)[fn:last() - 1] || $sep
-   return
-      v:component-link(
-         $db-root || 'cdir?uri=' || fn:encode-for-uri($uri),
-         $label,
-         'dir')
-};
-
-(: TODO: GEt rid of `$sep`... :)
-declare function v:root-link($db-root as xs:string, $uri as xs:string, $sep as xs:string)
-{
-   v:component-link(
-      $db-root || 'dir?uri=' || fn:encode-for-uri($uri),
-      $uri,
-      'dir')
-};
-
-(: TODO: GEt rid of `$sep`... :)
-declare function v:croot-link($db-root as xs:string, $uri as xs:string, $sep as xs:string)
-{
-   v:component-link(
-      $db-root || 'cdir?uri=' || fn:encode-for-uri($uri),
-      $uri,
-      'dir')
-};
-
 declare function v:db-link($href as xs:string, $name as xs:string)
 {
    v:component-link($href, $name, 'db')
@@ -859,6 +773,59 @@ declare function v:db-link($href as xs:string, $name as xs:string)
 declare function v:as-link($href as xs:string, $name as xs:string)
 {
    v:component-link($href, $name, 'as')
+};
+
+declare function v:doc-link($root as xs:string, $uri as xs:string)
+{
+   v:component-link($root || 'doc?uri=' || fn:encode-for-uri($uri), $uri, 'doc')
+};
+
+declare function v:doc-link($root as xs:string, $uri as xs:string, $sep as xs:string)
+{
+   let $label := fn:tokenize($uri, $sep)[fn:last()]
+   return
+      v:component-link($root || 'doc?uri=' || fn:encode-for-uri($uri), $label, 'doc')
+};
+
+declare function v:coll-link($root as xs:string, $uri as xs:string)
+{
+   v:component-link($root || 'coll?uri=' || fn:encode-for-uri($uri), $uri, 'coll')
+};
+
+declare function v:coll-link($root as xs:string, $uri as xs:string, $sep as xs:string)
+{
+   let $label := fn:tokenize($uri, $sep)[fn:last()]
+   return
+      v:component-link($root || 'coll?uri=' || fn:encode-for-uri($uri), $label, 'coll')
+};
+
+declare function v:dir-link($root as xs:string, $uri as xs:string)
+{
+   v:component-link($root || 'dir?uri=' || fn:encode-for-uri($uri), $uri, 'dir')
+};
+
+declare function v:dir-link($root as xs:string, $uri as xs:string, $sep as xs:string)
+{
+   let $label := fn:tokenize($uri, $sep)[fn:last() - 1] || $sep
+   return
+      v:component-link($root || 'dir?uri=' || fn:encode-for-uri($uri), $label, 'dir')
+};
+
+declare function v:cdir-link($root as xs:string, $uri as xs:string, $sep as xs:string)
+{
+   let $label := fn:tokenize($uri, $sep)[fn:last() - 1] || $sep
+   return
+      v:component-link($root || 'cdir?uri=' || fn:encode-for-uri($uri), $label, 'dir')
+};
+
+declare function v:root-link($root as xs:string, $uri as xs:string)
+{
+   v:component-link($root || 'dir?uri=' || fn:encode-for-uri($uri), $uri, 'dir')
+};
+
+declare function v:croot-link($root as xs:string, $uri as xs:string)
+{
+   v:component-link($root || 'cdir?uri=' || fn:encode-for-uri($uri), $uri, 'dir')
 };
 
 (:~
@@ -908,25 +875,6 @@ declare function v:component-link($href as xs:string, $name as xs:string, $kind 
    <a xmlns="http://www.w3.org/1999/xhtml" href="{ $href }">
       <code class="{ $kind }">{ $name }</code>
    </a>
-};
-
-declare function v:component-link(
-   $db-root  as xs:string,
-   $endpoint as xs:string,
-   $uri      as xs:string,
-   $root     as xs:string,
-   $sep      as xs:string,
-   $label    as xs:string,
-   $kind     as xs:string
-) as element(h:a)
-{
-   v:component-link(
-      $db-root || $endpoint
-         || '?uri='      || fn:encode-for-uri($uri)
-         || '&amp;root=' || fn:encode-for-uri($root)
-         || '&amp;sep='  || fn:encode-for-uri($sep),
-      $label,
-      $kind)
 };
 
 (:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

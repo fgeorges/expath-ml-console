@@ -46,9 +46,14 @@ declare function local:page(
       <p>
          { xs:string($db/a:name) ! v:db-link('../' || ., .) }
          { ' ' }
-         { v:dir-link(t:when($iscoll, 'croots', 'roots'), '[roots]') }
+         { v:component-link(t:when($iscoll, 'croots', 'roots'), '[roots]', 'dir') }
          { ' ' }
-         { b:uplinks($uri, $root, $sep, fn:true(), $iscoll) }
+         {
+            if ( fn:exists($root) ) then
+               b:uplinks($uri, $root, $sep, fn:true(), $iscoll)
+            else
+               t:error('invalid-uri', 'URI not configured, cannot be a dir: ' || $uri)
+         }
       </p>,
       t:unless($iscoll,
          b:create-doc-form('../../', $db/a:name, $uri, $root, $sep)),
@@ -64,9 +69,9 @@ declare function local:page(
          $start,
          function($child as xs:string, $pos as xs:integer) {
             if ( $iscoll ) then
-               local:coll-item($child, $root, $sep)
+               local:coll-item($child, $sep)
             else
-               local:dir-item($uri, $root, $child, $pos, $sep)
+               local:dir-item($uri, $child, $pos, $sep)
          },
          function($items as element(h:li)+) {
             if ( fn:exists($items) ) then (
@@ -86,7 +91,6 @@ declare function local:page(
  :)
 declare function local:dir-item(
    $path  as xs:string,
-   $root  as xs:string,
    $child as xs:string,
    $pos   as xs:integer,
    $sep   as xs:string
@@ -100,9 +104,9 @@ declare function local:dir-item(
          { ' ' }
          {
             if ( $kind eq 'dir' ) then
-               v:dir-link('', $child, $root, $sep)
+               v:dir-link('', $child, $sep)
             else
-               v:doc-link('', $child, $root, $sep)
+               v:doc-link('', $child, $sep)
          }
       </li>
 };
@@ -112,20 +116,19 @@ declare function local:dir-item(
  :)
 declare function local:coll-item(
    $child as xs:string,
-   $root  as xs:string,
    $sep   as xs:string
 ) as element()+
 {
    if ( fn:ends-with($child, $sep) ) then (
       (: display as a "dir" :)
-      <li>{ v:cdir-link('', $child, $root, $sep) }</li>,
+      <li>{ v:cdir-link('', $child, $sep) }</li>,
       (: and maybe as a "final collection" too :)
       t:when(fn:exists(cts:collection-match($child)),
-         <li>{ v:coll-link('', $child, $root, $sep) }</li>)
+         <li>{ v:coll-link('', $child, $sep) }</li>)
    )
    (: if not it is a "final collection" :)
    else (
-      <li>{ v:coll-link('', $child, $root, $sep) } </li>
+      <li>{ v:coll-link('', $child, $sep) } </li>
    )
 };
 

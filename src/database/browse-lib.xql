@@ -71,7 +71,7 @@ declare function b:resolve-path-1($uri as xs:string, $iscoll as xs:boolean, $sch
    as element(path)
 {
    if ( fn:empty($schemes) ) then
-      t:error('invalid-uri', 'URI not configured: ' || $uri)
+      <path>{ $uri }</path>
    else
       let $match := b:scheme-match($uri, $iscoll, fn:head($schemes))
       return
@@ -310,15 +310,15 @@ declare function b:uplinks-1($paths as element(path)*, $root as xs:string, $sep 
    )
    else if ( fn:empty($paths[2]) ) then (
       t:when($iscoll,
-         v:croot-link('', $paths, fn:head($paths)/@sep),
-         v:root-link('', $paths, fn:head($paths)/@sep))
+         v:croot-link('', $paths),
+         v:root-link('', $paths))
    )
    else (
       b:uplinks-1($paths[fn:position() lt fn:last()], $root, $sep, $iscoll),
       text { ' ' },
       t:when($iscoll,
-         v:cdir-link('', b:uplinks-2($paths, $sep), $root, fn:head($paths)/@sep),
-         v:dir-link('', b:uplinks-2($paths, $sep), $root, fn:head($paths)/@sep))
+         v:cdir-link('', b:uplinks-2($paths, $sep), fn:head($paths)/@sep),
+         v:dir-link('', b:uplinks-2($paths, $sep), fn:head($paths)/@sep))
    )
 };
 
@@ -560,6 +560,7 @@ declare function b:create-doc-form(
             v:input-text('uri', 'Document URI', 'relative to this directory'),
             if ( fn:exists($uri) ) then (
                v:input-hidden('prefix', $uri),
+               (: TODO: Will need to remove root and sep from here too... :)
                v:input-hidden('root',   $root),
                v:input-hidden('sep',    $sep)
             )
