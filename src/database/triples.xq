@@ -69,7 +69,7 @@ declare function local:page--no-db($name as xs:string)
 declare function local:page--browse($db as element(a:database), $start as xs:integer, $decls as element(c:decl)*)
    as element()+
 {
-   <p>Database: { v:db-link('triples', $db/a:name) }</p>,
+   <p>Database: { $db/a:name ! v:db-link('../' || ., .) }</p>,
    <p> {
       (: TODO: Pass parameters properly, instead of concatenating values. :)
       let $query :=
@@ -110,7 +110,7 @@ declare function local:page--rsrc(
    $decls as element(c:decl)*
 ) as element()+
 {
-   <p>Database: { v:db-link($root || 'triples', $db/a:name) }</p>,
+   <p>Database: { $db/a:name ! v:db-link($root || '../' || ., .) }</p>,
    <p>Resource: { v:rsrc-link($root || 'triples', $rsrc, $decls) }</p>,
    <h3>Triples</h3>,
    <table class="table table-striped datatable">
