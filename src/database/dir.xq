@@ -56,11 +56,9 @@ declare function local:page(
          }
       </p>,
       t:unless($iscoll,
-         b:create-doc-form('../../', $db/a:name, $uri, $root, $sep)),
+         b:create-doc-form('../../', $db/a:name, $uri)),
       b:display-list(
          $uri,
-         $root,
-         $sep,
          if ( $iscoll ) then
             b:get-children-coll($uri, $sep, $start)
          else

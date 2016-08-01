@@ -8,6 +8,7 @@ import module namespace t = "http://expath.org/ns/ml/console/tools"  at "../lib/
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
+declare namespace c    = "http://expath.org/ns/ml/console";
 declare namespace xdmp = "http://marklogic.com/xdmp";
 
 (:~
@@ -15,8 +16,6 @@ declare namespace xdmp = "http://marklogic.com/xdmp";
  :
  : @return The URI of the newly inserted document, or the empty sequence if a
  : document already exists for that URI and `$override` is false..
- :
- : @todo To remove, use the version with `$root` and `$sep` instead.
  :)
 declare function i:handle-file(
    $db       as item(), (: element(a:database) | xs:unsidnedLong | xs:string :)
@@ -27,12 +26,9 @@ declare function i:handle-file(
    $override as xs:boolean
 ) as xs:string?
 {
-   (: TODO: Get root and sep from the configured URI schemes... :)
    let $doc-uri  :=
-         if ( fn:starts-with($uri, '/') or fn:starts-with($uri, 'http://') ) then
-            $uri
-         else if ( fn:exists($prefix) ) then
-            $prefix || '/'[fn:not(fn:ends-with($prefix, '/'))] || $uri
+         if ( fn:exists($prefix) and fn:not(i:absolute($uri)) ) then
+            $prefix || $uri
          else
             $uri
    return
@@ -42,35 +38,19 @@ declare function i:handle-file(
          a:insert-into-database($db, $doc-uri, i:get-node($content, $format))
 };
 
-(:~
- : Insert a document.
- :
- : @return The URI of the newly inserted document, or the empty sequence if a
- : document already exists for that URI and `$override` is false..
- :)
-declare function i:handle-file(
-   $db       as item(), (: element(a:database) | xs:unsidnedLong | xs:string :)
-   $content  as item(),
-   $format   as xs:string,
-   $uri      as xs:string,
-   $prefix   as xs:string?,
-   $root     as xs:string,
-   $sep      as xs:string,
-   $override as xs:boolean
-) as xs:string?
+declare function i:absolute($uri as xs:string, $db as item()) as xs:boolean
 {
-   let $doc-uri  :=
-         if ( fn:starts-with($uri, $root) ) then
-            $uri
-         else if ( fn:exists($prefix) ) then
-            $prefix || $sep[fn:not(fn:ends-with($prefix, $sep))] || $uri
-         else
-            $uri
-   return
-      if ( fn:doc-available($doc-uri) and fn:not($override) ) then
-         ()
-      else
-         a:insert-into-database($db, $doc-uri, i:get-node($content, $format))
+   i:absolute-1($uri, t:config-uri-schemes($db))
+};
+
+declare function i:absolute-1($uri as xs:string, $schemes as element(c:scheme)*) as xs:boolean
+{
+   if ( fn:empty($schemes) ) then
+      fn:false()
+   else if ( fn:starts-with($uri, fn:head($schemes)/(c:fix|c:start)) ) then
+      fn:true()
+   else
+      i:absolute-1($uri, fn:tail($schemes))
 };
 
 (:~

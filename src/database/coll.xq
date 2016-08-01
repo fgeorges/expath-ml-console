@@ -32,7 +32,7 @@ declare function local:page(
          { v:component-link('croots', '[roots]', 'dir') }
          { ' ' }
          {
-            if ( fn:exists($root) ) then (
+            if ( fn:exists($sep[.]) ) then (
                b:uplinks($uri, $root, $sep, fn:false(), fn:true()),
                ' ',
                v:coll-link('', $uri, $sep)
@@ -44,8 +44,6 @@ declare function local:page(
       </p>,
       b:display-list(
          $uri,
-         $root,
-         $sep,
          ( fn:collection($uri) ! fn:document-uri(.) )
             [fn:position() ge $start and fn:position() lt $start + $b:page-size],
          'coll',

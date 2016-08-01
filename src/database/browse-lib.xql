@@ -145,7 +145,7 @@ declare %private function b:get-children-impl(
  : Implementation function for `b:get-children-uri()` and `b:get-children-coll()`.
  :)
 declare %private function b:get-children-impl(
-   $base    as xs:string?,
+   $base    as xs:string,
    $sep     as xs:string,
    $start   as xs:integer?,
    (: Using the param type declaration generates a seg fault. Yup. :)
@@ -155,7 +155,7 @@ declare %private function b:get-children-impl(
 {
    let $repl := '^(' || $base || '([^' || $sep || ']*' || $sep || ')).*'
    (: TODO: Any way to get rid of distinct-values? :)
-   let $vals := fn:distinct-values($matcher($base || '*') ! fn:replace(., $repl, '$1'))[. ne $base]
+   let $vals := fn:distinct-values(($matcher($base), $matcher($base || '*') ! fn:replace(., $repl, '$1')))
    return
       if ( fn:exists($start) ) then
          $vals[fn:position() ge $start and fn:position() lt $start + $b:page-size] ! <path sep="{ $sep }">{ . }</path>
@@ -219,8 +219,6 @@ declare function b:get-children-coll(
  :)
 declare function b:display-list(
    $path     as xs:string?,
-   $root     as xs:string?,
-   $sep      as xs:string?,
    $children as item()*,
    $endpoint as xs:string,
    $start    as xs:integer,
@@ -240,9 +238,9 @@ declare function b:display-list(
                Content of <code>{ $path }</code>, results { $start } to { $to }{
                   (: TODO: These links do not work anymore! (must say 'dir' or 'cdir'... :)
                   t:when($start gt 1,
-                     (', ', <a href="{ b:nav-link($endpoint, $start - $b:page-size, $path, $root, $sep) }">previous page</a>)),
+                     (', ', <a href="{ $endpoint }?uri={ $path }&amp;start={ $start - $b:page-size }">previous page</a>)),
                   t:when($count eq $b:page-size,
-                     (', ', <a href="{ b:nav-link($endpoint, $start + $count, $path, $root, $sep) }">next page</a>))
+                     (', ', <a href="{ $endpoint }?uri={ $path }&amp;start={ $start + $count }">next page</a>))
                }:
             </p>
       else
@@ -253,22 +251,6 @@ declare function b:display-list(
          return
             $itemizer($child, $pos))
    )
-};
-
-declare function b:nav-link(
-   $endpoint as xs:string,
-   $start    as xs:integer,
-   $uri      as xs:string,
-   $root     as xs:string?,
-   $sep      as xs:string?
-) as xs:string
-{
-   $endpoint || '?' || fn:string-join(
-      (('start=' || $start),
-       ('uri='   || $uri),
-       ('root='  || $root)[$root],
-       ('sep='   || $sep)[$sep]),
-      '&amp;')
 };
 
 (:~
@@ -294,7 +276,7 @@ declare function b:uplinks($path as xs:string, $root as xs:string, $sep as xs:st
 };
 
 declare function b:uplinks-parse($path as xs:string, $root as xs:string, $sep as xs:string, $isdir as xs:boolean)
-   as element(path)+
+   as element(path)*
 {
    let $after := fn:substring-after($path, $root)
    let $toks  := ( $root, fn:tokenize($after, $sep)[.] )
@@ -345,11 +327,9 @@ declare function b:uplinks-2($paths as element(path)*, $sep as xs:string)
  : TODO: Split the "add files" area into "upload files" and "create document" areas.
  :)
 declare function b:create-doc-form(
-   $webapp-root as xs:string,
-   $db          as xs:string,
-   $uri         as xs:string?,
-   $root        as xs:string?,
-   $sep         as xs:string?
+   $root as xs:string,
+   $db   as xs:string,
+   $uri  as xs:string?
 ) as element()+
 {
    <p>
@@ -436,9 +416,6 @@ declare function b:create-doc-form(
             <tr class="template-upload fade">
                <input type="hidden" name="database" value="{ $db }"/>
                <input type="hidden" name="prefix"   value="{ $uri }"/>
-               <!-- TODO: If $root and $sep are not set, ask for them explicitely... -->
-               <input type="hidden" name="root"     value="{ $root }"/>
-               <input type="hidden" name="sep"      value="{ $sep }"/>
                <td>
                   <span class="preview"></span>
                </td>
@@ -553,18 +530,12 @@ declare function b:create-doc-form(
       <h4>Create document</h4>
 
       {
-         v:form($webapp-root || 'loader/insert', (
+         v:form($root || 'loader/insert', (
             v:input-text('uri', 'Document URI', 'relative to this directory'),
-            if ( fn:exists($uri) ) then (
-               v:input-hidden('prefix', $uri),
-               (: TODO: Will need to remove root and sep from here too... :)
-               v:input-hidden('root',   $root),
-               v:input-hidden('sep',    $sep)
-            )
-            else (
-               v:input-text('root', 'URI root', 'the root of the URI'),
-               v:input-text('sep',  'URI separator', 'the separator to use in the URI, like "/"')
-            ),
+            if ( fn:exists($uri) ) then
+               v:input-hidden('prefix', $uri)
+            else
+               (),
             v:input-select('format', 'Format', (
                v:input-option('xml',    'XML'),
                v:input-option('text',   'Text'),
@@ -616,6 +587,7 @@ declare function b:create-doc-javascript() as element(script)
 //    - xml    -> application/xml
 //    - text   -> text/plain
 //    - binary -> application/octet-stream
+//    - json   -> application/json
 // A bit of a hack, but will be parsed properly on ML-side.  What about HTML?
 // **********
       }});

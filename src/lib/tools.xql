@@ -295,6 +295,12 @@ declare variable $t:default-config :=
             </root>
             <regex match="1">(urn:[^:]+:).*</regex>
          </scheme>
+         <scheme sep="">
+            <root>
+               <fix>latest</fix>
+            </root>
+            <regex>latest</regex>
+         </scheme>
       </uri-schemes>
       <triple-prefixes>
          <decl>

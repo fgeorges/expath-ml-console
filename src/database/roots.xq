@@ -33,10 +33,8 @@ declare function local:page(
       { v:component-link(t:when($iscoll, 'croots', 'roots'), '[roots]', 'dir') }
    </p>,
    t:unless($iscoll,
-      b:create-doc-form('../../', $db/a:name, (), (), ())),
+      b:create-doc-form('../../', $db/a:name, ())),
    b:display-list(
-      (),
-      (),
       (),
       b:get-roots($iscoll, $start, $schemes),
       t:when($iscoll, 'croots', 'roots'),
@@ -79,18 +77,19 @@ declare function local:coll-item(
    $pos   as xs:integer
 ) as element()+
 {
-   let $sep := xs:string($child/@sep)
+   let $sep := xs:string($child/@sep)[.]
    return
       if ( fn:ends-with($child, $sep) ) then (
          (: display as a "dir" :)
-         <li>{ v:croot-link('', $child) }</li>,
+         t:when(fn:exists($sep),
+            <li>{ v:croot-link('', $child) }</li>),
          (: and maybe as a "final collection" too :)
          t:when(fn:exists(cts:collection-match($child)),
-            <li>{ v:coll-link('', $child, $sep) }</li>)
+            <li>{ v:coll-link('', $child) }</li>)
       )
       (: if not it is a "final collection" :)
       else (
-         <li>{ v:coll-link('', $child, $sep) } </li>
+         <li>{ v:coll-link('', $child) } </li>
       )
 };
 

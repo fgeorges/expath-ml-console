@@ -98,20 +98,17 @@ declare function local:handle-file($file as item()?, $new as xs:boolean)
    let $content  := local:ensure-content($file, $new, $format)
    let $db       := t:mandatory-field('database')
    let $uri      := t:mandatory-field('uri')
-   let $root     := t:mandatory-field('root')
-   let $sep      := t:mandatory-field('sep')
    let $prefix   := t:optional-field('prefix', ())[.]
    let $override := fn:not(t:optional-field('override', 'false') eq 'false')
    let $redirect := fn:not(t:optional-field('redirect', 'false') eq 'false')
-   let $res      := i:handle-file($db, $content, $format, $uri, $prefix, $root, $sep, $override)
+   let $res      := i:handle-file($db, $content, $format, $uri, $prefix, $override)
    return
       if ( fn:empty($res) ) then
          <p><b>Error</b>: File already exists at <code>{ $uri }</code> (prefix
             is <code>{ $prefix }</code>).</p>
       else
          if ( $redirect ) then
-            v:redirect(
-               '../db/' || $db || '/doc?uri=' || $res || '&amp;root=' || $root || '&amp;sep=' || $sep)
+            v:redirect('../db/' || $db || '/doc?uri=' || $res)
          else
             <p>File succesfully inserted at <code>{ $res }</code> as { $format }.</p>
 };
