@@ -88,88 +88,32 @@ declare function local:page($name as xs:string)
    )
 };
 
-(:~
- : @todo Factorize out with `local:coll-area()`.
- :)
 declare function local:dir-area($db as element(a:database), $name as xs:string)
    as element()+
 {
-   <p>You can browse documents in a directory-like fashion:</p>,
+   <p>You can browse documents in a directory-like fashion, or go straight to a
+      specific directory, or go straight to a specific document:</p>,
    v:one-liner-link('Directories', $name || '/roots', 'Browse'),
-
-   <p>Or go straight to a specific directory:</p>,
    v:one-liner-form($name || '/dir', 'Go', 'get',
       v:input-text('uri', 'Directory', 'The URI of a directory')),
-
-   <p>Or go straight to a specific document:</p>,
    v:one-liner-form($name || '/doc', 'Go', 'get',
       v:input-text('uri', 'Document', 'The URI of a document'))
 };
 
-(:~
- : @todo Factorize out with `local:dir-area()`.
- :)
 declare function local:coll-area($db as element(a:database), $name as xs:string)
    as element()+
 {
-   <p>You can browse collections in a directory-like fashion:</p>,
+   <p>You can browse collections in a directory-like fashion, or go straight to a
+      specific so-called "collection directory", or go straight to a specific
+      collection:</p>,
    v:one-liner-link('Collections', $name || '/croots', 'Browse'),
-
-   <p>Or go straight to a specific so-called "collection directory":</p>,
-   v:form($name || '/cdir', attribute { 'id' } { 'collGoDir' },
-      (local:input('uri', 'Directory', 'The URI of a "collection directory"', 'Collection diretory URI',
-          '&lt;p&gt;The URI of a "collection directory".  It must end with the path
-          separator.  Various URI schemes are supported:&lt;/p&gt;
-          &lt;ul&gt;
-             &lt;li&gt;starting with "/" or "http://" and using "/" as the path
-             separator&lt;/li&gt;
-             &lt;li&gt;starting with "urn:" and using ":" as the path
-             separator&lt;/li&gt;
-             &lt;li&gt;containing "/" as the path separator (the root being
-             everything before the first slash.)&lt;/li&gt;
-          &lt;/ul&gt;'),
-       local:input('root', 'Root', 'The root', 'URI root',
-          '&lt;p&gt;The part of the URI to be considered as the "root".  That is, the
-          first level of directory in the URI.&lt;/p&gt;
-          &lt;p&gt;If you leave it blank, the Console will try to infer it from the URI
-          (if it starts with "/", "http://" or "urn:").&lt;/p&gt;'),
-       local:input('sep', 'Separator', 'The path separator', 'Path separator',
-          '&lt;p&gt;The string used as a path separator in the URI.  Typically, it is "/",
-          but also ":" for URNs, but it can be different in specific cases.&lt;/p&gt;
-          &lt;p&gt;If you leave it blank, the Console will try to infer it from the URI
-          (if it starts with "/", "http://" or "urn:").&lt;/p&gt;'),
-       v:submit('Go')),
-      'get'),
-
-   <p>Or go straight to a specific collection:</p>,
-   v:form($name || '/coll', attribute { 'id' } { 'collGoColl' },
-      (local:input('uri', 'Collection', 'The URI of a collection', 'Collection URI',
-          '&lt;p&gt;The URI of a collection.  Various URI schemes are supported:&lt;/p&gt;
-          &lt;ul&gt;
-             &lt;li&gt;starting with "/" or "http://" and using "/" as the path
-             separator&lt;/li&gt;
-             &lt;li&gt;starting with "urn:" and using ":" as the path
-             separator&lt;/li&gt;
-             &lt;li&gt;containing "/" as the path separator (the root being
-             everything before the first slash.)&lt;/li&gt;
-          &lt;/ul&gt;'),
-       local:input('root', 'Root', 'The root', 'URI root',
-          '&lt;p&gt;The part of the URI to be considered as the "root".  That is, the
-          first level of directory in the URI.&lt;/p&gt;
-          &lt;p&gt;If you leave it blank, the Console will try to infer it from the URI
-          (if it starts with "/", "http://" or "urn:").&lt;/p&gt;'),
-       local:input('sep', 'Separator', 'The path separator', 'Path separator',
-          '&lt;p&gt;The string used as a path separator in the URI.  Typically, it is "/",
-          but also ":" for URNs, but it can be different in specific cases.&lt;/p&gt;
-          &lt;p&gt;If you leave it blank, the Console will try to infer it from the URI
-          (if it starts with "/", "http://" or "urn:").&lt;/p&gt;'),
-       v:submit('Go')),
-      'get')
+   v:one-liner-form($name || '/cdir', 'Go', 'get',
+      v:input-text('uri', 'Directory', 'The URI of a "collection directory"')),
+   v:one-liner-form($name || '/coll', 'Go', 'get',
+      v:input-text('uri', 'Collection', 'The URI of a collection'))
 };
 
 (:~
- : @todo Factorize out with other `local:*-area()` functions?
- :
  : @todo Allow to browse restricted by collections, `rdf:type`, any query really...
  : (but by `rdf:type` is mandatory...)
  :)
@@ -185,9 +129,9 @@ declare function local:triples-area($db as element(a:database), $name as xs:stri
    <p>You can browse RDF resources, or go straight to a specific one (either by
       its full IRI, or by the abbreviated CURIE syntax).</p>,
    v:one-liner-link('Resources', $name || '/triples', 'Browse'),
-   v:one-liner-form($name || '/triples', 'Go',
+   v:one-liner-form($name || '/triples', 'Go', 'get',
       v:input-text('rsrc', 'Resource IRI', 'The IRI of a resource')),
-   v:one-liner-form($name || '/triples', 'Go',
+   v:one-liner-form($name || '/triples', 'Go', 'get',
       v:input-text('init-curie', 'Resource CURIE', 'The CURIE of a resource'))
 
    (:
@@ -239,49 +183,4 @@ return
          v:ensure-db($name, function() {
             local:page($name)
          })
-      },
-      <script type="text/javascript">
-         $(document).ready(function () {{
-
-            // the change handler for "go to" forms
-            function formChange(form, field) {{
-               var uri  = field.val();
-               var root = $(':input[name=root]', form);
-               var sep  = $(':input[name=sep]',  form);
-               if ( root.val() || sep.val() ) {{
-                  // if `root` or `sep` is set, do not change them
-               }}
-               // TODO: Externalize "/", "http://", "." and "urn:"
-               else if ( uri.startsWith('/') ) {{
-                  root.val('/');
-                  sep.val('/');
-               }}
-               else if ( uri.startsWith('http://') ) {{
-                  root.val(uri.substring(0, uri.indexOf('/', 7) + 1));
-                  sep.val('/');
-               }}
-               else if ( uri.startsWith('urn:') ) {{
-                  root.val(uri.substring(0, uri.indexOf(':', 4) + 1));
-                  sep.val(':');
-               }}
-               else if ( uri.indexOf('/') ) {{
-                  root.val(uri.substring(0, uri.indexOf('/') + 1));
-                  sep.val('/');
-               }}
-               else {{
-                  console.log('Unknown URI format: ' + uri);
-               }}
-            }}
-
-            // set the change handler on a "go to" form
-            function setFormChange(form) {{
-               $(':input[name=uri]', form).change(function() {{
-                  formChange(form, $(this));
-               }});
-            }}
-
-            // set up the "go to" forms
-            setFormChange($('#collGoDir'));
-            setFormChange($('#collGoColl'));
-         }});
-      </script>)
+      })

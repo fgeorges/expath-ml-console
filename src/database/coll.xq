@@ -7,8 +7,8 @@ import module namespace v = "http://expath.org/ns/ml/console/view"   at "../lib/
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
-declare namespace h   = "http://www.w3.org/1999/xhtml";
-declare namespace cts = "http://marklogic.com/cts";
+declare namespace c = "http://expath.org/ns/ml/console";
+declare namespace h = "http://www.w3.org/1999/xhtml";
 
 (:~
  : The overall page function.
@@ -18,42 +18,46 @@ declare namespace cts = "http://marklogic.com/cts";
 declare function local:page(
    $db     as element(a:database),
    $uri    as xs:string?,
-   $root   as xs:string,
-   $sep    as xs:string,
-   $start  as xs:integer
+   $start  as xs:integer,
+   $schemes as element(c:scheme)+
 ) as element()+
 {
-   <p>
-      { xs:string($db/a:name) ! v:db-link('../' || ., .) }
-      { ' ' }
-      { v:dir-link('croots', '[roots]') }
-      { ' ' }
-      { b:uplinks($uri, $root, $sep, fn:false(), fn:true()) }
-   </p>,
-   b:display-list(
-      $uri,
-      $root,
-      $sep,
-      ( fn:collection($uri) ! fn:document-uri(.) )
-         [fn:position() ge $start and fn:position() lt $start + $b:page-size],
-      'coll',
-      $start,
-      function($child as xs:string, $pos as xs:integer) {
-         <li> {
-            v:doc-full-link('', $child, $root, $sep)
-         }
-         </li>
-      },
-      function($items as element(h:li)+) {
-         t:when(fn:exists($items),
-            <ul>{ $items }</ul>,
-            <p>The collection is empty.</p>)
-      })
+   let $resolved := b:resolve-path($uri, fn:true(), $schemes)
+   let $root     := xs:string($resolved/@root)
+   let $sep      := xs:string($resolved/@sep)
+   return (
+      <p>
+         { xs:string($db/a:name) ! v:db-link('../' || ., .) }
+         { ' ' }
+         { v:dir-link('croots', '[roots]') }
+         { ' ' }
+         { b:uplinks($uri, $root, $sep, fn:false(), fn:true()) }
+         { ' ' }
+         { v:coll-link('', $uri, $root, $sep) }
+      </p>,
+      b:display-list(
+         $uri,
+         $root,
+         $sep,
+         ( fn:collection($uri) ! fn:document-uri(.) )
+            [fn:position() ge $start and fn:position() lt $start + $b:page-size],
+         'coll',
+         $start,
+         function($child as xs:string, $pos as xs:integer) {
+            <li> {
+               v:doc-full-link('', $child, $root, $sep)
+            }
+            </li>
+         },
+         function($items as element(h:li)+) {
+            t:when(fn:exists($items),
+               <ul>{ $items }</ul>,
+               <p>The collection is empty.</p>)
+         })
+   )
 };
 
 let $name  := t:mandatory-field('name')
-let $root  := t:mandatory-field('root')
-let $sep   := t:mandatory-field('sep')
 let $uri   := t:mandatory-field('uri')
 let $start := xs:integer(t:optional-field('start', 1)[.])
 return
@@ -63,10 +67,11 @@ return
       'Browse collections',
       function() {
          v:ensure-db($name, function() {
-            let $db := a:get-database($name)
+            let $db      := a:get-database($name)
+            let $schemes := t:config-uri-schemes($db)
             return
                t:query($db, function() {
-                  local:page($db, $uri, $root, $sep, $start)
+                  local:page($db, $uri, $start, $schemes)
                })
          })
       },

@@ -166,7 +166,7 @@ declare function local:collections(
                order by $c
                return
                   <tr>
-                     <td>{ v:coll-link($db-root || 'coll?uri=' || fn:encode-for-uri($c) || '&amp;root=' || fn:encode-for-uri($root) || '&amp;sep=' || fn:encode-for-uri($sep), $c) }</td>
+                     <td>{ v:coll-link($db-root || 'coll?uri=' || fn:encode-for-uri($c), $c) }</td>
                      <td> {
                         v:inline-form($root || 'tools/del-coll', (
                            v:input-hidden('collection', $c),
