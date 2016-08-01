@@ -2,6 +2,7 @@ xquery version "3.0";
 
 module namespace t = "http://expath.org/ns/ml/console/tools";
 
+declare namespace a     = "http://expath.org/ns/ml/console/admin";
 declare namespace c     = "http://expath.org/ns/ml/console";
 declare namespace err   = "http://www.w3.org/2005/xqt-errors";
 declare namespace mlerr = "http://marklogic.com/xdmp/error";
@@ -274,6 +275,21 @@ declare variable $t:defaults-doc :=
    <path root="http://expath.org/" sep="/"
       >http://expath.org/ml/console/defaults.xml</path>;
 
+(:~
+ : Return the path where to store the config doc for `$db` on the system database.
+ :
+ : @todo The fact it relies on a:database is a sign that all this config stuff
+ : should be in a dedicated module, outside of `tools`.  Then it should probably
+ : even call a:get-database, out of a `$db` as an `item() `.
+ :)
+declare function t:config-system-doc($db as element(a:database)) as element(path)
+{
+   <path root="http://expath.org/" sep="/"> {
+      'http://expath.org/ml/console/config/' || $db/a:name || '.xml'
+   }
+   </path>
+};
+
 declare variable $t:default-config :=
    <config xmlns="http://expath.org/ns/ml/console">
       <uri-schemes>
@@ -376,9 +392,10 @@ declare function t:config-component($db as item()?, $name as xs:QName)
    document {
       t:config-component-1(
          $name,
-         ($db ! t:query(., function() { fn:doc($t:config-doc)/* }),
-          fn:doc($t:defaults-doc)/*,
-          $t:default-config))
+         ( $db ! t:query(., function() { fn:doc($t:config-doc)/* }),
+           fn:doc(t:config-system-doc($db)),
+           fn:doc($t:defaults-doc)/*,
+           $t:default-config ))
    }/*
 };
 

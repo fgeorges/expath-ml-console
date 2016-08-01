@@ -10,7 +10,8 @@ import module namespace v = "http://expath.org/ns/ml/console/view"   at "../lib/
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
-declare namespace h = "http://www.w3.org/1999/xhtml";
+declare namespace h    = "http://www.w3.org/1999/xhtml";
+declare namespace xdmp = "http://marklogic.com/xdmp";
 
 declare function local:db-link($name as xs:string?)
    as element()
@@ -181,8 +182,11 @@ declare function local:triples-area($db as element(a:database), $name as xs:stri
 declare function local:config-area($db as element(a:database), $name as xs:string)
    as element()+
 {
+   let $sys-db             := a:get-database(xdmp:database())
+   let $sys-path           := t:config-system-doc($db)
    let $config-available   := t:query($db, function() { fn:doc-available($t:config-doc) })
-   let $defaults-available := t:query($db, function() { fn:doc-available($t:defaults-doc) })
+   let $sys-available      := fn:doc-available($sys-path)
+   let $defaults-available := fn:doc-available($t:defaults-doc)
    return (
       <p>You can configure the browser behaviour on this database with the following config
          documents:</p>,
@@ -191,15 +195,30 @@ declare function local:config-area($db as element(a:database), $name as xs:strin
             if ( $config-available ) then
                v:doc-link($db/a:name || '/', $t:config-doc)
             else
-               <code>{ $t:config-doc }</code>
+               <code>{ xs:string($t:config-doc) }</code>
          }
          </li>
-         <li> {
-            if ( $defaults-available ) then
-               v:doc-link($db/a:name || '/', $t:defaults-doc)
-            else
-               <code>{ $t:defaults-doc }</code>
-         }
+         <li>
+            {
+               if ( $sys-available ) then
+                  v:doc-link($sys-db/a:name || '/', $sys-path)
+               else
+                  <code>{ xs:string($sys-path) }</code>
+            }
+            { ' (on the system DB: ' }
+            { $sys-db/a:name ! v:db-link(., .) }
+            { ')' }
+         </li>
+         <li>
+            {
+               if ( $defaults-available ) then
+                  v:doc-link($sys-db/a:name || '/', $t:defaults-doc)
+               else
+                  <code>{ xs:string($t:defaults-doc) }</code>
+            }
+            { ' (on the system DB: ' }
+            { $sys-db/a:name ! v:db-link(., .) }
+            { ')' }
          </li>
       </ul>,
       let $filename := fn:tokenize($t:config-doc, $t:config-doc/@sep)[fn:last()]
@@ -209,7 +228,16 @@ declare function local:config-area($db as element(a:database), $name as xs:strin
             It can define specific prefixes for triples, as well as URI schemes for brwosing documents,
             directories amd collections.</p>,
          t:unless($config-available,
-            local:insert-config-doc($t:config-doc, $filename, $db/a:name))
+            local:insert-config-doc($t:config-doc, $db/a:name))
+      ),
+      let $filename := fn:tokenize($sys-path, $sys-path/@sep)[fn:last()]
+      return (
+         <p>The second one, <code>{ $filename }</code>, has the same format, but must be on the
+            content database attached to the EXPath Console app server.  It provides values specific
+            for this database, but stored on the Console database (so it does not interfere with your
+            application, and is not deleted if you clear your database during development).</p>,
+         t:unless($sys-available,
+            local:insert-config-doc($sys-path, $sys-db/a:name))
       ),
       let $filename := fn:tokenize($t:defaults-doc, $t:defaults-doc/@sep)[fn:last()]
       return (
@@ -217,15 +245,15 @@ declare function local:config-area($db as element(a:database), $name as xs:strin
             database attached to the EXPath Console app server.  It provides then default values to be
             applied to all databases.</p>,
          t:unless($defaults-available,
-            local:insert-config-doc($t:defaults-doc, $filename, $db/a:name))
+            local:insert-config-doc($t:defaults-doc, $sys-db/a:name))
       )
    )
 };
 
-declare function local:insert-config-doc($path as element(), $filename as xs:string, $db as xs:string)
+declare function local:insert-config-doc($path as element(), $db as xs:string)
    as element(h:form)?
 {
-   v:one-liner-link($filename, '../loader/insert', 'Create', (
+   v:one-liner-link('Create it!', '../loader/insert', 'Create', (
       v:input-hidden('uri',      $path),
       (: TODO: Will need to remove root and sep from here too... :)
       v:input-hidden('root',     $path/@root),
