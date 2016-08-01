@@ -642,6 +642,27 @@ declare function v:one-liner-link($label as xs:string, $action as xs:string, $su
       'get')
 };
 
+declare function v:one-liner-link(
+   $label  as xs:string,
+   $action as xs:string,
+   $submit as xs:string,
+   $hidden as element(h:input)*
+) as element(h:form)
+{
+   if ( fn:exists($hidden[fn:not(@type eq 'hidden')]) ) then
+      t:error('invalid-form', 'Non-hidden input fieldd')
+   else
+      v:form($action, (),
+         <div xmlns="http://www.w3.org/1999/xhtml" class="form-group">
+            <label class="col-sm-2 control-label">{ $label }</label>
+            <div class="col-sm-10">
+               { $hidden }
+               <button class="btn btn-default">{ $submit }</button>
+            </div>
+         </div>,
+         'post')
+};
+
 declare %private function v:form-impl(
    $action  as xs:string,
    $attrs   as attribute()*,

@@ -10,6 +10,8 @@ import module namespace v = "http://expath.org/ns/ml/console/view"   at "../lib/
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
+declare namespace h = "http://www.w3.org/1999/xhtml";
+
 declare function local:db-link($name as xs:string?)
    as element()
 {
@@ -84,7 +86,10 @@ declare function local:page($name as xs:string)
          function($database) {
             <p>The triple index is not enabled on this database.  It is required
                to browse triples.</p>
-         })
+         }),
+
+      <h3>Config</h3>,
+      local:config-area($db, $name)
    )
 };
 
@@ -171,6 +176,78 @@ declare function local:triples-area($db as element(a:database), $name as xs:stri
    }
    </ul>
    :)
+};
+
+declare function local:config-area($db as element(a:database), $name as xs:string)
+   as element()+
+{
+   <p>You can configure the browser behaviour on this database with the following config
+      documents:</p>,
+   <ul>
+      <li> {
+         if ( fn:doc-available($t:config-doc) ) then
+            v:doc-link($db/a:name || '/', $t:config-doc)
+         else
+            <code>{ $t:config-doc }</code>
+      }
+      </li>
+      <li> {
+         if ( fn:doc-available($t:defaults-doc) ) then
+            v:doc-link($db/a:name || '/', $t:defaults-doc)
+         else
+            <code>{ $t:defaults-doc }</code>
+      }
+      </li>
+   </ul>,
+   let $filename := fn:tokenize($t:config-doc, $t:config-doc/@sep)[fn:last()]
+   return (
+      <p>The former, <code>{ $filename }</code>, contains the configuration specific to this
+         database: { $db/a:name ! v:db-link(., .) }. It must be in the same database it configures.
+         It can define specific prefixes for triples, as well as URI schemes for brwosing documents,
+         directories amd collections.</p>,
+      local:insert-config-doc($t:config-doc, $filename, $db/a:name)
+   ),
+   let $filename := fn:tokenize($t:defaults-doc, $t:defaults-doc/@sep)[fn:last()]
+   return (
+      <p>The latter, <code>{ $filename }</code>, has the same format, but must be on the content
+         database attached to the EXPath Console app server.  It provides then default values to be
+         applied to all databases.</p>,
+      local:insert-config-doc($t:defaults-doc, $filename, $db/a:name)
+   )
+};
+
+declare function local:insert-config-doc($path as element(), $filename as xs:string, $db as xs:string)
+   as element(h:form)?
+{
+   t:unless(fn:doc-available($path),
+      v:one-liner-link($filename, '../loader/insert', 'Create', (
+         v:input-hidden('uri',      $path),
+         (: TODO: Will need to remove root and sep from here too... :)
+         v:input-hidden('root',     $path/@root),
+         v:input-hidden('sep',      $path/@sep),
+         v:input-hidden('format',   'xml'),
+         v:input-hidden('database', $db),
+         v:input-hidden('redirect', 'true'),
+         v:input-hidden('new-file', 'true'),
+         v:input-hidden('file',
+'<config xmlns="http://expath.org/ns/ml/console">
+<!--
+   <uri-schemes>
+      <scheme sep="/">
+         <root>
+            <start>.</start>
+         </root>
+         <regex match="1">(\.[^/]+/).*</regex>
+      </scheme>
+   </uri-schemes>
+   <triple-prefixes>
+      <decl>
+         <prefix>ns</prefix>
+         <uri>http://example.org/my/prefix#</uri>
+      </decl>
+   </triple-prefixes>
+-->
+</config>'))))
 };
 
 let $name := t:mandatory-field('name')

@@ -266,7 +266,13 @@ declare function t:error-when(
  :)
 
 (: TODO: Make it possible to edit the list in the Console...:)
-declare variable $t:config-doc := 'http://expath.org/ml/console/config.xml';
+declare variable $t:config-doc   :=
+   <path root="http://expath.org/" sep="/"
+      >http://expath.org/ml/console/config.xml</path>;
+
+declare variable $t:defaults-doc :=
+   <path root="http://expath.org/" sep="/"
+      >http://expath.org/ml/console/defaults.xml</path>;
 
 declare variable $t:default-config :=
    <config xmlns="http://expath.org/ns/ml/console">
@@ -361,17 +367,13 @@ declare function t:config-uri-schemes($db as item()?)
 declare function t:config-component($db as item()?, $name as xs:QName)
    as element((: $name :))*
 {
-   (: dont't use it twice if we are browsing the DB attached to the Console appserver... :)
-   (: TODO: Using a different doc URI for the default one would be cleaner... :)
-   let $database := $db[fn:not(t:database-id(.) eq xdmp:database())]
-   return
-      document {
-         t:config-component-1(
-            $name,
-            ($database ! t:query(., function() { fn:doc($t:config-doc)/* }),
-             fn:doc($t:config-doc)/*,
-             $t:default-config))
-      }/*
+   document {
+      t:config-component-1(
+         $name,
+         ($db ! t:query(., function() { fn:doc($t:config-doc)/* }),
+          fn:doc($t:defaults-doc)/*,
+          $t:default-config))
+   }/*
 };
 
 (:~
