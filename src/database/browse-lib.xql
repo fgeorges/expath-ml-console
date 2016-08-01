@@ -369,17 +369,14 @@ declare function b:create-doc-form(
 
    <div style="display: none" id="jump-area">
       <h4>Jump to</h4>
-      <p>Use this form to directly access a directory by URI.</p>
+      <p>Use the following form to directly access either a directory or a document by URI:</p>
       {
          v:one-liner-form('dir', 'Go', 'get', (
             if ( fn:exists($uri) ) then v:input-hidden('prefix', $uri) else (),
-            v:input-text('uri', 'URI', 'The URI of a directory')))
-      }
-      <p>Use this form to directly access a document by URI.</p>
-      {
+            v:input-text('uri', 'Directory', 'The URI of a directory'))),
          v:one-liner-form('doc', 'Go', 'get', (
             if ( fn:exists($uri) ) then v:input-hidden('prefix', $uri) else (),
-            v:input-text('uri', 'URI', 'The URI of a document')))
+            v:input-text('uri', 'Document', 'The URI of a document')))
       }
    </div>,
 
