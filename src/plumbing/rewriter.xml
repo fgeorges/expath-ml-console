@@ -1,13 +1,6 @@
 <rewriter xmlns="http://marklogic.com/xdmp/rewriter">
 
    <!--
-       Catch all for *.xq, *.xqy and *.sjs.
-   -->
-   <match-path matches="\.(xq|xqy|sjs)$">
-      <error>Not allowed to invoke modules directly</error>
-   </match-path>
-
-   <!--
        Home, resources and misc.
    -->
    <match-path matches="^/$">
@@ -388,6 +381,13 @@ TODO: Just temporary, to use this code from somewhere, during development...
    </match-path>
    <match-path matches="^/test/profiler/([-a-z]+)$">
       <dispatch>/test/profiler/$1.xq</dispatch>
+   </match-path>
+
+   <!--
+       Catch all for *.xq, *.xqy and *.sjs.
+   -->
+   <match-path matches="\.(xq|xqy|sjs)$">
+      <error>Not allowed to invoke modules directly</error>
    </match-path>
 
 </rewriter>
