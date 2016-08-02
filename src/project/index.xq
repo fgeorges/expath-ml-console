@@ -43,7 +43,7 @@ declare function local:page() as element()+
    <p>Projects let you handle applications and libraries source files.  For now, they allow you
       to browse project XQuery and JavaScript source files, and display their documentation.
       The documentation must be embedded in the source files as xqDoc comments in XQuery, and
-      an the equivalent in JavaScript (only using <code>/*~ ... */</code> instead of
+      as the equivalent in JavaScript (only using <code>/*~ ... */</code> instead of
       <code>(:~ ... :)</code>.)</p>,
    <p>The Console supports 3 types of projects:</p>,
    <ul>
