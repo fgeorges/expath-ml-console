@@ -253,12 +253,30 @@ declare function v:import-css($root as xs:string, $paths as xs:string+)
 declare function v:ensure-db($db as item(), $fun as function() as item()*)
    as item()*
 {
-   if ( fn:exists(a:get-database($db)) ) then
-      $fun()
-   else
+   v:ensure-db($db, $fun, function() {
       t:respond-not-found(
          <p xmlns="http://www.w3.org/1999/xhtml"><b>Error</b>:
             There is no such database: <code>{ $db }</code>.</p>)
+   })
+};
+
+(:~
+ : Return an error message if `$db` does not exist, or eval `$fun` if it does.
+ :
+ : @param db  The name or the ID of a database.
+ : @param fun A 0-arity function, the value of which is returned when `$db` exists.
+ : @param msg A 0-arity function, the value of which is returned when `$db` does not exist.
+ :)
+declare function v:ensure-db(
+   $db  as item(),
+   $fun as function() as item()*,
+   $msg as function() as item()*
+) as item()*
+{
+   if ( fn:exists(a:get-database($db)) ) then
+      $fun()
+   else
+      $msg()
 };
 
 (:~
@@ -270,7 +288,14 @@ declare function v:ensure-db($db as item(), $fun as function() as item()*)
 declare function v:ensure-uri-lexicon($db as item(), $fun as function() as item()*)
    as item()*
 {
-   v:ensure-uri-lexicon($db, $fun, ())
+   v:ensure-uri-lexicon($db, $fun, function($database) {
+      t:respond-not-implemented((
+         <p xmlns="http://www.w3.org/1999/xhtml"><b>Error</b>:
+            The URI lexicon is not enabled on the database
+            { xs:string($database/a:name) ! v:db-link('../' || ., .) }.</p>,
+         <p xmlns="http://www.w3.org/1999/xhtml">It is required to browse
+            documents in a directory-like way.</p>))
+   })
 };
 
 (:~
@@ -284,22 +309,15 @@ declare function v:ensure-uri-lexicon($db as item(), $fun as function() as item(
 declare function v:ensure-uri-lexicon(
    $db  as item(),
    $fun as function() as item()*,
-   $msg as function(element(a:database)) as item()*?
+   $msg as function(element(a:database)) as item()*
 ) as item()*
 {
    let $database := a:get-database($db)
    return
       if ( $database/a:lexicons/xs:boolean(a:uri) ) then
          $fun()
-      else if ( fn:exists($msg) ) then
-         $msg($database)
       else
-         t:respond-not-implemented((
-            <p xmlns="http://www.w3.org/1999/xhtml"><b>Error</b>:
-               The URI lexicon is not enabled on the database
-               { xs:string($database/a:name) ! v:db-link('../' || ., .) }.</p>,
-            <p xmlns="http://www.w3.org/1999/xhtml">It is required to browse
-               documents in a directory-like way.</p>))
+         $msg($database)
 };
 
 (:~
@@ -311,7 +329,14 @@ declare function v:ensure-uri-lexicon(
 declare function v:ensure-coll-lexicon($db as item(), $fun as function() as item()*)
    as item()*
 {
-   v:ensure-coll-lexicon($db, $fun, ())
+   v:ensure-coll-lexicon($db, $fun, function($database) {
+      t:respond-not-implemented((
+         <p xmlns="http://www.w3.org/1999/xhtml"><b>Error</b>:
+            The collection lexicon is not enabled on the database
+            { xs:string($database/a:name) ! v:db-link('../' || ., .) }.</p>,
+         <p xmlns="http://www.w3.org/1999/xhtml">It is required to browse
+            collections in a directory-like way.</p>))
+   })
 };
 
 (:~
@@ -325,22 +350,15 @@ declare function v:ensure-coll-lexicon($db as item(), $fun as function() as item
 declare function v:ensure-coll-lexicon(
    $db  as item(),
    $fun as function() as item()*,
-   $msg as function(element(a:database)) as item()*?
+   $msg as function(element(a:database)) as item()*
 ) as item()*
 {
    let $database := a:get-database($db)
    return
       if ( $database/a:lexicons/xs:boolean(a:coll) ) then
          $fun()
-      else if ( fn:exists($msg) ) then
-         $msg($database)
       else
-         t:respond-not-implemented((
-            <p xmlns="http://www.w3.org/1999/xhtml"><b>Error</b>:
-               The collection lexicon is not enabled on the database
-               { xs:string($database/a:name) ! v:db-link('../' || ., .) }.</p>,
-            <p xmlns="http://www.w3.org/1999/xhtml">It is required to browse
-               collections in a directory-like way.</p>))
+         $msg($database)
 };
 
 (:~
@@ -352,7 +370,13 @@ declare function v:ensure-coll-lexicon(
 declare function v:ensure-triple-index($db as item(), $fun as function() as item()*)
    as item()*
 {
-   v:ensure-triple-index($db, $fun, ())
+   v:ensure-triple-index($db, $fun, function($database) {
+      t:respond-not-implemented((
+         <p xmlns="http://www.w3.org/1999/xhtml"><b>Error</b>:
+            The triple index is not enabled on the database
+            { xs:string($database/a:name) ! v:db-link('../' || ., .) }.</p>,
+         <p xmlns="http://www.w3.org/1999/xhtml">It is required to browse triples.</p>))
+   })
 };
 
 (:~
@@ -366,21 +390,15 @@ declare function v:ensure-triple-index($db as item(), $fun as function() as item
 declare function v:ensure-triple-index(
    $db  as item(),
    $fun as function() as item()*,
-   $msg as function(element(a:database)) as item()*?
+   $msg as function(element(a:database)) as item()*
 ) as item()*
 {
    let $database := a:get-database($db)
    return
       if ( $database/xs:boolean(a:triple-index) ) then
          $fun()
-      else if ( fn:exists($msg) ) then
-         $msg($database)
       else
-         t:respond-not-implemented((
-            <p xmlns="http://www.w3.org/1999/xhtml"><b>Error</b>:
-               The triple index is not enabled on the database
-               { xs:string($database/a:name) ! v:db-link('../' || ., .) }.</p>,
-            <p xmlns="http://www.w3.org/1999/xhtml">It is required to browse triples.</p>))
+         $msg($database)
 };
 
 (:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
