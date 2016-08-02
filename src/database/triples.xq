@@ -21,7 +21,7 @@ declare variable $page-size := 100;
  : The overall page function.
  :)
 declare function local:page(
-   $name  as xs:string,
+   $db    as element(a:database),
    $start as xs:integer,
    $rsrc  as xs:string?,
    $curie as xs:string?,
@@ -29,24 +29,18 @@ declare function local:page(
    $decls as element(c:decl)*
 ) as element()+
 {
-   let $db := a:get-database($name)
-   return
-      (: TODO: In this case, we should return "404 Not found". :)
-      if ( fn:empty($db) ) then (
-         local:page--no-db($name)
-      )
-      else if ( fn:exists($rsrc) ) then (
-         local:page--rsrc($db, $rsrc, './', $decls)
-      )
-      else if ( fn:exists($curie) ) then (
-         local:page--rsrc($db, v:expand-curie($curie, $decls), '../', $decls)
-      )
-      else if ( fn:exists($init) ) then (
-         local:page--init-curie($init)
-      )
-      else (
-         local:page--browse($db, $start, $decls)
-      )
+   if ( fn:exists($rsrc) ) then (
+      local:page--rsrc($db, $rsrc, './', $decls)
+   )
+   else if ( fn:exists($curie) ) then (
+      local:page--rsrc($db, v:expand-curie($curie, $decls), '../', $decls)
+   )
+   else if ( fn:exists($init) ) then (
+      local:page--init-curie($init)
+   )
+   else (
+      local:page--browse($db, $start, $decls)
+   )
 };
 
 declare function local:page--init-curie($init as xs:string)
@@ -54,15 +48,6 @@ declare function local:page--init-curie($init as xs:string)
 {
    v:redirect('triples/' || $init),
    <p>You are being redirected to <a href="triples/{ $init }">this page</a>...</p>
-};
-
-(:~
- : The page content, in case the DB does not exist.
- :)
-declare function local:page--no-db($name as xs:string)
-   as element(h:p)
-{
-   <p><b>Error</b>: The database "<code>{ $name }</code>" does not exist.</p>
 };
 
 (:~
@@ -213,16 +198,27 @@ declare function local:display-type($v as xs:anyAtomicType)
       <span class="glyphicon glyphicon-font" title="String"/>
 };
 
-let $db    := t:mandatory-field('name')
+let $name  := t:mandatory-field('name')
 let $rsrc  := t:optional-field('rsrc', ())
 let $curie := t:optional-field('curie', ())
 let $init  := t:optional-field('init-curie', ())
 let $start := xs:integer(t:optional-field('start', 1)[.])
 let $root  := '../../' || '../'[$curie]
-let $decls := dbc:config-triple-prefixes($db)
 return
-   v:console-page($root, 'browser', 'Browse resources', function() {
-      t:query($db, function() {
-         local:page($db, $start, $rsrc, $curie, $init, $decls)
+   v:console-page(
+      $root,
+      'browser',
+      'Browse resources',
+      function() {
+         v:ensure-db($name, function() {
+            let $db      := a:get-database($name)
+            let $schemes := dbc:config-uri-schemes($db)
+            let $decls   := dbc:config-triple-prefixes($db)
+            return
+               v:ensure-triple-index($db, function() {
+                  t:query($db, function() {
+                     local:page($db, $start, $rsrc, $curie, $init, $decls)
+                  })
+               })
+         })
       })
-   })
