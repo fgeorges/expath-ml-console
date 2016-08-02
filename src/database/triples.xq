@@ -210,8 +210,7 @@ return
       'browser',
       'Browse resources',
       function() {
-         v:ensure-db($name, function() {
-            let $db      := a:get-database($name)
+         v:ensure-db($name, function($db) {
             let $schemes := dbc:config-uri-schemes($db)
             let $decls   := dbc:config-triple-prefixes($db)
             return

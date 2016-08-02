@@ -45,10 +45,10 @@ declare function local:input(
    v:input-text($name, $label, $hint, local:popover($title, $help))
 };
 
-declare function local:page($name as xs:string)
+declare function local:page($db as element(a:database))
    as element()+
 {
-   let $db       := a:get-database($name)
+   let $name     := xs:string($db/a:name)
    let $schema   := $db/a:schema/fn:string(.)
    let $security := $db/a:security/fn:string(.)
    let $triggers := $db/a:triggers/fn:string(.)
@@ -292,7 +292,5 @@ return
       'db',
       'Database',
       function() {
-         v:ensure-db($name, function() {
-            local:page($name)
-         })
+         v:ensure-db($name, local:page#1)
       })

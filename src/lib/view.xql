@@ -248,9 +248,10 @@ declare function v:import-css($root as xs:string, $paths as xs:string+)
  : Return an error message if `$db` does not exist, or eval `$fun` if it does.
  :
  : @param db  The name or the ID of a database.
- : @param fun A 0-arity function, the value of which is returned when `$db` exists.
+ : @param fun A 1-arity function, the value of which is returned when `$db` exists.
+ :    Its only parameter is the database element, `a:database`.
  :)
-declare function v:ensure-db($db as item(), $fun as function() as item()*)
+declare function v:ensure-db($db as item(), $fun as function(element(a:database)) as item()*)
    as item()*
 {
    v:ensure-db($db, $fun, function() {
@@ -264,19 +265,22 @@ declare function v:ensure-db($db as item(), $fun as function() as item()*)
  : Return an error message if `$db` does not exist, or eval `$fun` if it does.
  :
  : @param db  The name or the ID of a database.
- : @param fun A 0-arity function, the value of which is returned when `$db` exists.
+ : @param fun A 1-arity function, the value of which is returned when `$db` exists.
+ :    Its only parameter is the database element, `a:database`.
  : @param msg A 0-arity function, the value of which is returned when `$db` does not exist.
  :)
 declare function v:ensure-db(
    $db  as item(),
-   $fun as function() as item()*,
+   $fun as function(element(a:database)) as item()*,
    $msg as function() as item()*
 ) as item()*
 {
-   if ( fn:exists(a:get-database($db)) ) then
-      $fun()
-   else
-      $msg()
+   let $database := a:get-database($db)
+   return
+      if ( fn:exists($database) ) then
+         $fun($database)
+      else
+         $msg()
 };
 
 (:~

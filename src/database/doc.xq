@@ -293,8 +293,7 @@ return
       'db',
       'Browse documents',
       function() {
-         v:ensure-db($name, function() {
-            let $db      := a:get-database($name)
+         v:ensure-db($name, function($db) {
             let $schemes := dbc:config-uri-schemes($db)
             return
                t:query($db, function() {
