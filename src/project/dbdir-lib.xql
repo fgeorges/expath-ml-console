@@ -22,7 +22,7 @@ declare function this:info($proj as element(mlc:project))
 {
    v:db-link('db/' || $proj/mlc:db, $proj/mlc:db),
    ' - ',
-   <code>{ $proj/mlc:root/xs:string(.) }</code>
+   v:dir-link('db/' || $proj/mlc:db || '/', $proj/mlc:root)
 };
 
 declare function this:db($proj as element(mlc:project))
