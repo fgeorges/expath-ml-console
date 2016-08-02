@@ -4,6 +4,8 @@ xquery version "3.0";
  : collections or triples, as the user types down...)
  :)
 
+import module namespace dbc = "http://expath.org/ns/ml/console/database/config" at "db-config-lib.xql";
+
 import module namespace a = "http://expath.org/ns/ml/console/admin"  at "../lib/admin.xql";
 import module namespace t = "http://expath.org/ns/ml/console/tools"  at "../lib/tools.xql";
 import module namespace v = "http://expath.org/ns/ml/console/view"   at "../lib/view.xql";
@@ -183,19 +185,19 @@ declare function local:config-area($db as element(a:database), $name as xs:strin
    as element()+
 {
    let $sys-db             := a:get-database(xdmp:database())
-   let $sys-path           := t:config-system-doc($db)
-   let $config-available   := t:query($db, function() { fn:doc-available($t:config-doc) })
+   let $sys-path           := dbc:config-system-doc($db)
+   let $config-available   := t:query($db, function() { fn:doc-available($dbc:config-doc) })
    let $sys-available      := fn:doc-available($sys-path)
-   let $defaults-available := fn:doc-available($t:defaults-doc)
+   let $defaults-available := fn:doc-available($dbc:defaults-doc)
    return (
       <p>You can configure the browser behaviour on this database with the following config
          documents:</p>,
       <ul>
          <li> {
             if ( $config-available ) then
-               v:doc-link($db/a:name || '/', $t:config-doc)
+               v:doc-link($db/a:name || '/', $dbc:config-doc)
             else
-               <code>{ xs:string($t:config-doc) }</code>
+               <code>{ xs:string($dbc:config-doc) }</code>
          }
          </li>
          <li>
@@ -212,23 +214,23 @@ declare function local:config-area($db as element(a:database), $name as xs:strin
          <li>
             {
                if ( $defaults-available ) then
-                  v:doc-link($sys-db/a:name || '/', $t:defaults-doc)
+                  v:doc-link($sys-db/a:name || '/', $dbc:defaults-doc)
                else
-                  <code>{ xs:string($t:defaults-doc) }</code>
+                  <code>{ xs:string($dbc:defaults-doc) }</code>
             }
             { ' (on the system DB: ' }
             { $sys-db/a:name ! v:db-link(., .) }
             { ')' }
          </li>
       </ul>,
-      let $filename := fn:tokenize($t:config-doc, $t:config-doc/@sep)[fn:last()]
+      let $filename := fn:tokenize($dbc:config-doc, $dbc:config-doc/@sep)[fn:last()]
       return (
          <p>The former, <code>{ $filename }</code>, contains the configuration specific to this
             database: { $db/a:name ! v:db-link(., .) }. It must be in the same database it configures.
             It can define specific prefixes for triples, as well as URI schemes for brwosing documents,
             directories amd collections.</p>,
          t:unless($config-available,
-            local:insert-config-doc($t:config-doc, $db/a:name))
+            local:insert-config-doc($dbc:config-doc, $db/a:name))
       ),
       let $filename := fn:tokenize($sys-path, $sys-path/@sep)[fn:last()]
       return (
@@ -239,13 +241,13 @@ declare function local:config-area($db as element(a:database), $name as xs:strin
          t:unless($sys-available,
             local:insert-config-doc($sys-path, $sys-db/a:name))
       ),
-      let $filename := fn:tokenize($t:defaults-doc, $t:defaults-doc/@sep)[fn:last()]
+      let $filename := fn:tokenize($dbc:defaults-doc, $dbc:defaults-doc/@sep)[fn:last()]
       return (
          <p>The latter, <code>{ $filename }</code>, has the same format, but must be on the content
             database attached to the EXPath Console app server.  It provides then default values to be
             applied to all databases.</p>,
          t:unless($defaults-available,
-            local:insert-config-doc($t:defaults-doc, $sys-db/a:name))
+            local:insert-config-doc($dbc:defaults-doc, $sys-db/a:name))
       )
    )
 };

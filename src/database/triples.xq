@@ -1,5 +1,7 @@
 xquery version "3.0";
 
+import module namespace dbc = "http://expath.org/ns/ml/console/database/config" at "db-config-lib.xql";
+
 import module namespace a   = "http://expath.org/ns/ml/console/admin" at "../lib/admin.xql";
 import module namespace t   = "http://expath.org/ns/ml/console/tools" at "../lib/tools.xql";
 import module namespace v   = "http://expath.org/ns/ml/console/view"  at "../lib/view.xql";
@@ -217,7 +219,7 @@ let $curie := t:optional-field('curie', ())
 let $init  := t:optional-field('init-curie', ())
 let $start := xs:integer(t:optional-field('start', 1)[.])
 let $root  := '../../' || '../'[$curie]
-let $decls := t:config-triple-prefixes($db)
+let $decls := dbc:config-triple-prefixes($db)
 return
    v:console-page($root, 'browser', 'Browse resources', function() {
       t:query($db, function() {
