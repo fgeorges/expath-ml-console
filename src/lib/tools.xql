@@ -240,7 +240,7 @@ declare function t:error-when(
 declare function t:optional-field($name as xs:string, $default as item()?)
    as item()?
 {
-   ( xdmp:get-request-field($name), $default )[.][1]
+   ( xdmp:get-request-field($name)[.], $default )[1]
 };
 
 (:~

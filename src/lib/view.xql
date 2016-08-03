@@ -423,7 +423,7 @@ declare function v:display-xml(
    $elem as node()
 ) as element(h:pre)
 {
-   v:ace-editor-xml($elem, 'code', 'xml', (), (), (), ())
+   v:ace-editor($elem, 'code', 'xml', (), (), (), ())
 };
 
 (:~
@@ -481,7 +481,7 @@ declare function v:edit-text(
    $id   as xs:string
 ) as element(h:pre)
 {
-   v:ace-editor-xml($elem, 'editor', $mode, $id, (), (), '250pt')
+   v:ace-editor($elem, 'editor', $mode, $id, (), (), '250pt')
 };
 
 (:~
@@ -497,7 +497,7 @@ declare function v:edit-text(
    $top  as xs:string
 ) as element(h:pre)
 {
-   v:ace-editor-xml($elem, 'editor', $mode, $id, (), $top, '250pt')
+   v:ace-editor($elem, 'editor', $mode, $id, (), $top, '250pt')
 };
 
 (:~
@@ -538,7 +538,7 @@ declare function v:edit-node(
    $top  as xs:string
 ) as element()+
 {
-   v:ace-editor-xml($node, 'editor', $mode, $id, $uri, $top, '250pt'),
+   v:ace-editor($node, 'editor', $mode, $id, $uri, $top, '250pt'),
    <dummy xmlns="http://www.w3.org/1999/xhtml">
       <button class="btn btn-default" onclick='saveDoc("{ $id }", "{ $type }");'>Save</button>
       <button class="btn btn-danger pull-right" onclick='deleteDoc("{ $id }");'>Delete</button>
@@ -554,8 +554,8 @@ declare function v:edit-node(
 (:~
  : Common implementation of `v:display-xml()` and `v:edit-xml()`.
  :)
-declare %private function v:ace-editor-xml(
-   $node     as node(),
+declare function v:ace-editor(
+   $content  as item(),
    $class    as xs:string,
    $mode     as xs:string,
    $id       as xs:string?,
@@ -574,7 +574,10 @@ declare %private function v:ace-editor-xml(
       attribute { 'ace-uri'    } { $uri }[fn:exists($uri)],
       attribute { 'ace-top'    } { $top }[fn:exists($top)],
       attribute { 'style'      } { 'height: ' || $height }[fn:exists($height)],
-      xdmp:quote($node, $serial-options)
+      if ( $content instance of node() ) then
+         xdmp:quote($content, $serial-options)
+      else
+         $content
    }
    </pre>
 };

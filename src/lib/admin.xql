@@ -268,6 +268,7 @@ declare function a:browse-db-files(
  :
  : - read documents from the filesystem
  : - write documents to the filesystem
+ : - browse directories and files
  :)
 
 (:~

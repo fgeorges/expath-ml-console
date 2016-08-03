@@ -7,6 +7,7 @@ module namespace this = "http://expath.org/ns/ml/console/project/xproject";
 
 import module namespace proj = "http://expath.org/ns/ml/console/project" at "proj-lib.xql";
 import module namespace a    = "http://expath.org/ns/ml/console/admin"   at "../lib/admin.xql";
+import module namespace v    = "http://expath.org/ns/ml/console/view"    at "../lib/view.xql";
 
 declare namespace mlc = "http://expath.org/ns/ml/console";
 declare namespace xp  = "http://expath.org/ns/project";
@@ -28,7 +29,8 @@ declare function this:title($proj as element(mlc:project))
 declare function this:info($proj as element(mlc:project))
    as item()*
 {
-   <code>{ $proj/mlc:dir/xs:string(.) }</code>
+   (: <code>{ $proj/mlc:dir/xs:string(.) }</code> :)
+   v:dir-link('fs/', $proj/mlc:dir)
 };
 
 declare function this:readme($proj as element(mlc:project))

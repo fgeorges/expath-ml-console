@@ -159,6 +159,22 @@
    </match-path>
 
    <!--
+       File system.
+   -->
+   <match-path matches="^/fs/roots$">
+      <dispatch>/fs/roots.xq</dispatch>
+   </match-path>
+   <match-path matches="^/fs/dir$">
+      <dispatch>/fs/dir.xq</dispatch>
+   </match-path>
+   <match-path matches="^/fs/doc$">
+      <dispatch>/fs/doc.xq</dispatch>
+   </match-path>
+   <match-path matches="^/fs/bin$">
+      <dispatch>/fs/bin.xq</dispatch>
+   </match-path>
+
+   <!--
        CXAN.
    -->
    <match-path matches="^/cxan$">

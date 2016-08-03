@@ -13,8 +13,6 @@ declare namespace c   = "http://expath.org/ns/ml/console";
 declare namespace h   = "http://www.w3.org/1999/xhtml";
 declare namespace cts = "http://marklogic.com/cts";
 
-declare namespace xdmp = "http://marklogic.com/xdmp";
-
 (:~
  : The overall page function.
  : 

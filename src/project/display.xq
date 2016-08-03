@@ -53,10 +53,15 @@ return
       },
       (v:import-javascript('../js/', ('marked.min.js', 'highlight/highlight.pack.js')),
        <script type="text/javascript">
+          var renderer = new marked.Renderer();
+          renderer.image = function(href, title, text) {{
+             return '<img src="bin?uri={ $uri }' + href + '"></img>';
+          }};
           marked.setOptions({{
              highlight: function (code) {{
                 return hljs.highlightAuto(code).value;
-             }}
+             }},
+             renderer: renderer
           }});
           $('.md-content').each(function() {{
              var elem = $(this);
