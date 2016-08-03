@@ -59,6 +59,10 @@
       <add-query-param name="database">$1</add-query-param>
       <dispatch>/database/axes.xq</dispatch>
    </match-path>
+   <match-path matches="^/db/([-0-9a-zA-Z]+)/bin$">
+      <add-query-param name="name">$1</add-query-param>
+      <dispatch>/database/bin.xq</dispatch>
+   </match-path>
    <match-path matches="^/db/([-0-9a-zA-Z]+)/browse$">
       <add-query-param name="name">$1</add-query-param>
       <dispatch>/database/browse.xq</dispatch>

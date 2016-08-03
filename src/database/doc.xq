@@ -102,10 +102,11 @@ declare function local:summary($uri as xs:string)
 (:~
  : The content section.
  :)
-declare function local:content($uri as xs:string, $dir as xs:string, $root as xs:string, $sep as xs:string, $db-root as xs:string)
+declare function local:content($uri as xs:string, $dir as xs:string?, $root as xs:string?, $sep as xs:string?, $db-root as xs:string)
    as element()+
 {
    <h3>Content</h3>,
+   <p>You can <a href="bin?uri={ $uri }">download</a> the document.</p>,
    let $doc := fn:doc($uri)
    let $id  := fn:generate-id($doc)
    return
@@ -155,8 +156,8 @@ declare function local:collections(
    $uri     as xs:string,
    $db-root as xs:string,
    $webapp  as xs:string,
-   $root    as xs:string,
-   $sep     as xs:string
+   $root    as xs:string?,
+   $sep     as xs:string?
 ) as element()+
 {
    <h3>Collections</h3>,
