@@ -118,30 +118,6 @@ declare function b:resolve-root($uri as element(c:scheme), $uris as function(xs:
 };
 
 (:~
- : The path to the database root, relative to current $path.
- :)
-declare function b:get-db-root($path as xs:string?)
-   as xs:string
-{
-   if ( fn:empty($path) ) then
-      './'
-   else
-      let $toks  := fn:tokenize($path, '/')
-      let $count := fn:count($toks) + (-1[fn:starts-with($path, '/')], 0)[1]
-      return
-         t:make-string('../', $count)
-};
-
-declare %private function b:get-children-impl(
-   $base  as xs:string,
-   $start as xs:integer,
-   $matcher
-) as element(path)*
-{
-   b:get-children-impl($base, '/', $start, $matcher)
-};
-
-(:~
  : Implementation function for `b:get-children-uri()` and `b:get-children-coll()`.
  :)
 declare %private function b:get-children-impl(
@@ -168,33 +144,11 @@ declare %private function b:get-children-impl(
  :)
 declare function b:get-children-uri(
    $base  as xs:string?,
-   $start as xs:integer
-) as element(path)*
-{
-   b:get-children-impl($base, $start, cts:uri-match#1)
-};
-
-(:~
- : Return the "directory" and "file" direct children of $base directory.
- :)
-declare function b:get-children-uri(
-   $base  as xs:string?,
    $sep   as xs:string,
    $start as xs:integer?
 ) as element(path)*
 {
    b:get-children-impl($base, $sep, $start, cts:uri-match#1)
-};
-
-(:~
- : Return the "directory" and "file" direct children of $base "collection directory".
- :)
-declare function b:get-children-coll(
-   $base  as xs:string,
-   $start as xs:integer
-) as element(path)*
-{
-   b:get-children-impl($base, $start, cts:collection-match#1)
 };
 
 (:~

@@ -95,21 +95,6 @@ declare function local:coll-item(
       )
 };
 
-(:~
- : Return children URIs, in case of either a directory or a collection.
- :)
-declare function local:uris(
-   $iscoll as xs:boolean,
-   $base   as xs:string,
-   $sep    as xs:string
-) as element(path)*
-{
-   if ( $iscoll ) then
-      b:get-children-coll($base, $sep)
-   else
-      b:get-children-uri($base, $sep)
-};
-
 let $name    := t:mandatory-field('name')
 let $type    := t:mandatory-field('type')
 let $iscoll  := b:param-iscoll($type)
