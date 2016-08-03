@@ -63,20 +63,6 @@
       <add-query-param name="name">$1</add-query-param>
       <dispatch>/database/bin.xq</dispatch>
    </match-path>
-   <match-path matches="^/db/([-0-9a-zA-Z]+)/browse$">
-      <add-query-param name="name">$1</add-query-param>
-      <dispatch>/database/browse.xq</dispatch>
-   </match-path>
-   <match-path matches="^/db/([-0-9a-zA-Z]+)/browse/(http://.+)$">
-      <add-query-param name="name">$1</add-query-param>
-      <add-query-param name="path">$2</add-query-param>
-      <dispatch>/database/browse.xq</dispatch>
-   </match-path>
-   <match-path matches="^/db/([-0-9a-zA-Z]+)/browse(/.*)$">
-      <add-query-param name="name">$1</add-query-param>
-      <add-query-param name="path">$2</add-query-param>
-      <dispatch>/database/browse.xq</dispatch>
-   </match-path>
    <match-path matches="^/db/([-0-9a-zA-Z]+)/croots$">
       <add-query-param name="name">$1</add-query-param>
       <add-query-param name="type">coll</add-query-param>
@@ -90,20 +76,6 @@
    <match-path matches="^/db/([-0-9a-zA-Z]+)/coll$">
       <add-query-param name="name">$1</add-query-param>
       <dispatch>/database/coll.xq</dispatch>
-   </match-path>
-   <match-path matches="^/db/([-0-9a-zA-Z]+)/colls$">
-      <add-query-param name="name">$1</add-query-param>
-      <dispatch>/database/collections.xq</dispatch>
-   </match-path>
-   <match-path matches="^/db/([-0-9a-zA-Z]+)/colls/(http://.+)$">
-      <add-query-param name="name">$1</add-query-param>
-      <add-query-param name="path">$2</add-query-param>
-      <dispatch>/database/collections.xq</dispatch>
-   </match-path>
-   <match-path matches="^/db/([-0-9a-zA-Z]+)/colls(/.*)$">
-      <add-query-param name="name">$1</add-query-param>
-      <add-query-param name="path">$2</add-query-param>
-      <dispatch>/database/collections.xq</dispatch>
    </match-path>
    <match-path matches="^/db/([-0-9a-zA-Z]+)/roots$">
       <add-query-param name="name">$1</add-query-param>
