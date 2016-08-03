@@ -157,14 +157,14 @@ declare function t:default($seq as item()*, $default as item()*)
  :
  : @return `()` if the error is caught, or the original return value.
  :)
-declare function t:catch-ml($code as xs:string, $fun as function() as item()*)
+declare function t:catch-ml($codes as xs:string+, $fun as function() as item()*)
    as item()*
 {
    try {
       $fun()
    }
    catch err:FOER0000 {
-      if ( $err:additional/mlerr:code eq $code ) then
+      if ( $err:additional/mlerr:code = $codes ) then
          ()
       else
          (: TODO: How to rethrow it? :)
