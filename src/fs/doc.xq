@@ -96,7 +96,7 @@ declare function local:content(
 ) as element()+
 {
    <h3>Content</h3>,
-   let $doc := a:get-from-filesystem($uri)
+   <p>You can <a href="bin?uri={ $uri }">download</a> the document.</p>,
    let $id  := fn:generate-id($file)
    let $ext := fn:tokenize($file/dir:filename, '\.')[fn:last()]
    return
@@ -104,10 +104,10 @@ declare function local:content(
          types/extension mapping from there... :)
       (: TODO: Support more types, support edit, etc. :)
       if ( $ext = ('xml') ) then (
-         v:ace-editor($doc, 'code', 'xml', (), (), (), ())
+         v:ace-editor(a:get-from-filesystem($uri), 'code', 'xml', (), (), (), ())
       )
       else if ( $ext = ('xq', 'xql', 'xqm', 'xqy', 'xquery') ) then (
-         v:ace-editor($doc, 'code', 'xquery', (), (), (), ())
+         v:ace-editor(a:get-from-filesystem($uri), 'code', 'xquery', (), (), (), ())
       )
 (:
       if ( bin:is-json($doc/node()) ) then (
