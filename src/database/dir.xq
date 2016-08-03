@@ -62,7 +62,7 @@ declare function local:page(
          if ( $iscoll ) then
             b:get-children-coll($uri, $sep, $start)
          else
-            b:get-children-uri($uri, $sep, $start),
+            b:get-children-uri($uri, $sep, $start)[fn:not(. eq $uri)],
          t:when($iscoll, 'cdir', 'dir'),
          $start,
          function($child as xs:string, $pos as xs:integer) {
