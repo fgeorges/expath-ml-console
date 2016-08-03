@@ -32,7 +32,7 @@ declare namespace cts = "http://marklogic.com/cts";
  :)
 declare function local:page(
    $db      as element(a:database),
-   $uri     as xs:string?,
+   $uri     as xs:string,
    $iscoll  as xs:boolean,
    $start   as xs:integer,
    $schemes as element(c:scheme)+
