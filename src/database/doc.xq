@@ -286,8 +286,9 @@ declare function local:permissions(
    </form>
 };
 
-let $name := t:mandatory-field('name')
-let $uri  := t:mandatory-field('uri')
+let $name   := t:mandatory-field('name')
+let $uri    := t:mandatory-field('uri')
+let $prefix := t:optional-field('prefix', ())
 return
    v:console-page(
       '../../',
@@ -296,6 +297,7 @@ return
       function() {
          v:ensure-db($name, function($db) {
             let $schemes := dbc:config-uri-schemes($db)
+            let $uri     := dbc:resolve($uri, $prefix, dbc:config-uri-schemes($db))
             return
                t:query($db, function() {
                   local:page($db, $uri, $schemes)

@@ -133,9 +133,8 @@ declare function local:coll-item(
 let $name    := t:mandatory-field('name')
 let $type    := t:mandatory-field('type')
 let $iscoll  := b:param-iscoll($type)
-let $prefix  := t:optional-field('prefix', ())[.]
-let $uri_    := t:mandatory-field('uri')[.]
-let $uri     := if ( fn:exists($prefix) ) then $prefix || $uri_ else $uri_
+let $uri     := t:mandatory-field('uri')
+let $prefix  := t:optional-field('prefix', ())
 let $start   := xs:integer(t:optional-field('start', 1)[.])
 let $lexicon := t:when($iscoll, v:ensure-coll-lexicon#2, v:ensure-uri-lexicon#2)
 return
@@ -148,6 +147,7 @@ return
       function() {
          v:ensure-db($name, function($db) {
             let $schemes := dbc:config-uri-schemes($db)
+            let $uri     := dbc:resolve($uri, $prefix, dbc:config-uri-schemes($db))
             return
                $lexicon($db, function() {
                   t:query($db, function() {

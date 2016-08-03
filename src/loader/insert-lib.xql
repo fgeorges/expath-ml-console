@@ -28,31 +28,12 @@ declare function i:handle-file(
    $override as xs:boolean
 ) as xs:string?
 {
-   let $doc-uri  :=
-         if ( fn:exists($prefix) and fn:not(i:absolute($uri, $db)) ) then
-            $prefix || $uri
-         else
-            $uri
+   let $doc-uri := dbc:resolve($uri, $prefix, dbc:config-uri-schemes($db))
    return
       if ( t:query($db, function() { fn:doc-available($doc-uri) }) and fn:not($override) ) then
          ()
       else
          a:insert-into-database($db, $doc-uri, i:get-node($content, $format))
-};
-
-declare function i:absolute($uri as xs:string, $db as item()) as xs:boolean
-{
-   i:absolute-1($uri, dbc:config-uri-schemes($db))
-};
-
-declare function i:absolute-1($uri as xs:string, $schemes as element(c:scheme)*) as xs:boolean
-{
-   if ( fn:empty($schemes) ) then
-      fn:false()
-   else if ( fn:starts-with($uri, fn:head($schemes)/c:root/(c:fix|c:start)) ) then
-      fn:true()
-   else
-      i:absolute-1($uri, fn:tail($schemes))
 };
 
 (:~

@@ -147,18 +147,6 @@ declare variable $dbc:default-config :=
       </triple-prefixes>
    </config>;
 
-declare function dbc:config-triple-prefixes($db as item()?)
-   as element(c:decl)*
-{
-   dbc:config-component($db, fn:QName($console-ns, 'triple-prefixes'))/*
-};
-
-declare function dbc:config-uri-schemes($db as item()?)
-   as element(c:scheme)*
-{
-   dbc:config-component($db, fn:QName($console-ns, 'uri-schemes'))/*
-};
-
 declare function dbc:config-component($db as item()?, $name as xs:QName)
    as element((: $name :))*
 {
@@ -199,4 +187,42 @@ declare function dbc:config-component-1($name as xs:QName, $docs as element(c:co
       else (
          t:error('config', 'Unsupported @delegate value: ' || $delg)
       )
+};
+
+(:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ : Triple prefixes config
+ :)
+
+declare function dbc:config-triple-prefixes($db as item()?)
+   as element(c:decl)*
+{
+   dbc:config-component($db, fn:QName($console-ns, 'triple-prefixes'))/*
+};
+
+(:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ : Triple prefixes config
+ :)
+
+declare function dbc:config-uri-schemes($db as item()?)
+   as element(c:scheme)*
+{
+   dbc:config-component($db, fn:QName($console-ns, 'uri-schemes'))/*
+};
+
+declare function dbc:resolve($uri as xs:string, $prefix as xs:string?, $schemes as element(c:scheme)*) as xs:string
+{
+   if ( fn:exists($prefix) and fn:not(dbc:is-absolute($uri, $schemes)) ) then
+      $prefix || $uri
+   else
+      $uri
+};
+
+declare function dbc:is-absolute($uri as xs:string, $schemes as element(c:scheme)*) as xs:boolean
+{
+   if ( fn:empty($schemes) ) then
+      fn:false()
+   else if ( fn:starts-with($uri, fn:head($schemes)/c:root/(c:fix|c:start)) ) then
+      fn:true()
+   else
+      dbc:is-absolute($uri, fn:tail($schemes))
 };
