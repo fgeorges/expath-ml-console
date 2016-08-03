@@ -49,7 +49,7 @@ declare function i:absolute-1($uri as xs:string, $schemes as element(c:scheme)*)
 {
    if ( fn:empty($schemes) ) then
       fn:false()
-   else if ( fn:starts-with($uri, fn:head($schemes)/(c:fix|c:start)) ) then
+   else if ( fn:starts-with($uri, fn:head($schemes)/c:root/(c:fix|c:start)) ) then
       fn:true()
    else
       i:absolute-1($uri, fn:tail($schemes))
