@@ -17,3 +17,8 @@ declare function disp:page($proj as element(mlc:project)) as element()+
       <li><a href="{ $proj/@id }/checkup">Check up</a></li>
    </ul>
 };
+
+declare function disp:bin-endpoint($proj as element(mlc:project), $root as xs:string) as xs:string
+{
+   $root || 'fs/bin?uri=' || $proj/mlc:dir
+};

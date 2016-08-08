@@ -43,6 +43,29 @@ declare function local:page(
    </div>
 };
 
+(:~
+ : Returns a string that can be used as a prefix for a link to get a binary file.
+ :
+ : The result of this function can be use as a "prefix" (that is, you can concat
+ : a file path at the end of it) to build a URL.  This URL points to the right
+ : binary endpoint (from the right database or from the filesystem).
+ :
+ : @param $proj The project.
+ :
+ : @param $root A relative path to the root of the webapp.
+ :)
+declare function local:bin-endpoint($proj as element(mlc:project), $root as xs:string) as xs:string
+{
+   if ( $proj/@type eq 'dbdir' ) then
+      dbdir:bin-endpoint($proj, $root)
+   else if ( $proj/@type eq 'srcdir' ) then
+      srcdir:bin-endpoint($proj, $root)
+   else if ( $proj/@type eq 'xproject' ) then
+      xproject:bin-endpoint($proj, $root)
+   else
+      t:error('unknown', 'Unknown type of project: ' || $proj/@type)
+};
+
 let $id   := t:mandatory-field('id')
 let $proj := proj:project($id)
 let $read := g:readme($proj)
@@ -55,7 +78,7 @@ return
        <script type="text/javascript">
           var renderer = new marked.Renderer();
           renderer.image = function(href, title, text) {{
-             return '<img src="bin?uri={ $uri }' + href + '"></img>';
+             return '<img src="{ local:bin-endpoint($proj, '../') }' + href + '"></img>';
           }};
           marked.setOptions({{
              highlight: function (code) {{

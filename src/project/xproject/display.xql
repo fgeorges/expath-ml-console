@@ -13,6 +13,8 @@ declare default element namespace "http://www.w3.org/1999/xhtml";
 declare namespace mlc = "http://expath.org/ns/ml/console";
 declare namespace xp  = "http://expath.org/ns/project";
 
+declare namespace __xdmp = "http://marklogic.com/xdmp";
+
 declare function disp:page(
    $id   as xs:string,
    $proj as element(mlc:project),
@@ -31,4 +33,9 @@ declare function disp:page(
             <li><a href="{ $id }/checkup">Check up</a></li>
          </ul>
       )
+};
+
+declare function disp:bin-endpoint($proj as element(mlc:project), $root as xs:string) as xs:string
+{
+   $root || 'fs/bin?uri=' || $proj/mlc:dir
 };
