@@ -133,6 +133,10 @@
       <add-query-param name="name">$1</add-query-param>
       <dispatch>/database/bulk-delete.xq</dispatch>
    </match-path>
+   <match-path matches="^/db/([-0-9a-zA-Z]+)/matching$">
+      <add-query-param name="name">$1</add-query-param>
+      <dispatch>/database/matching.xq</dispatch>
+   </match-path>
 
    <!--
        File system.

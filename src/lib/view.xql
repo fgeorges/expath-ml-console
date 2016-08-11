@@ -158,6 +158,7 @@ declare %private function v:console-page-static(
          {
             v:import-css($root || 'style/', (
                'bootstrap.css',
+               'typeahead.css',
                'expath-theme.css'
             )),
             v:import-css($root || 'js/', (
@@ -711,14 +712,39 @@ declare function v:input-text($id as xs:string, $label as xs:string, $placeholde
    v:input-text($id, $label, $placeholder, ())
 };
 
-declare function v:input-text($id as xs:string, $label as xs:string, $placeholder as xs:string, $attrs as attribute()*)
-   as element(h:div)
+declare function v:input-text(
+   $id          as xs:string,
+   $label       as xs:string,
+   $placeholder as xs:string,
+   $div-attrs   as attribute()*
+) as element(h:div)
+{
+   v:input-text($id, $label, $placeholder, $div-attrs, ())
+};
+
+declare function v:input-text(
+   $id          as xs:string,
+   $label       as xs:string,
+   $placeholder as xs:string,
+   $div-attrs   as attribute()*,
+   $input-attrs as attribute()*
+) as element(h:div)
 {
    <div xmlns="http://www.w3.org/1999/xhtml" class="form-group">
-      { $attrs }
+      { $div-attrs }
       <label for="{ $id }" class="col-sm-2 control-label">{ $label }</label>
       <div class="col-sm-10">
-         <input type="text" name="{ $id }" class="form-control" placeholder="{ $placeholder }"/>
+         <input type="text" name="{ $id }" placeholder="{ $placeholder }"> {
+            if ( fn:exists($input-attrs/self::attribute(class)) ) then (
+               attribute { 'class' } { 'form-control ' || $input-attrs/self::attribute(class) },
+               $input-attrs[fn:not(self::attribute(class))]
+            )
+            else (
+               attribute { 'class' } { 'form-control' },
+               $input-attrs
+            )
+         }
+         </input>
       </div>
    </div>
 };

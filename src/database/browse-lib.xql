@@ -2,14 +2,14 @@ xquery version "3.0";
 
 module namespace b = "http://expath.org/ns/ml/console/browse";
 
-import module namespace t = "http://expath.org/ns/ml/console/tools" at "../lib/tools.xql";
-import module namespace v = "http://expath.org/ns/ml/console/view"  at "../lib/view.xql";
-
-declare default element namespace "http://www.w3.org/1999/xhtml";
+import module namespace t   = "http://expath.org/ns/ml/console/tools" at "../lib/tools.xql";
+import module namespace v   = "http://expath.org/ns/ml/console/view"  at "../lib/view.xql";
+import module namespace sem = "http://marklogic.com/semantics" at "/MarkLogic/semantics.xqy";
 
 declare namespace c    = "http://expath.org/ns/ml/console";
 declare namespace h    = "http://www.w3.org/1999/xhtml";
 declare namespace cts  = "http://marklogic.com/cts";
+declare namespace map  = "http://marklogic.com/xdmp/map";
 declare namespace xdmp = "http://marklogic.com/xdmp";
 
 (: Fixed page size for now. :)
@@ -23,11 +23,12 @@ declare function b:dir-children($items as element(h:li)+, $back-url as xs:string
    v:form(
       '',
       attribute { 'id' } { 'orig-form' },
-      <ul style="list-style-type: none"> {
+      <ul xmlns="http://www.w3.org/1999/xhtml" style="list-style-type: none"> {
          $items
       }
       </ul>),
-   <button class="btn btn-danger"
+   <button xmlns="http://www.w3.org/1999/xhtml"
+           class="btn btn-danger"
            title="Delete selected documents and directories"
            onclick='deleteUris("orig-form", "hidden-form");'>
       Delete
@@ -164,6 +165,113 @@ declare function b:get-children-coll(
 };
 
 (:~
+ : Implementation function for `b:get-matching-dir()` and `b:get-matching-cdir()`.
+ :
+ : @todo Protect $input against special characters (like `*`).
+ :)
+declare %private function b:get-matching-dir-impl(
+   $input   as xs:string,
+   $sep     as xs:string,
+   $length  as xs:integer?,
+   (: Using the param type declaration generates a seg fault. Yup. :)
+   (: $matcher as function(xs:string) as xs:string* :)
+   $matcher
+) as element(path)*
+{
+   let $repl := '(' || $input || '([^' || $sep || ']*' || $sep || ')).*'
+   (: TODO: Any way to get rid of distinct-values? :)
+   let $vals := fn:distinct-values($matcher('*' || $input || '*' || $sep || '*') ! fn:replace(., $repl, '$1'))
+   return
+      $vals[fn:position() le $length] ! <path sep="{ $sep }">{ . }</path>
+};
+
+(:~
+ : Return the "directories" matching $input.
+ :)
+declare function b:get-matching-dir(
+   $input  as xs:string,
+   $sep    as xs:string,
+   $length as xs:integer
+) as element(path)*
+{
+   b:get-matching-dir-impl($input, $sep, $length, cts:uri-match#1)
+};
+
+(:~
+ : Return the "collection directories" matching $input.
+ :)
+declare function b:get-matching-cdir(
+   $input  as xs:string,
+   $sep    as xs:string,
+   $length as xs:integer
+) as element(path)*
+{
+   b:get-matching-dir-impl($input, $sep, $length, cts:collection-match#1)
+};
+
+(:~
+ : Implementation function for `b:get-matching-doc()` and `b:get-matching-cdoc()`.
+ :
+ : @todo Protect $input against special characters (like `*`).
+ :)
+declare %private function b:get-matching-doc-impl(
+   $input   as xs:string,
+   $sep     as xs:string,
+   $length  as xs:integer?,
+   (: Using the param type declaration generates a seg fault. Yup. :)
+   (: $matcher as function(xs:string) as xs:string* :)
+   $matcher
+) as element(path)*
+{
+   let $repl := $input || '[^' || $sep || ']*$'
+   let $vals := $matcher('*' || $input || '*')[fn:matches(., $repl)]
+   return
+      $vals[fn:position() le $length] ! <path sep="{ $sep }">{ . }</path>
+};
+
+(:~
+ : Return the "documents" (URI leaves) matching $input.
+ :)
+declare function b:get-matching-doc(
+   $input  as xs:string,
+   $sep    as xs:string,
+   $length as xs:integer
+) as element(path)*
+{
+   b:get-matching-doc-impl($input, $sep, $length, cts:uri-match#1)
+};
+
+(:~
+ : Return the "collection documents" (URI leaves) matching $input.
+ :)
+declare function b:get-matching-cdoc(
+   $input  as xs:string,
+   $sep    as xs:string,
+   $length as xs:integer
+) as element(path)*
+{
+   b:get-matching-doc-impl($input, $sep, $length, cts:collection-match#1)
+};
+
+(:~
+ : Return the resources (subject IRIs) matching $input.
+ :)
+declare function b:get-matching-rsrc(
+   $input  as xs:string,
+   $length as xs:integer
+) as element(iri)*
+{
+   sem:sparql(
+      'SELECT DISTINCT ?s WHERE {
+          ?s  ?o  ?p .
+          FILTER( regex(?s, ?re) )
+          FILTER( ! isBlank(?s) )
+       }',
+      map:entry('re', '.*[/#]?[^#/]*' || $input || '[^#/]*$'))
+   ! <iri>{ xs:string(map:get(., 's')) }</iri>
+};
+
+(:~
  : @todo Document... (especially the fact it accesses the entire URI index,
  : should be a problem with large databases, with a shit loads of documents.
  :
@@ -181,14 +289,14 @@ declare function b:display-list(
 ) as element()+
 {
    if ( fn:empty($children) ) then (
-      <p>There is nothing to show.</p>
+      <p xmlns="http://www.w3.org/1999/xhtml">There is nothing to show.</p>
    )
    else (
       if ( fn:exists($path) ) then
          let $count := fn:count($children)
          let $to    := $start + $count - 1
          return
-            <p>
+            <p xmlns="http://www.w3.org/1999/xhtml">
                Content of <code>{ $path }</code>, results { $start } to { $to }{
                   (: TODO: These links do not work anymore! (must say 'dir' or 'cdir'... :)
                   t:when($start gt 1,
@@ -286,7 +394,7 @@ declare function b:create-doc-form(
    $uri  as xs:string?
 ) as element()+
 {
-   <p>
+   <p xmlns="http://www.w3.org/1999/xhtml">
       <button class="btn btn-default" id="show-jump-area"
               title="Display the upload area, to upload files or create empty documents"
               onclick="$('#jump-area').slideToggle(); $('#show-jump-area span').toggle();">
@@ -301,7 +409,7 @@ declare function b:create-doc-form(
       </button>
    </p>,
 
-   <div style="display: none" id="jump-area">
+   <div xmlns="http://www.w3.org/1999/xhtml" style="display: none" id="jump-area">
       <h4>Jump to</h4>
       <p>Use the following form to directly access either a directory or a document by URI:</p>
       {
@@ -314,7 +422,7 @@ declare function b:create-doc-form(
       }
    </div>,
 
-   <div style="display: none" id="files-area">
+   <div xmlns="http://www.w3.org/1999/xhtml" style="display: none" id="files-area">
 
       <h4>Upload files</h4>
 
@@ -506,9 +614,9 @@ declare function b:create-doc-form(
 (:~
  : Generate the piece of JavaScript required by the code in `b:create-doc-form()`.
  :)
-declare function b:create-doc-javascript() as element(script)
+declare function b:create-doc-javascript() as element(h:script)
 {
-   <script type="text/javascript">
+   <script xmlns="http://www.w3.org/1999/xhtml" type="text/javascript">
 
       // initialize the jQuery File Upload widget
       $('#fileupload').fileupload({{

@@ -8,8 +8,6 @@ import module namespace bin = "http://expath.org/ns/ml/console/binary" at "../li
 import module namespace t   = "http://expath.org/ns/ml/console/tools"  at "../lib/tools.xql";
 import module namespace v   = "http://expath.org/ns/ml/console/view"   at "../lib/view.xql";
 
-declare default element namespace "http://www.w3.org/1999/xhtml";
-
 declare namespace c   = "http://expath.org/ns/ml/console";
 declare namespace h   = "http://www.w3.org/1999/xhtml";
 declare namespace cts = "http://marklogic.com/cts";
@@ -29,7 +27,7 @@ declare function local:page(
    $schemes as element(c:scheme)+
 ) as element()+
 {
-   <p>
+   <p xmlns="http://www.w3.org/1999/xhtml">
       { xs:string($db/a:name) ! v:db-link('../' || ., .) }
       { ' ' }
       { v:component-link(t:when($iscoll, 'croots', 'roots'), '[roots]', 'dir') }
@@ -44,13 +42,13 @@ declare function local:page(
       t:when($iscoll, local:coll-item#2, local:dir-item#2),
       function($items as element(h:li)*) {
          if ( fn:exists($items) ) then (
-            <p>Choose the root to navigate:</p>,
+            <p xmlns="http://www.w3.org/1999/xhtml">Choose the root to navigate:</p>,
             t:when($iscoll,
-               <ul>{ $items }</ul>,
+               <ul xmlns="http://www.w3.org/1999/xhtml">{ $items }</ul>,
                b:dir-children($items, 'roots'))
          )
          else (
-            <p>The database is empty.</p>
+            <p xmlns="http://www.w3.org/1999/xhtml">The database is empty.</p>
          )
       })
 };
@@ -63,7 +61,7 @@ declare function local:dir-item(
    $pos   as xs:integer
 ) as element()+
 {
-   <li>
+   <li xmlns="http://www.w3.org/1999/xhtml">
       <input name="name-{ $pos }"       type="hidden" value="{ $child }"/>
       <input name="delete-dir-{ $pos }" type="checkbox"/>
       { ' ' }
@@ -84,14 +82,14 @@ declare function local:coll-item(
       if ( fn:ends-with($child, $sep) ) then (
          (: display as a "dir" :)
          t:when(fn:exists($sep),
-            <li>{ v:croot-link('', $child) }</li>),
+            <li xmlns="http://www.w3.org/1999/xhtml">{ v:croot-link('', $child) }</li>),
          (: and maybe as a "final collection" too :)
          t:when(fn:exists(cts:collection-match($child)),
-            <li>{ v:coll-link('', $child) }</li>)
+            <li xmlns="http://www.w3.org/1999/xhtml">{ v:coll-link('', $child) }</li>)
       )
       (: if not it is a "final collection" :)
       else (
-         <li>{ v:coll-link('', $child) } </li>
+         <li xmlns="http://www.w3.org/1999/xhtml">{ v:coll-link('', $child) } </li>
       )
 };
 

@@ -103,9 +103,9 @@ declare function local:dir-area($db as element(a:database), $name as xs:string)
       specific directory, or go straight to a specific document:</p>,
    v:one-liner-link('Directories', $name || '/roots', 'Browse'),
    v:one-liner-form($name || '/dir', 'Go', 'get',
-      v:input-text('uri', 'Directory', 'The URI of a directory')),
+      v:input-text('uri', 'Directory', 'The URI of a directory', (), attribute { 'class' } { 'typeaheadDir' })),
    v:one-liner-form($name || '/doc', 'Go', 'get',
-      v:input-text('uri', 'Document', 'The URI of a document'))
+      v:input-text('uri', 'Document', 'The URI of a document', (), attribute { 'class' } { 'typeaheadDoc' }))
 };
 
 declare function local:coll-area($db as element(a:database), $name as xs:string)
@@ -116,9 +116,9 @@ declare function local:coll-area($db as element(a:database), $name as xs:string)
       collection:</p>,
    v:one-liner-link('Collections', $name || '/croots', 'Browse'),
    v:one-liner-form($name || '/cdir', 'Go', 'get',
-      v:input-text('uri', 'Directory', 'The URI of a "collection directory"')),
+      v:input-text('uri', 'Directory', 'The URI of a "collection directory"', (), attribute { 'class' } { 'typeaheadCdir' })),
    v:one-liner-form($name || '/coll', 'Go', 'get',
-      v:input-text('uri', 'Collection', 'The URI of a collection'))
+      v:input-text('uri', 'Collection', 'The URI of a collection', (), attribute { 'class' } { 'typeaheadCdoc' }))
 };
 
 (:~
@@ -138,7 +138,7 @@ declare function local:triples-area($db as element(a:database), $name as xs:stri
       its full IRI, or by the abbreviated CURIE syntax).</p>,
    v:one-liner-link('Resources', $name || '/triples', 'Browse'),
    v:one-liner-form($name || '/triples', 'Go', 'get',
-      v:input-text('rsrc', 'Resource IRI', 'The IRI of a resource')),
+      v:input-text('rsrc', 'Resource IRI', 'The IRI of a resource', (), attribute { 'class' } { 'typeaheadRsrc' })),
    v:one-liner-form($name || '/triples', 'Go', 'get',
       v:input-text('init-curie', 'Resource CURIE', 'The CURIE of a resource'))
 
@@ -293,4 +293,30 @@ return
       'Database',
       function() {
          v:ensure-db($name, local:page#1)
-      })
+      },
+      (v:import-javascript('../../js/', 'typeahead.bundle.js'),
+       <script xmlns="http://www.w3.org/1999/xhtml" type="text/javascript">
+          var amp = String.fromCharCode(38);
+          function makeBloodhound(kind) {{
+             return new Bloodhound({{
+                datumTokenizer: Bloodhound.tokenizers.whitespace,
+                queryTokenizer: Bloodhound.tokenizers.whitespace,
+                remote: {{
+                   url: '{ $name }/matching?type=' + kind + amp + 'input=%QUERY',
+                   wildcard: '%QUERY'
+                }}
+             }});
+          }};
+          [ 'dir', 'doc', 'cdir', 'cdoc', 'rsrc' ].forEach(function(kind) {{
+             var camel = kind.slice(0, 1).toUpperCase() + kind.slice(1);
+             $('.typeahead' + camel).typeahead({{
+                hint: true,
+                highlight: true,
+                minLength: 3
+             }},
+             {{
+               name:   kind,
+               source: makeBloodhound(kind)
+             }});
+          }});
+       </script>))
