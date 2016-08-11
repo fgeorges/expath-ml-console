@@ -189,6 +189,8 @@ declare function local:display-type($v as xs:anyAtomicType)
       rather than using a string. :)
    if ( sem:isIRI($v) ) then
       <span class="glyphicon glyphicon-link" title="Resource"/>
+   else if ( sem:isBlank($v) ) then
+      <span class="glyphicon glyphicon-unchecked" title="Blank node"/>
    else if ( sem:isNumeric($v) ) then
       <span class="glyphicon glyphicon-usd"  title="Number"/>
    else if ( sem:lang($v) ) then
