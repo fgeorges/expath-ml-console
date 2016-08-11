@@ -81,11 +81,18 @@ declare function local:page(
                <p>The directory is empty.</p>
             )
          }),
+      (: TODO: Factorize it out in a library, support other filenames, etc. :)
       let $readme := fn:doc($uri || 'README.md')
       return
-         if ( fn:exists($readme) ) then (
+         if ( $readme/node() instance of text() ) then (
             <hr/>,
             <div class="md-content">{ $readme }</div>
+         )
+         else if ( fn:exists($readme) ) then (
+            <hr/>,
+            <div class="md-content">
+               The directory contains a README file, but it is not a text document.
+            </div>
          )
          else (
          )
