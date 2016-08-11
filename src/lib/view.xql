@@ -931,6 +931,11 @@ declare function v:rsrc-link($endpoint as xs:string, $iri as xs:string, $decls a
    v:iri-link($endpoint, $iri, $decls, 'rsrc', 'rsrc')
 };
 
+declare function v:blank-link($endpoint as xs:string, $iri as xs:string, $decls as element(c:decl)*)
+{
+   v:iri-link($endpoint, $iri, $decls, 'blank', 'rsrc')
+};
+
 declare function v:class-link($endpoint as xs:string, $iri as xs:string, $decls as element(c:decl)*)
 {
    v:iri-link($endpoint, $iri, $decls, 'class', 'super')

@@ -178,6 +178,11 @@ declare function local:display-value(
          v:prop-link($root || 'triples', $val, $decls)
       else
          t:error('internal', 'Unexpected error - Unkown kind: ' || $kind)
+   else if ( sem:isBlank($val) ) then
+      if ( $kind eq 'rsrc' ) then
+         v:blank-link($root || 'triples', $val, $decls)
+      else
+         t:error('internal', 'Unexpected error - Unkown kind: ' || $kind)
    else
       <span>{ $val }</span>
 };

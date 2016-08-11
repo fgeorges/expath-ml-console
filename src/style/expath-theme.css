@@ -100,6 +100,18 @@ code.rsrc::after {
   content: 'Rsrc';
 }
 
+/* lighter blue */
+code.blank {
+  color: #7fb4c4;
+  background-color: #f7fbfb;
+  border: 1px solid #caeaf3;
+  white-space: nowrap;
+}
+
+code.blank::after {
+  content: 'Blank';
+}
+
 /* purple */
 code.class {
   color: #ad1ee8;
