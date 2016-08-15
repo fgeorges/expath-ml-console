@@ -15,47 +15,37 @@ report it to the EXPath [mailing list](http://expath.org/lists).
 
 ![Screenshot of the Console](doc/screenshot.png)
 
-## Installation
+This document contains an overview of each main feature, as well as an
+install guide:
 
-You need to:
+- [Quickest install](#quickest-install)
+- [The package manager](#the-package manager)
+- [The browser](#the-browser)
+- [The document manager](#the-document-manager)
+- [The profiler](#the-profiler)
+- [Install guide](#install-guide)
 
-- Get the code.
-- Create a new HTTP app server.
-- Set its modules location.
-- Set its URL rewriter.
+## Quickest install
 
-You can get the code from to different sources (in both cases the root
-of the sources is the directory `src/`):
+Evaluate both following scripts in QConsole:
 
-- Get the latest stable version from the EXPath
-  [download area](http://expath.org/files) (search for the ZIP file
-  with the name "*EXPath Console for MarkLogic*").
-- Clone the
-  [GitHub repository](https://github.com/fgeorges/expath-ml-console)
-  (the branch `master` should correspond to the latest stable release,
-  when `develop` is the main development branch).
+- [tools/setup.xq](tools/setup.xq) - creates the databases and
+  appserver for you
+- [tools/install.xq](tools/install.xq) - downloads the code and
+  installs it on the appserver
 
-Then you can create the HTTP app server and make it point to the
-source directory (or upload the sources to a modules database if you
-really need to):
+You can configure these scripts by changing values in the XML elements
+in the variable `$config`, at the top of each script.
 
-- Create a new HTTP server in the MarkLogic admin console.
-- Put the source code of the Console at the root of the App Server
-  (depending on the options you selected creating the App Server, it
-  could be on its modules database or on the filesystem if you decided
-  to store the modules of this App Server on the filesystem).
-- Make sure to set the app server URL rewriter field (at the end of
-  the admin console page for the app server) to the value
-  `/plumbing/rewriter.xml`.
+**Important**: The second script, `install.xq`, must be evaluated
+against the modules database of the app server.  By default, the first
+script, `setup.xq` creates it as `emlc-modules`.
 
-The document database linked to the HTTP server will not be used by
-the EXPath Console for MarkLogic.  So use whetever database you want
-for that field (e.g. use the default `Documents` database).
-
-That's it!  You can now access the Console by pointing your preferred
-browser to the appropriate App Server (you might need to adapt the
-port number, depending on how you configured your app server):
+If you kept the default values, you can access the Console on
 [http://localhost:8010/](http://localhost:8010/).
+
+For more information about the install procedure, see the [Install
+guide](#install-guide).
 
 ## The package manager
 
@@ -178,3 +168,98 @@ the reports themselves in MarkLogic and do some analysis on them.  It
 is then possible to make some computations in XQuery or JavaScript, to
 see the impact of each change, or to help investigating where the time
 is spent.
+
+## Install guide
+
+For a real quick introduction to the install procedure, see [Quickest
+install](#quickest-install).  This section documents in a more
+comprehensive way how to configure the install scripts, as well as how
+the Console is architectured, therefore how to install it manually if
+you need a custom install on your systems.
+
+This guide assumes MarkLogic is installed on `localhost`.  If this is
+not the case, just adapt the URLs as needed.
+
+### Quick install
+
+The Console comes with two scripts to install it on a MarkLogic
+instance.  You need to retrieve and evaluate them on QConsole (for
+instance by displaying them online on GitHub, displaying their raw
+content, and copying and pasting the source on QConsole).  Both
+scripts are:
+
+- [tools/setup.xq](tools/setup.xq) - Creates the databases and
+  appserver for you.  As it creates new databases and appserver, it
+  does not matter what database it is evaluated against.
+
+- [tools/install.xq](tools/install.xq) - Downloads the code and
+  installs it on the appserver.  This one script **MUST** be evaluated
+  against the modules database of the Console appserver (as configured
+  in `setup.xq`, by default `emlc-modules`).
+
+To evaluate a script in QConsole, go to
+[http://localhost:8000/qconsole/](http://localhost:8000/qconsole/),
+copy the code in the text area, select the `Query Type` as `XQuery`,
+and press the `Run` button.  To select the database it is evaluated
+against, select it in the `Content Source` dropdown list on the
+top-left corner:
+
+![Screenshot of QConsole](doc/qconsole.png)
+
+If you kept the default values, you can access the Console on
+[http://localhost:8010/](http://localhost:8010/).
+
+### Configure install
+
+Each script can be configured by changing the values in the variable
+`$config` (that is, in the XML hold in this variable).  This variable
+is created at the top of each script.  The default value in `setuo.xq`
+is:
+
+```xml
+<config>
+   <user name="admin" password="admin"/>
+   <content reuse="false" name="emlc-content" schema="Schemas" security="Security"/>
+   <modules reuse="false" name="emlc-modules" schema="Schemas" security="Security"/>
+   <appserver reuse="false" name="emlc" group="Default" port="8010"/>
+</config>
+```
+
+It accepts the following values:
+
+- `user` - the name and password of an admin user
+- `reuse` - whether it is an error or not if the corresponding database or
+  appserver already exists
+- `port` - the port number for the Console
+- `schema` and `security` - in case a database has to be created, it has to be
+  attached to both a Schema and a Security database; these must already exist
+
+The default value in `install.xq` is:
+
+```xml
+<config>
+   <branch>feature/projects</branch>
+</config>
+```
+
+It accepts one, and only one, of the following elements:
+
+- `branch` - the name of the branch to download from GitHub, and install locally
+- `file` - the path of a ZIP file downloaded from GitHub and accessible locally
+  on the MarkLogic Server
+
+### Manual install
+
+The setup of the Console is pretty simple.  You need an appserver with
+the code either on its modules database or on the filesystem.  The
+root of the appserver must be set tot he `src/` directory, the one
+containing the query `home.xq`.
+
+You also need to set the appserver URL rewriter to `/plumbing/rewriter.xml`.
+
+Get the latest stable version from the EXPath [download
+area](http://expath.org/files) (search for the ZIP file with the name
+"*EXPath Console for MarkLogic*").  Or clone the [GitHub
+repository](https://github.com/fgeorges/expath-ml-console) (the branch
+`master` should correspond to the latest stable release, when
+`develop` is the main development branch).
