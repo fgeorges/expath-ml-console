@@ -26,14 +26,15 @@ declare function local:page(
    $rsrc  as xs:string?,
    $curie as xs:string?,
    $init  as xs:string?,
+   $rules as xs:string*,
    $decls as element(c:decl)*
 ) as element()+
 {
    if ( fn:exists($rsrc) ) then (
-      local:page--rsrc($db, $rsrc, './', $decls)
+      local:page--rsrc($db, $rsrc, './', $rules, $decls)
    )
    else if ( fn:exists($curie) ) then (
-      local:page--rsrc($db, v:expand-curie($curie, $decls), '../', $decls)
+      local:page--rsrc($db, v:expand-curie($curie, $decls), '../', $rules, $decls)
    )
    else if ( fn:exists($init) ) then (
       local:page--init-curie($init)
@@ -94,6 +95,7 @@ declare function local:page--rsrc(
    $db    as element(a:database),
    $rsrc  as xs:string,
    $root  as xs:string,
+   $rules as xs:string*,
    $decls as element(c:decl)*
 ) as element()+
 {
@@ -113,7 +115,7 @@ declare function local:page--rsrc(
                       map:entry('s', sem:iri($rsrc)),
                       (),
                       (: TODO: For temporal documents, should be sem:store((), cts:collection-query('latest')) :)
-                      sem:ruleset-store('rdfs.rules', sem:store()))
+                      sem:ruleset-store($rules, sem:store()))
          return
             <tr>
                <td>{ local:display-value(map:get($r, 'p'), 'prop', $root, $decls) }</td>
@@ -136,7 +138,7 @@ declare function local:page--rsrc(
                       map:entry('o', sem:iri($rsrc)),
                       (),
                       (: TODO: For temporal documents, should be sem:store((), cts:collection-query('latest')) :)
-                      sem:ruleset-store('rdfs.rules', sem:store()))
+                      sem:ruleset-store($rules, sem:store()))
          return
             <tr>
                <td>{ local:display-value(map:get($r, 's'), 'rsrc', $root, $decls) }</td>
@@ -210,6 +212,7 @@ let $rsrc  := t:optional-field('rsrc', ())
 let $curie := t:optional-field('curie', ())
 let $init  := t:optional-field('init-curie', ())
 let $start := xs:integer(t:optional-field('start', 1)[.])
+let $rules := t:optional-field('rulesets', ())[.] ! fn:tokenize(., '\s*,\s*')[.]
 let $root  := '../../' || '../'[$curie]
 return
    v:console-page(
@@ -223,7 +226,7 @@ return
             return
                v:ensure-triple-index($db, function() {
                   t:query($db, function() {
-                     local:page($db, $start, $rsrc, $curie, $init, $decls)
+                     local:page($db, $start, $rsrc, $curie, $init, $rules, $decls)
                   })
                })
          })

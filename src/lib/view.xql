@@ -158,6 +158,7 @@ declare %private function v:console-page-static(
          {
             v:import-css($root || 'style/', (
                'bootstrap.css',
+               'bootstrap-select.css',
                'typeahead.css',
                'expath-theme.css'
             )),
@@ -203,6 +204,7 @@ declare %private function v:console-page-static(
             v:import-javascript($root || 'js/', (
                'jquery.js',
                'bootstrap.js',
+               'bootstrap-select.js',
                'ace/ace.js',
                'ace/ext-static_highlight.js',
                'datatables-1.10.10/js/jquery.dataTables.js',
@@ -587,6 +589,21 @@ declare function v:ace-editor(
  : Form tools
  :)
 
+declare function v:inject-attr($name as xs:string, $value as xs:string, $sep as xs:string, $attrs as attribute()*)
+   as attribute()+
+{
+   let $a := $attrs[fn:name(.) eq $name]
+   return
+      if ( fn:exists($a) ) then (
+         attribute { $name } { $value || $sep || $a },
+         $attrs except $a
+      )
+      else (
+         attribute { $name } { $value },
+         $attrs
+      )
+};
+
 declare function v:form($action as xs:string, $content as element()+)
    as element(h:form)
 {
@@ -602,9 +619,7 @@ declare function v:form($action as xs:string, $attrs as attribute()*, $content a
 declare function v:form($action as xs:string, $attrs as attribute()*, $content as element()+, $method as xs:string?)
    as element(h:form)
 {
-   let $class := attribute { 'class' } { 'form-horizontal' }[fn:empty($attrs[fn:node-name(.) eq xs:QName('class')])]
-   return
-      v:form-impl($action, ($attrs, $class), $content, $method)
+   v:form-impl($action, v:inject-attr('class', 'form-horizontal', ' ', $attrs), $content, $method)
 };
 
 declare function v:inline-form($action as xs:string, $content as element()+)
@@ -616,10 +631,12 @@ declare function v:inline-form($action as xs:string, $content as element()+)
 declare function v:inline-form($action as xs:string, $attrs as attribute()*, $content as element()+)
    as element(h:form)
 {
-   let $class := attribute { 'class' } { 'form-inline'  }[fn:empty($attrs[fn:node-name(.) eq xs:QName('class')])]
-   let $style := attribute { 'style' } { 'height: 12pt' }[fn:empty($attrs[fn:node-name(.) eq xs:QName('style')])]
-   return
-      v:form-impl($action, ($attrs, $class, $style), $content, ())
+   v:form-impl(
+      $action,
+      v:inject-attr('class', 'form-inline', ' ',
+         v:inject-attr('style', 'height: 12pt', '; ', $attrs)),
+      $content,
+      ())
 };
 
 declare function v:one-liner-form($action as xs:string, $submit as xs:string, $content as element()+)
@@ -658,20 +675,24 @@ declare function v:one-liner-form(
 declare function v:one-liner-link($label as xs:string, $action as xs:string, $submit as xs:string)
    as element(h:form)
 {
-   v:form($action, (),
-      <div xmlns="http://www.w3.org/1999/xhtml" class="form-group">
-         <label class="col-sm-2 control-label">{ $label }</label>
-         <div class="col-sm-10">
-            <button class="btn btn-default">{ $submit }</button>
-         </div>
-      </div>,
-      'get')
+   v:one-liner-link($label, $action, $submit, 'get', ())
 };
 
 declare function v:one-liner-link(
    $label  as xs:string,
    $action as xs:string,
    $submit as xs:string,
+   $hidden as element(h:input)*
+) as element(h:form)
+{
+   v:one-liner-link($label, $action, $submit, 'post', $hidden)
+};
+
+declare function v:one-liner-link(
+   $label  as xs:string,
+   $action as xs:string,
+   $submit as xs:string,
+   $method as xs:string,
    $hidden as element(h:input)*
 ) as element(h:form)
 {
@@ -686,7 +707,7 @@ declare function v:one-liner-link(
                <button class="btn btn-default">{ $submit }</button>
             </div>
          </div>,
-         'post')
+         $method)
 };
 
 declare %private function v:form-impl(
@@ -730,19 +751,12 @@ declare function v:input-text(
    $input-attrs as attribute()*
 ) as element(h:div)
 {
-   <div xmlns="http://www.w3.org/1999/xhtml" class="form-group">
-      { $div-attrs }
+   <div xmlns="http://www.w3.org/1999/xhtml">
+      { v:inject-attr('class', 'form-group', ' ', $div-attrs) }
       <label for="{ $id }" class="col-sm-2 control-label">{ $label }</label>
       <div class="col-sm-10">
          <input type="text" name="{ $id }" placeholder="{ $placeholder }"> {
-            if ( fn:exists($input-attrs/self::attribute(class)) ) then (
-               attribute { 'class' } { 'form-control ' || $input-attrs/self::attribute(class) },
-               $input-attrs[fn:not(self::attribute(class))]
-            )
-            else (
-               attribute { 'class' } { 'form-control' },
-               $input-attrs
-            )
+            v:inject-attr('class', 'form-control', ' ', $input-attrs)
          }
          </input>
       </div>
@@ -773,10 +787,37 @@ declare function v:input-select($id as xs:string, $label as xs:string, $options 
    </div>
 };
 
+declare function v:input-select(
+   $id           as xs:string,
+   $label        as xs:string,
+   $options      as element(h:option)*,
+   $div-attrs    as attribute()*,
+   $select-attrs as attribute()*
+) as element(h:div)
+{
+   <div xmlns="http://www.w3.org/1999/xhtml">
+      { v:inject-attr('class', 'form-group', ' ', $div-attrs) }
+      <label for="{ $id }" class="col-sm-2 control-label">{ $label }</label>
+      <div class="col-sm-10">
+         <select name="{ $id }"> {
+            v:inject-attr('class', 'form-control', ' ', $select-attrs),
+            $options
+         }
+         </select>
+      </div>
+   </div>
+};
+
 declare function v:input-option($val as xs:string, $label as xs:string)
    as element(h:option)
 {
-   <option xmlns="http://www.w3.org/1999/xhtml" value="{ $val }">{ $label }</option>
+   v:input-option($val, $label, ())
+};
+
+declare function v:input-option($val as xs:string, $label as xs:string, $attrs as attribute()*)
+   as element(h:option)
+{
+   <option xmlns="http://www.w3.org/1999/xhtml" value="{ $val }">{ $attrs, $label }</option>
 };
 
 declare function v:input-select-databases($id as xs:string, $label as xs:string)
@@ -824,8 +865,16 @@ declare function v:input-checkbox($id as xs:string, $label as xs:string, $checke
 declare function v:input-hidden($id as xs:string, $val as xs:string)
    as element(h:input)
 {
-   <input xmlns="http://www.w3.org/1999/xhtml"
-          type="hidden" name="{ $id }" value="{ $val }"/>
+   v:input-hidden($id, $val, ())
+};
+
+declare function v:input-hidden($id as xs:string, $val as xs:string, $attrs as attribute()*)
+   as element(h:input)
+{
+   <input xmlns="http://www.w3.org/1999/xhtml" type="hidden" name="{ $id }" value="{ $val }"> {
+      $attrs
+   }
+   </input>
 };
 
 (:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

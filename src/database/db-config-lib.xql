@@ -226,3 +226,13 @@ declare function dbc:is-absolute($uri as xs:string, $schemes as element(c:scheme
    else
       dbc:is-absolute($uri, fn:tail($schemes))
 };
+
+(:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ : Default rulesets config
+ :)
+
+declare function dbc:config-default-rulesets($db as item()?)
+   as element(c:ruleset)*
+{
+   dbc:config-component($db, fn:QName($console-ns, 'default-rulesets'))/*
+};

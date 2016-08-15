@@ -15,9 +15,6 @@ declare namespace cts = "http://marklogic.com/cts";
 (:~
  : The page content.
  : 
- : TODO: Displays only "/" and "http://*/" for now.  Find anything else that
- : ends with a "/" as well.  Maybe even "urn:*:" URIs?
- :
  : TODO: Lot of duplicated code with local:page() in dir.xq, factorize out?
  :)
 declare function local:page(

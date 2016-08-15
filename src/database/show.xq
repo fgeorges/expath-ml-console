@@ -136,11 +136,34 @@ declare function local:triples-area($db as element(a:database), $name as xs:stri
    :)
    <p>You can browse RDF resources, or go straight to a specific one (either by
       its full IRI, or by the abbreviated CURIE syntax).</p>,
-   v:one-liner-link('Resources', $name || '/triples', 'Browse'),
-   v:one-liner-form($name || '/triples', 'Go', 'get',
-      v:input-text('rsrc', 'Resource IRI', 'The IRI of a resource', (), attribute { 'class' } { 'typeaheadRsrc' })),
-   v:one-liner-form($name || '/triples', 'Go', 'get',
-      v:input-text('init-curie', 'Resource CURIE', 'The CURIE of a resource'))
+   v:one-liner-link('Resources', $name || '/triples', 'Browse', 'get',
+      v:input-hidden('rulesets', '', attribute { 'class' } { 'expathRulesets' })),
+   v:one-liner-form($name || '/triples', 'Go', 'get', (
+      v:input-hidden('rulesets', '', attribute { 'class' } { 'expathRulesets' }),
+      v:input-text('rsrc', 'Resource IRI', 'The IRI of a resource', (), attribute { 'class' } { 'typeaheadRsrc' }))),
+   v:one-liner-form($name || '/triples', 'Go', 'get', (
+      v:input-hidden('rulesets', '', attribute { 'class' } { 'expathRulesets' }),
+      v:input-text('init-curie', 'Resource CURIE', 'The CURIE of a resource'))),
+   <p>Rulesets to apply:</p>,
+   <div class="form-horizontal"> {
+      v:input-select('rulesets', 'Rulesets',
+         let $defaults := dbc:config-default-rulesets($db)
+         let $selected := attribute { 'selected' } { 'selected' }
+         let $dir      := '/opt/MarkLogic/Config/'
+         for $r at $pos in
+               a:browse-files($dir, function($file) {
+                  $file[fn:ends-with(., '.rules')] ! fn:substring-after(., $dir)
+               })
+         order by $r
+         return
+            (: TODO: What if one of `$defaults` is not in any of the `$r`...? :)
+            v:input-option($r, $r, $selected[$r = $defaults]),
+         (),
+         ( attribute { 'class' } { 'selectpicker' },
+           attribute { 'multiple' } { 'multiple' },
+           attribute { 'id' } { 'rulesetPicker' } ))
+   }
+   </div>
 
    (:
       TODO: Work on class browsing (or just re-work it...)
@@ -150,34 +173,6 @@ declare function local:triples-area($db as element(a:database), $name as xs:stri
       v:input-text('super', 'Class IRI', 'The IRI of a class')),
    v:one-liner-form($name || '/classes', 'Go',
       v:input-text('curie', 'Class CURIE', 'The CURIE of a class'))
-   :)
-
-   (:
-      TODO: Add support for rulesets, in a list or a plain text field...
-   ,
-   <h4>Rulesets</h4>,
-   <p>TODO: Display and select the rule sets...</p>,
-   <ul style="list-style-type: none"> {
-      (: TODO:... :)
-      let $dir := '/opt/MarkLogic/Config/'
-      (: TODO: Make sure the right values are passed above... :)
-      (: Would probably write some pieec of JavaScript to construct, and pass the value,
-         something like "domain,range,sameAs"... :)
-      for $r at $pos in
-            a:browse-files($dir, function($file) {
-               fn:substring-after($file, $dir)[fn:ends-with(., '.rules')]
-                  ! fn:substring-before(., '.')
-            })
-      order by $r
-      return
-         <li>
-            <input name="ruleset-name-{ $pos }"  type="hidden" value="{ $r }"/>
-            <input name="ruleset-check-{ $pos }" type="checkbox"/>
-            { ' ' }
-            { $r }
-         </li>
-   }
-   </ul>
    :)
 };
 
@@ -281,6 +276,10 @@ declare function local:insert-config-doc($path as element(), $db as xs:string)
          <uri>http://example.org/my/prefix#</uri>
       </decl>
    </triple-prefixes>
+   <default-rulesets>
+      <ruleset>domain.rules</ruleset>
+      <ruleset>range.rules</ruleset>
+   </default-rulesets>
 -->
 </config>')))
 };
@@ -296,6 +295,7 @@ return
       },
       (v:import-javascript('../../js/', 'typeahead.bundle.js'),
        <script xmlns="http://www.w3.org/1999/xhtml" type="text/javascript">
+          // initiate the completion engines
           var amp = String.fromCharCode(38);
           function makeBloodhound(kind) {{
              return new Bloodhound({{
@@ -318,5 +318,14 @@ return
                name:   kind,
                source: makeBloodhound(kind)
              }});
+          }});
+       </script>,
+       <script xmlns="http://www.w3.org/1999/xhtml" type="text/javascript">
+          // set the change listener on the ruleset picker
+          // the picker is id=rulesetPicker, replicates are class=expathRulesets
+          $('#rulesetPicker').change(function() {{
+             var val = $(this).val();
+             var str = val ? val.toString() : '';
+             $('.expathRulesets').val(str);
           }});
        </script>))
