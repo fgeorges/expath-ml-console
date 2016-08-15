@@ -840,6 +840,39 @@ declare function v:input-select-databases(
          v:input-option($name, $name))
 };
 
+declare function v:input-select-rulesets(
+   $id      as xs:string,
+   $label   as xs:string,
+   $checked as xs:string*
+) as element(h:div)
+{
+   v:input-select-rulesets($id, $label, $checked, (), ())
+};
+
+declare function v:input-select-rulesets(
+   $id           as xs:string,
+   $label        as xs:string,
+   $checked      as xs:string*,
+   $div-attrs    as attribute()*,
+   $select-attrs as attribute()*
+) as element(h:div)
+{
+   v:input-select($id, $label,
+      let $selected := attribute { 'selected' } { 'selected' }
+      let $dir      := '/opt/MarkLogic/Config/'
+      for $r at $pos in
+            a:browse-files($dir, function($file) {
+               $file[fn:ends-with(., '.rules')] ! fn:substring-after(., $dir)
+            })
+      order by $r
+      return
+         (: TODO: What if one of `$checked` is not in any of the `$r`...? :)
+         v:input-option($r, $r, $selected[$r = $checked]),
+      $div-attrs,
+      v:inject-attr('class', 'selectpicker', ' ',
+         v:inject-attr('multiple', 'multiple', ' ', $select-attrs)))
+};
+
 declare function v:input-file($id as xs:string, $label as xs:string)
    as element(h:div)
 {

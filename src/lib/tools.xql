@@ -238,21 +238,26 @@ declare function t:error-when(
  : Return a request field, or a default value if it has not been passed.
  :)
 declare function t:optional-field($name as xs:string, $default as item()?)
-   as item()?
+   as item()*
 {
-   ( xdmp:get-request-field($name)[.], $default )[1]
+   let $v := xdmp:get-request-field($name)[.]
+   return
+      if ( fn:exists($v) ) then
+         $v
+      else
+         $default
 };
 
 (:~
  : Return a request field, or throw an error if it has not been passed.
  :)
 declare function t:mandatory-field($name as xs:string)
-   as item()
+   as item()+
 {
-   let $f := xdmp:get-request-field($name)
+   let $v := xdmp:get-request-field($name)[.]
    return
-      if ( fn:exists($f) ) then
-         $f
+      if ( fn:exists($v) ) then
+         $v
       else
          t:error('TOOLS001', 'Mandatory field not passed: ' || $name)
 };

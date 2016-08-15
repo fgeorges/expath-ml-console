@@ -146,22 +146,10 @@ declare function local:triples-area($db as element(a:database), $name as xs:stri
       v:input-text('init-curie', 'Resource CURIE', 'The CURIE of a resource'))),
    <p>Rulesets to apply:</p>,
    <div class="form-horizontal"> {
-      v:input-select('rulesets', 'Rulesets',
-         let $defaults := dbc:config-default-rulesets($db)
-         let $selected := attribute { 'selected' } { 'selected' }
-         let $dir      := '/opt/MarkLogic/Config/'
-         for $r at $pos in
-               a:browse-files($dir, function($file) {
-                  $file[fn:ends-with(., '.rules')] ! fn:substring-after(., $dir)
-               })
-         order by $r
-         return
-            (: TODO: What if one of `$defaults` is not in any of the `$r`...? :)
-            v:input-option($r, $r, $selected[$r = $defaults]),
+      v:input-select-rulesets('rulesets', 'Rulesets',
+         dbc:config-default-rulesets($db),
          (),
-         ( attribute { 'class' } { 'selectpicker' },
-           attribute { 'multiple' } { 'multiple' },
-           attribute { 'id' } { 'rulesetPicker' } ))
+         attribute { 'id' } { 'rulesetPicker' })
    }
    </div>
 

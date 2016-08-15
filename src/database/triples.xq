@@ -101,6 +101,7 @@ declare function local:page--rsrc(
 {
    <p>Database: { $db/a:name ! v:db-link($root || '../' || ., .) }</p>,
    <p>Resource: { v:rsrc-link($root || 'triples', $rsrc, $decls) }</p>,
+
    <h3>Triples</h3>,
    <table class="table table-striped datatable">
       <thead>
@@ -125,6 +126,7 @@ declare function local:page--rsrc(
       }
       </tbody>
    </table>,
+
    <h3>Inbound links</h3>,
    <table class="table table-striped datatable">
       <thead>
@@ -147,6 +149,26 @@ declare function local:page--rsrc(
       }
       </tbody>
    </table>,
+
+   <h3>Rulesets</h3>,
+   <p>The following rulesets have been used to query the triples shown on this page:</p>,
+   <ul> {
+      if ( fn:empty($rules) ) then
+         <li><em>no ruleset</em></li>
+      else
+         for $r in $rules
+         order by $r
+         return
+            <li>{ $r }</li>
+   }
+   </ul>,
+   <p>Change the rulesets to use below:</p>,
+   v:form($root || 'triples', (), (
+      v:input-hidden('rsrc', $rsrc),
+      v:input-select-rulesets('rulesets', 'Rulesets', $rules),
+      v:submit('Reload')),
+      'get'),
+
    <h3>Documents</h3>,
    <p>The triples with this subject (those stored, not inferred), are stored in the
       following document(s):</p>,
