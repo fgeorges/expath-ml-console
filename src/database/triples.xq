@@ -9,10 +9,11 @@ import module namespace sem = "http://marklogic.com/semantics" at "/MarkLogic/se
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
-declare namespace c   = "http://expath.org/ns/ml/console";
-declare namespace h   = "http://www.w3.org/1999/xhtml";
-declare namespace cts = "http://marklogic.com/cts";
-declare namespace map = "http://marklogic.com/xdmp/map";
+declare namespace c    = "http://expath.org/ns/ml/console";
+declare namespace h    = "http://www.w3.org/1999/xhtml";
+declare namespace cts  = "http://marklogic.com/cts";
+declare namespace xdmp = "http://marklogic.com/xdmp";
+declare namespace map  = "http://marklogic.com/xdmp/map";
 
 (: Fixed page size for now. :)
 declare variable $page-size := 100;
@@ -103,29 +104,7 @@ declare function local:page--rsrc(
    <p>Resource: { v:rsrc-link($root || 'triples', $rsrc, $decls) }</p>,
 
    <h3>Triples</h3>,
-   <table class="table table-striped datatable">
-      <thead>
-         <th>Property</th>
-         <th>Object</th>
-         <th>Type</th>
-      </thead>
-      <tbody> {
-         (: TODO: Support windowing, in case one single resources has thousands of triples. :)
-         for $r in sem:sparql(
-                      'SELECT ?p ?o WHERE { ?s ?p ?o } ORDER BY ?p',
-                      map:entry('s', sem:iri($rsrc)),
-                      (),
-                      (: TODO: For temporal documents, should be sem:store((), cts:collection-query('latest')) :)
-                      sem:ruleset-store($rules, sem:store()))
-         return
-            <tr>
-               <td>{ local:display-value(map:get($r, 'p'), 'prop', $root, $decls) }</td>
-               <td>{ local:display-value(map:get($r, 'o'), 'rsrc', $root, $decls) }</td>
-               <td>{ local:display-type(map:get($r, 'o')) }</td>
-            </tr>
-      }
-      </tbody>
-   </table>,
+   local:subject-table($rsrc, $root, $rules, $decls, fn:true()),
 
    <h3>Inbound links</h3>,
    <table class="table table-striped datatable">
@@ -141,11 +120,42 @@ declare function local:page--rsrc(
                       (),
                       (: TODO: For temporal documents, should be sem:store((), cts:collection-query('latest')) :)
                       sem:ruleset-store($rules, sem:store()))
+         let $s := map:get($r, 's')
+         let $p := map:get($r, 'p')
          return
-            <tr>
-               <td>{ local:display-value(map:get($r, 's'), 'rsrc', $root, $decls) }</td>
-               <td>{ local:display-value(map:get($r, 'p'), 'prop', $root, $decls) }</td>
-            </tr>
+            if ( sem:isBlank($s) ) then
+               let $unik := xdmp:random()
+               return (
+                  <tr>
+                     <td>
+                        <span class="glyphicon glyphicon-collapse-down" id="expand{ $unik }"
+                              title="Expand the blank node"
+                              onclick="$('#table{ $unik }').slideToggle();
+                                       $('#expand{ $unik }').toggle(); $('#collapse{ $unik }').toggle();"/>
+                        <span class="glyphicon glyphicon-collapse-up"   id="collapse{ $unik }"
+                              title="Collapse the blank node" style="display: none"
+                              onclick="$('#table{ $unik }').slideToggle();
+                                       $('#collapse{ $unik }').toggle(); $('#expand{ $unik }').toggle();"/>
+                        { ' ' }
+                        { local:display-value($s, 'rsrc', $root, $decls) }
+                     </td>
+                     <td rowspan="2"> {
+                        local:display-value($p, 'prop', $root, $decls)
+                     }
+                     </td>
+                  </tr>,
+                  <tr>
+                     <td id="table{ $unik }" style="display: none"> {
+                        local:subject-table($s, $root, $rules, $decls, fn:false())
+                     }
+                     </td>
+                  </tr>
+               )
+            else
+               <tr>
+                  <td>{ local:display-value($s, 'rsrc', $root, $decls) }</td>
+                  <td>{ local:display-value($p, 'prop', $root, $decls) }</td>
+               </tr>
       }
       </tbody>
    </table>,
@@ -184,6 +194,70 @@ declare function local:page--rsrc(
                <li>{ v:doc-link($root, $uri) }</li>
    }
    </ul>
+};
+
+declare function local:subject-table(
+   $rsrc  as item(),
+   $root  as xs:string,
+   $rules as xs:string*,
+   $decls as element(c:decl)*,
+   $top   as xs:boolean
+) as element(h:table)
+{
+   <table class="table table-striped datatable">
+      {
+         <thead>
+            <th>Property</th>
+            <th>Object</th>
+            <th>Type</th>
+         </thead>[$top]
+      }
+      <tbody> {
+         (: TODO: Support windowing, in case one single resources has thousands of triples. :)
+         for $r in sem:sparql(
+                      'SELECT ?p ?o WHERE { ?s ?p ?o } ORDER BY ?p',
+                      map:entry('s', sem:iri($rsrc)),
+                      (),
+                      (: TODO: For temporal documents, should be sem:store((), cts:collection-query('latest')) :)
+                      sem:ruleset-store($rules, sem:store()))
+         let $p := map:get($r, 'p')
+         let $o := map:get($r, 'o')
+         return
+            if ( sem:isBlank($o) ) then
+               let $unik := xdmp:random()
+               return (
+                  <tr>
+                     <td rowspan="2">{ local:display-value($p, 'prop', $root, $decls) }</td>
+                     <td>
+                        <span class="glyphicon glyphicon-collapse-down" id="expand{ $unik }"
+                              title="Expand the blank node"
+                              onclick="$('#table{ $unik }').slideToggle();
+                                       $('#expand{ $unik }').toggle(); $('#collapse{ $unik }').toggle();"/>
+                        <span class="glyphicon glyphicon-collapse-up"   id="collapse{ $unik }"
+                              title="Collapse the blank node" style="display: none"
+                              onclick="$('#table{ $unik }').slideToggle();
+                                       $('#collapse{ $unik }').toggle(); $('#expand{ $unik }').toggle();"/>
+                        { ' ' }
+                        { local:display-value($o, 'rsrc', $root, $decls) }
+                     </td>
+                     <td rowspan="2">{ local:display-type($o) }</td>
+                  </tr>,
+                  <tr>
+                     <td id="table{ $unik }" style="display: none"> {
+                        local:subject-table($o, $root, $rules, $decls, fn:false())
+                     }
+                     </td>
+                  </tr>
+               )
+            else
+               <tr>
+                  <td>{ local:display-value($p, 'prop', $root, $decls) }</td>
+                  <td>{ local:display-value($o, 'rsrc', $root, $decls) }</td>
+                  <td>{ local:display-type($o) }</td>
+               </tr>
+      }
+      </tbody>
+   </table>
 };
 
 declare function local:display-value(
