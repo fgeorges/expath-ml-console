@@ -77,6 +77,21 @@ declare function i:get-node($file as item(), $format as xs:string)
       else
          t:error('INSERT003', 'XML file is neither parsed nor a document node with an element, '
             || 'please report this to the mailing list')
+   else if ( $format eq 'json' ) then
+      if ( $file instance of xs:string ) then
+         xdmp:unquote($file)
+      else if ( $file instance of document-node() and $file/node() instance of text() ) then
+         xdmp:unquote($file)
+      else if ( $file instance of document-node() and b:is-json($file/node()) ) then
+         $file
+      else if ( b:is-json($file/node()) ) then
+         $file
+      else if ( b:is-binary($file) ) then
+         (: TODO: Decode the binary... :)
+         t:error('INSERT102', 'JSON file is a binary node, please report this to the mailing list')
+      else
+         t:error('INSERT003', 'JSON file is neither parsed nor a document node with an object, '
+            || 'please report this to the mailing list')
    else
       t:error('INSERT004', 'Format not known: "' || $format || '"')
 };

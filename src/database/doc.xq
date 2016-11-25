@@ -76,10 +76,16 @@ declare function local:summary($uri as xs:string)
          <tr>
             <td>Type</td>
             <td> {
-               typeswitch ( fn:doc($uri)/node() )
-                  case element() return 'XML'
-                  case text()    return 'Text'
-                  default        return 'Binary'
+               let $doc := fn:doc($uri)
+               return
+                  if ( bin:is-json($doc/node()) ) then
+                     'JSON'
+                  else if ( fn:exists($doc/*) ) then
+                     'XML'
+                  else if ( fn:exists($doc/text()) ) then
+                     'Text'
+                  else
+                     'Binary'
             }
             </td>
          </tr>

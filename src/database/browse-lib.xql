@@ -499,6 +499,9 @@ declare function b:create-doc-form(
                         if ( file.name.endsWith('.xml') ) {{
                            format = 'xml';
                         }}
+                        else if ( file.name.endsWith('.json') ) {{
+                           format = 'json';
+                        }}
                         else if ( file.name.match('\\.(txt|text|ttl)$') ) {{
                            format = 'text';
                         }}
@@ -507,6 +510,11 @@ declare function b:create-doc-form(
                         <option value="xml" selected="">XML</option>
                      {{% }} else {{ %}}
                         <option value="xml">XML</option>
+                     {{% }} %}}
+                     {{% if ( format === 'json' ) {{ %}}
+                        <option value="json" selected="">JSON</option>
+                     {{% }} else {{ %}}
+                        <option value="json">JSON</option>
                      {{% }} %}}
                      {{% if ( format === 'text' ) {{ %}}
                         <option value="text" selected="">Text</option>
@@ -600,6 +608,7 @@ declare function b:create-doc-form(
                (),
             v:input-select('format', 'Format', (
                v:input-option('xml',    'XML'),
+               v:input-option('json',   'JSON'),
                v:input-option('text',   'Text'),
                v:input-option('binary', 'Binary'))),
             v:input-hidden('database', $db),
