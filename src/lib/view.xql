@@ -859,7 +859,7 @@ declare function v:input-select-rulesets(
 {
    v:input-select($id, $label,
       let $selected := attribute { 'selected' } { 'selected' }
-      let $dir      := '/opt/MarkLogic/Config/'
+      let $dir      := './Config/'
       for $r at $pos in
             a:browse-files($dir, function($file) {
                $file[fn:ends-with(., '.rules')] ! fn:substring-after(., $dir)
