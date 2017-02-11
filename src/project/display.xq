@@ -66,28 +66,34 @@ declare function local:bin-endpoint($proj as element(mlc:project), $root as xs:s
       t:error('unknown', 'Unknown type of project: ' || $proj/@type)
 };
 
-let $id   := t:mandatory-field('id')
-let $proj := proj:project($id)
-let $read := g:readme($proj)
+let $proj := try { proj:project(t:mandatory-field('id')) } catch * { () }
 return
-   v:console-page('../', 'project', t:exists($read, '', 'Project'),
+   v:console-page('../', 'project', 'Project',
       function () {
-         local:page($id, $proj, $read)
+         let $id   := t:mandatory-field('id')
+         let $proj := proj:project($id)
+         let $read := g:readme($proj)
+         return
+            local:page($id, $proj, $read)
       },
-      (v:import-javascript('../js/', ('marked.min.js', 'highlight/highlight.pack.js')),
-       <script type="text/javascript">
-          var renderer = new marked.Renderer();
-          renderer.image = function(href, title, text) {{
-             return '<img src="{ local:bin-endpoint($proj, '../') }' + href + '"></img>';
-          }};
-          marked.setOptions({{
-             highlight: function (code) {{
-                return hljs.highlightAuto(code).value;
-             }},
-             renderer: renderer
-          }});
-          $('.md-content').each(function() {{
-             var elem = $(this);
-             elem.html(marked(elem.text()));
-          }});
-       </script>))
+      if ( fn:exists($proj) ) then (
+         v:import-javascript('../js/', ('marked.min.js', 'highlight/highlight.pack.js')),
+         <script type="text/javascript">
+            var renderer = new marked.Renderer();
+            renderer.image = function(href, title, text) {{
+               return '<img src="{ local:bin-endpoint($proj, '../') }' + href + '"></img>';
+            }};
+            marked.setOptions({{
+               highlight: function (code) {{
+                  return hljs.highlightAuto(code).value;
+               }},
+               renderer: renderer
+            }});
+            $('.md-content').each(function() {{
+               var elem = $(this);
+               elem.html(marked(elem.text()));
+            }});
+         </script>
+      )
+      else (
+      ))
