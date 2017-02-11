@@ -46,7 +46,13 @@ declare function proj:project-ids()
 declare function proj:project($id as xs:string)
    as element(mlc:project)?
 {
-   proj:projects()[@id eq $id]
+   let $proj := proj:projects()[@id eq $id]
+   return
+      if ( fn:exists($proj[2]) ) then
+         t:error('inconsistent',
+            'There are more than one project with the ID "' || $id || '" in the project collection')
+      else
+         $proj
 };
 
 (:~
