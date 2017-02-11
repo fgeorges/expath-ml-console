@@ -70,7 +70,7 @@ declare function proj:project($id as xs:string)
 declare function proj:add-config($id as xs:string, $type as xs:string, $info as element()*)
    as empty-sequence()
 {
-   let $uri := 'http://expath.org/ml/console/project/' || $id || '.xml'
+   let $uri := 'http://expath.org/ml/console/project/' || $id || '/config.xml'
    return
       if ( fn:exists(proj:project($id)) ) then
          t:error('project-exists', 'There is already a project with the ID: ' || $id)
