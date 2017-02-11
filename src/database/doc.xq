@@ -53,7 +53,7 @@ declare function local:page($db as element(a:database), $uri as xs:string, $sche
       else (
          local:summary($uri),
          local:content($uri, $dir, $root, $sep, $db-root),
-         local:collections($db, $uri, $db-root, $webapp, $root, $sep),
+         local:collections($db, $uri, $db-root, $webapp, $sep),
          local:properties($uri),
          local:permissions($db, $uri, $webapp)
       )
@@ -162,7 +162,6 @@ declare function local:collections(
    $uri     as xs:string,
    $db-root as xs:string,
    $webapp  as xs:string,
-   $root    as xs:string?,
    $sep     as xs:string?
 ) as element()+
 {
@@ -184,7 +183,7 @@ declare function local:collections(
                   <tr>
                      <td>{ v:coll-link($db-root, $c) }</td>
                      <td> {
-                        v:inline-form($root || 'tools/del-coll', (
+                        v:inline-form($webapp || 'tools/del-coll', (
                            v:input-hidden('collection', $c),
                            v:input-hidden('uri', $uri),
                            v:input-hidden('database', $db/@id),
@@ -197,7 +196,7 @@ declare function local:collections(
             }
             </tbody>
          </table>,
-   v:form($root || 'tools/add-coll', (
+   v:form($webapp || 'tools/add-coll', (
       v:input-text('collection', 'Add collection', 'The collection URI to add the document to'),
       v:input-hidden('uri', $uri),
       v:input-hidden('database', $db/@id),
@@ -224,9 +223,9 @@ declare function local:properties($uri as xs:string) as element()+
  : The permissions section.
  :)
 declare function local:permissions(
-   $db   as element(a:database),
-   $uri  as xs:string,
-   $root as xs:string
+   $db     as element(a:database),
+   $uri    as xs:string,
+   $webapp as xs:string
 ) as element()+
 {
    <h3>Permissions</h3>,
@@ -250,7 +249,7 @@ declare function local:permissions(
                      <td>{ $capability }</td>
                      <td>{ $role }</td>
                      <td> {
-                        v:inline-form($root || 'tools/del-perm', (
+                        v:inline-form($webapp || 'tools/del-perm', (
                            <input type="hidden" name="capability" value="{ $capability }"/>,
                            <input type="hidden" name="role"       value="{ $role }"/>,
                            <input type="hidden" name="uri"        value="{ $uri }"/>,
@@ -265,7 +264,7 @@ declare function local:permissions(
             </tbody>
          </table>,
    <p>Add a permission:</p>,
-   <form class="form-inline" action="{ $root }tools/add-perm" method="post">
+   <form class="form-inline" action="{ $webapp }tools/add-perm" method="post">
       <div class="form-group">
          <label for="capability">Capability&#160;&#160;</label>
          <select name="capability" class="form-control">

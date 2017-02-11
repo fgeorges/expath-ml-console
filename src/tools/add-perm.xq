@@ -46,9 +46,7 @@ declare function local:page()
          }),
          if ( $redirect ) then (
             v:redirect(
-               '../db/' || $db || '/browse'
-               || '/'[fn:not(fn:starts-with($uri, '/'))]
-               || fn:string-join(fn:tokenize($uri, '/') ! fn:encode-for-uri(.), '/'))
+               '../db/' || $db || '/doc?uri=' || fn:encode-for-uri($uri))
          )
          else (
             <p>Permission "<code>{ $capability }</code>" successfully added to

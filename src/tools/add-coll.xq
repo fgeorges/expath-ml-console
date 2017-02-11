@@ -42,9 +42,7 @@ declare function local:page()
          }),
          if ( $redirect ) then (
             v:redirect(
-               '../db/' || $db || '/browse'
-               || '/'[fn:not(fn:starts-with($uri, '/'))]
-               || $uri)
+               '../db/' || $db || '/doc?uri=' || fn:encode-for-uri($uri))
          )
          else (
             <p>Document "<code>{ $uri }</code>" successfully added to
