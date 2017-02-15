@@ -77,6 +77,18 @@ declare function local:page() as element()+
       v:input-text('version', 'Version',   'Version number (using SemVer)'),
       v:input-text('title',   'Title',     'Project title'),
       v:submit('Create'))),
+(:
+   <p>Add an XProject descriptor to an existing project on the filesystem (the directory must
+      contain an <code>src/</code> subdirectory):</p>,
+   v:form('project/_/init-xproject', (
+      v:input-text('id',      'ID',        'The ID of the project (default to the project abbrev)'),
+      v:input-text('dir',     'Directory', 'Absolute path where to create the project directory'),
+      v:input-text('name',    'Name',      'Project full name (a unique URI)'),
+      v:input-text('abbrev',  'Abbrev',    'Project abbreviation'),
+      v:input-text('version', 'Version',   'Version number (using SemVer)'),
+      v:input-text('title',   'Title',     'Project title'),
+      v:submit('Init'))),
+:)
 
    <h3>Source directories</h3>,
    <p>The projects based on XProject are fully supported in the Console.  But if you projects
