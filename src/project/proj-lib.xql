@@ -56,12 +56,13 @@ declare function proj:project($id as xs:string)
 };
 
 (:~
- : Add a config for an existing project with `$id` and `$dir`.
+ : Add a config for an existing project with `$id` and `$type`.  Extra info in `$info`.
  : 
  : @param id The ID of the project to add a new config for.
  : 
- : @param dir The directory of the existing project.  It must contain a sub-directory
- : `xproject`, itself containing a file `project.xml`.
+ : @param type The type of the project (`srcdir`, `xproject`, etc.)
+ : 
+ : @param info The information to add to the project config.
  : 
  : @todo Make more checks (does the dir exist, etc.)
  : 
