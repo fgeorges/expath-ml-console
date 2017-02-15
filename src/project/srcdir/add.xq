@@ -17,8 +17,8 @@ declare function local:page($id as xs:string, $title as xs:string, $dir as xs:st
    )
    else (
       proj:add-config($id, 'srcdir', (
-         proj:config-key-value('title', $title),
-         proj:config-key-value('dir',   $dir))),
+         proj:config-value('title', $title),
+         proj:config-value('dir',   $dir))),
       local:success($id, $dir)
    )
 };

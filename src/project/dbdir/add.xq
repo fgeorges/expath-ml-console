@@ -11,9 +11,9 @@ declare function local:page($id as xs:string, $title as xs:string, $db as xs:str
    as element()+
 {
    proj:add-config($id, 'dbdir', (
-      proj:config-key-value('title', $title),
-      proj:config-key-value('db',    $db),
-      proj:config-key-value('root',  $root))),
+      proj:config-value('title', $title),
+      proj:config-value('db',    $db),
+      proj:config-value('root',  $root))),
    local:success($id, $db, $root)
 };
 

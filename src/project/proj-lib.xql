@@ -90,13 +90,13 @@ declare function proj:add-config($id as xs:string, $type as xs:string, $info as 
 };
 
 (:~
- : A key/value pair to be added to a project config file.
+ : A value to be added to a project config file, with a specific key.
  : 
  : @param name The key, used to construct an element with that name.  Must be a valid NCName.
  : 
  : @param value The value, used as the text content of the new element.
  :)
-declare function proj:config-key-value($name as xs:string, $value as xs:string)
+declare function proj:config-value($name as xs:string, $value as xs:string)
    as element()
 {
    element { fn:QName('http://expath.org/ns/ml/console', $name) } { $value }

@@ -26,7 +26,7 @@ declare function local:page($id as xs:string?, $dir as xs:string)
                </p>
             )
             else (
-               proj:add-config($id, 'xproject', proj:config-key-value('dir', $dir)),
+               proj:add-config($id, 'xproject', proj:config-value('dir', $dir)),
                local:success($id, $dir, $proj)
             )
 };
