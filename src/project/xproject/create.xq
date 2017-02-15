@@ -19,7 +19,7 @@ declare function local:do-create(
 ) as element()+
 {
    let $id   := ( $id, $abbrev )[1]
-   let $_    := proj:add-config($id, $dir)
+   let $_    := proj:add-config($id, 'xproject', proj:config-key-value('dir', $dir))
    let $_    := t:ensure-dir($dir || 'src/')
    let $proj := a:insert-into-directory(
                    $dir,
