@@ -33,7 +33,7 @@ declare function local:do-create(
                    'indent')
    return
       <div xmlns="http://www.w3.org/1999/xhtml">
-         <p>Successfuly created project { v:proj-link('../../project/' || $id, $id) }.</p>
+         <p>Successfuly created project { v:proj-link('../../' || $id, $id) }.</p>
          <ul>
             <li>ID - <code>{ $id }</code></li>
             <li>Directory - <code>{ $dir }</code></li>
@@ -84,7 +84,7 @@ declare function local:page(
 };
 
 v:console-page(
-   '../../',
+   '../../../',
    'project',
    'Project',
    function() {

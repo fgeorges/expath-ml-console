@@ -304,10 +304,13 @@
       <dispatch>/project/sandbox.xq</dispatch>
    </match-path>
    <!-- /todo -->
-   <match-path matches="^/project/_/add-xproject$">
+   <match-path matches="^/project/_/xproject$">
+      <dispatch>/project/xproject/index.xq</dispatch>
+   </match-path>
+   <match-path matches="^/project/_/xproject/add$">
       <dispatch>/project/xproject/add.xq</dispatch>
    </match-path>
-   <match-path matches="^/project/_/create-xproject$">
+   <match-path matches="^/project/_/xproject/create$">
       <dispatch>/project/xproject/create.xq</dispatch>
    </match-path>
    <match-path matches="^/project/_/srcdir$">

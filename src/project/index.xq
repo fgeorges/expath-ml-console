@@ -63,32 +63,7 @@ declare function local:page() as element()+
       and a project descriptor in <code>xproject/project.xml</code>.  You can find everything
       about XProject on <a href="http://expath.org/modules/xproject/">this page</a>.  You can
       either plug to an existing project (use "add"), or create a brand-new one (use "create").</p>,
-   <p>Add an existing XProject project from the filesystem:</p>,
-   v:form('project/_/add-xproject', (
-      v:input-text('id',  'ID',        'The ID of the project (default to the project abbrev)'),
-      v:input-text('dir', 'Directory', 'Absolute path to the project directory'),
-      v:submit('Add'))),
-   <p>Create a new XProject project on the filesystem:</p>,
-   v:form('project/_/create-xproject', (
-      v:input-text('id',      'ID',        'The ID of the project (default to the project abbrev)'),
-      v:input-text('dir',     'Directory', 'Absolute path where to create the project directory'),
-      v:input-text('name',    'Name',      'Project full name (a unique URI)'),
-      v:input-text('abbrev',  'Abbrev',    'Project abbreviation'),
-      v:input-text('version', 'Version',   'Version number (using SemVer)'),
-      v:input-text('title',   'Title',     'Project title'),
-      v:submit('Create'))),
-(:
-   <p>Add an XProject descriptor to an existing project on the filesystem (the directory must
-      contain an <code>src/</code> subdirectory):</p>,
-   v:form('project/_/init-xproject', (
-      v:input-text('id',      'ID',        'The ID of the project (default to the project abbrev)'),
-      v:input-text('dir',     'Directory', 'Absolute path where to create the project directory'),
-      v:input-text('name',    'Name',      'Project full name (a unique URI)'),
-      v:input-text('abbrev',  'Abbrev',    'Project abbreviation'),
-      v:input-text('version', 'Version',   'Version number (using SemVer)'),
-      v:input-text('title',   'Title',     'Project title'),
-      v:submit('Init'))),
-:)
+   v:one-liner-link('Add/create project', 'project/_/xproject', 'Add'),
 
    <h3>Source directories</h3>,
    <p>The projects based on XProject are fully supported in the Console.  But if you projects
