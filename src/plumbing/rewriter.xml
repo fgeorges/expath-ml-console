@@ -312,7 +312,10 @@ TODO: Just temporary, to use this code from somewhere, during development...
    <match-path matches="^/project/_/add-srcdir$">
       <dispatch>/project/srcdir/add.xq</dispatch>
    </match-path>
-   <match-path matches="^/project/_/add-dbdir$">
+   <match-path matches="^/project/_/dbdir$">
+      <dispatch>/project/dbdir/index.xq</dispatch>
+   </match-path>
+   <match-path matches="^/project/_/dbdir/add$">
       <dispatch>/project/dbdir/add.xq</dispatch>
    </match-path>
    <match-path matches="^/project$">
