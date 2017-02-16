@@ -95,12 +95,7 @@ declare function local:page() as element()+
       are not following the same conventions, you can still add their source directories here.
       This will allow you to use simplest features, like browsing and displaying their XQDoc
       comments.</p>,
-   <p>Add an existing source directory from the filesystem:</p>,
-   v:form('project/_/add-srcdir', (
-      v:input-text('id',    'ID',        'The ID of the project'),
-      v:input-text('dir',   'Directory', 'Absolute path to the source directory'),
-      v:input-text('title', 'Title',     'Project title'),
-      v:submit('Add'))),
+   v:one-liner-link('Add project', 'project/_/srcdir', 'Add'),
 
    <h3>DB directories</h3>,
    <p>Modules stored in a database (like a database used as the module database for an appserver)

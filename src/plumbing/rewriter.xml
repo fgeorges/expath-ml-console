@@ -297,19 +297,23 @@
    <!--
        Projects.
    -->
-<!--
-TODO: Just temporary, to use this code from somewhere, during development...
--->
+   <!--
+       TODO: Just temporary, to use this code from somewhere, during development...
+   -->
    <match-path matches="^/project/_/sandbox$">
       <dispatch>/project/sandbox.xq</dispatch>
    </match-path>
+   <!-- /todo -->
    <match-path matches="^/project/_/add-xproject$">
       <dispatch>/project/xproject/add.xq</dispatch>
    </match-path>
    <match-path matches="^/project/_/create-xproject$">
       <dispatch>/project/xproject/create.xq</dispatch>
    </match-path>
-   <match-path matches="^/project/_/add-srcdir$">
+   <match-path matches="^/project/_/srcdir$">
+      <dispatch>/project/srcdir/index.xq</dispatch>
+   </match-path>
+   <match-path matches="^/project/_/srcdir/add$">
       <dispatch>/project/srcdir/add.xq</dispatch>
    </match-path>
    <match-path matches="^/project/_/dbdir$">

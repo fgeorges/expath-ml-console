@@ -26,7 +26,7 @@ declare function local:page($id as xs:string, $title as xs:string, $dir as xs:st
 declare function local:success($id  as xs:string, $dir as xs:string) as element()+
 {
    <div xmlns="http://www.w3.org/1999/xhtml">
-      <p>Successfuly added project { v:proj-link('../../project/' || $id, $id) }.</p>
+      <p>Successfuly added project { v:proj-link('../../' || $id, $id) }.</p>
       <ul>
          <li>ID - <code>{ $id }</code></li>
          <li>Directory - <code>{ $dir }</code></li>
@@ -35,7 +35,7 @@ declare function local:success($id  as xs:string, $dir as xs:string) as element(
 };
 
 v:console-page(
-   '../../',
+   '../../../',
    'project',
    'Project',
    function() {
