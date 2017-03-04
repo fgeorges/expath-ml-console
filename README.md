@@ -89,6 +89,7 @@ http://mlproj.org/ for details.
 If you kept the default port number, you can access the Console
 on [http://localhost:8010/](http://localhost:8010/).
 
+<hr/>
 <table>
 <tr>
 <td><a href="#expath-console-for-marklogic">Intro</a></td>
@@ -139,6 +140,18 @@ importing and the imported modules:
 import module namespace "http://example.org/cool/lib.xql";
 ```
 
+<hr/>
+<table>
+<tr>
+<td><a href="#expath-console-for-marklogic">Intro</a></td>
+<td><a href="#install">Install</a></td>
+<td><a href="#the-package-manager">The package manager</a></td>
+<td>The browser</td>
+<td><a href="#the-document-manager">The document manager</a></td>
+<td><a href="#the-profiler">The profiler</a></td>
+</tr>
+</table>
+
 ## The browser
 
 ![Screenshot of the browser](doc/browser.png)
@@ -171,6 +184,18 @@ least one triple.  Displaying the resouce itself shows you all its
 properties (that is, the properties and values of all triples with the
 same subject URI).
 
+<hr/>
+<table>
+<tr>
+<td><a href="#expath-console-for-marklogic">Intro</a></td>
+<td><a href="#install">Install</a></td>
+<td><a href="#the-package-manager">The package manager</a></td>
+<td><a href="#the-browser">The browser</a></td>
+<td>The document manager</td>
+<td><a href="#the-profiler">The profiler</a></td>
+</tr>
+</table>
+
 ## The document manager
 
 ![Screenshot of the document manager](doc/doc-manager.png)
@@ -200,6 +225,18 @@ documents they are stored in.
 The last forms let you delete documents and directories.  You can
 achieve the same by using the browser, but here, you provide a
 complete URI instead, as a text field.
+
+<hr/>
+<table>
+<tr>
+<td><a href="#expath-console-for-marklogic">Intro</a></td>
+<td><a href="#install">Install</a></td>
+<td><a href="#the-package-manager">The package manager</a></td>
+<td><a href="#the-browser">The browser</a></td>
+<td><a href="#the-document-manager">The document manager</a></td>
+<td>The profiler</td>
+</tr>
+</table>
 
 ## The profiler
 
