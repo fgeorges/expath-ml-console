@@ -26,15 +26,6 @@ report it to the EXPath [mailing list](http://expath.org/lists).
 
 ![Screenshot of the Console](doc/screenshot.png)
 
-This document contains an overview of each main feature, as well as an
-install guide:
-
-- [Install](#install)
-- [The package manager](#the-package-manager)
-- [The browser](#the-browser)
-- [The document manager](#the-document-manager)
-- [The profiler](#the-profiler)
-
 <hr/>
 <table>
 <tr>
