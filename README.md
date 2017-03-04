@@ -2,7 +2,7 @@
 
 <table>
 <tr>
-<td><a href="#expath-console-for-marklogic">Intro</a></td>
+<td>Intro</td>
 <td><a href="#install">Install</a></td>
 <td><a href="#the-package-manager">The package manager</a></td>
 <td><a href="#the-browser">The browser</a></td>
@@ -36,6 +36,17 @@ install guide:
 - [The profiler](#the-profiler)
 
 ## Install
+
+<table>
+<tr>
+<td><a href="#expath-console-for-marklogic">Intro</a></td>
+<td>Install</td>
+<td><a href="#the-package-manager">The package manager</a></td>
+<td><a href="#the-browser">The browser</a></td>
+<td><a href="#the-document-manager">The document manager</a></td>
+<td><a href="#the-profiler">The profiler</a></td>
+</tr>
+</table>
 
 Use `mlproj`.  To install it, just use the following:
 
