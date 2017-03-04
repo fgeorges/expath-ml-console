@@ -27,22 +27,35 @@ install guide:
 
 ## Quickest install
 
-Evaluate both following scripts in QConsole:
+Use `mlproj`.  To install it, just use the following:
 
-- [tools/setup.xq](tools/setup.xq) - creates the databases and
-  appserver for you
-- [tools/install.xq](tools/install.xq) - downloads the code and
-  installs it on the appserver
+```
+sudo npm install mlproj -g
+```
 
-You can configure these scripts by changing values in the XML elements
-in the variable `$config`, at the top of each script.
+Then setup the databases and the app server on MarkLogic.  On the
+command line, override the host, username and password as needed (use
+`-z` to get prompted for the password):
 
-**Important**: The second script, `install.xq`, must be evaluated
-against the modules database of the app server.  By default, the first
-script, `setup.xq` creates it as `emlc-modules`.
+```
+mlproj -e prod -host host.name -p port:9000 setup
+mlproj -e prod -host host.name deploy
+```
 
-If you kept the default values, you can access the Console on
-[http://localhost:8010/](http://localhost:8010/).
+If you want to use the modules straight from the file system, use the
+following instead (MarkLogic must be installed on `localhost` then)::
+
+```
+mlproj -e dev setup
+```
+
+Instead of overriding some values on the command line every time
+(e.g. if you have to change the host name), you can create a new
+environment file in `xproject/ml/`, which imports either `dev.json` or
+`prod.json`, and set different values as needed.
+
+If you kept the default port number, you can access the Console
+on [http://localhost:8010/](http://localhost:8010/).
 
 For more information about the install procedure, see the [Install
 guide](#install-guide).

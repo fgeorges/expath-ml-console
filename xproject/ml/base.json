@@ -1,0 +1,22 @@
+{
+    "mlproj": {
+        "format": "0.1",
+        "params": {
+            "port": "8010"
+        },
+        "databases": [{
+	    "id": "content",
+	    "name": "@{code}-content"
+	}],
+        "servers": [{
+	    "id": "app",
+            "name": "@{code}",
+            "type": "http",
+            "port": "${port}",
+            "content": {
+                "idref": "content"
+            },
+	    "rewriter": "/plumbing/rewriter.xml"
+        }]
+    }
+}
