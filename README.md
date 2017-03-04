@@ -23,7 +23,6 @@ install guide:
 - [The browser](#the-browser)
 - [The document manager](#the-document-manager)
 - [The profiler](#the-profiler)
-- [Install guide](#install-guide)
 
 ## Install
 
