@@ -60,7 +60,8 @@ mlproj -e dev setup
 Instead of overriding some values on the command line every time
 (e.g. if you have to change the host name), you can create a new
 environment file in `xproject/ml/`, which imports either `dev.json` or
-`prod.json`, and set different values as needed.
+`prod.json`, and set different values as needed.  See
+http://mlproj.org/ for details.
 
 If you kept the default port number, you can access the Console
 on [http://localhost:8010/](http://localhost:8010/).
