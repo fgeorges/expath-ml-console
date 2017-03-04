@@ -35,6 +35,7 @@ install guide:
 - [The document manager](#the-document-manager)
 - [The profiler](#the-profiler)
 
+<hr/>
 <table>
 <tr>
 <td><a href="#expath-console-for-marklogic">Intro</a></td>
