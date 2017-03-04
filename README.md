@@ -3,7 +3,7 @@
 <td>Intro</td>
 <td><a href="#install">Install</a></td>
 <td><a href="#package-manager">Package manager</a></td>
-<td><a href="#browser">Bbrowser</a></td>
+<td><a href="#browser">Browser</a></td>
 <td><a href="#document-manager">Document manager</a></td>
 <td><a href="#profiler">Profiler</a></td>
 </tr>
@@ -32,7 +32,7 @@ report it to the EXPath [mailing list](http://expath.org/lists).
 <td><a href="#expath-console-for-marklogic">Intro</a></td>
 <td>Install</td>
 <td><a href="#package-manager">Package manager</a></td>
-<td><a href="#browser">Bbrowser</a></td>
+<td><a href="#browser">Browser</a></td>
 <td><a href="#document-manager">Document manager</a></td>
 <td><a href="#profiler">Profiler</a></td>
 </tr>
@@ -86,7 +86,7 @@ on [http://localhost:8010/](http://localhost:8010/).
 <td><a href="#expath-console-for-marklogic">Intro</a></td>
 <td><a href="#install">Install</a></td>
 <td>Package manager</td>
-<td><a href="#browser">Bbrowser</a></td>
+<td><a href="#browser">Browser</a></td>
 <td><a href="#document-manager">Document manager</a></td>
 <td><a href="#profiler">Profiler</a></td>
 </tr>
@@ -137,13 +137,13 @@ import module namespace "http://example.org/cool/lib.xql";
 <td><a href="#expath-console-for-marklogic">Intro</a></td>
 <td><a href="#install">Install</a></td>
 <td><a href="#package-manager">Package manager</a></td>
-<td>Bbrowser</td>
+<td>Browser</td>
 <td><a href="#document-manager">Document manager</a></td>
 <td><a href="#profiler">Profiler</a></td>
 </tr>
 </table>
 
-## Bbrowser
+## Browser
 
 ![Screenshot of the browser](doc/browser.png)
 
@@ -181,7 +181,7 @@ same subject URI).
 <td><a href="#expath-console-for-marklogic">Intro</a></td>
 <td><a href="#install">Install</a></td>
 <td><a href="#package-manager">Package manager</a></td>
-<td><a href="#browser">Bbrowser</a></td>
+<td><a href="#browser">Browser</a></td>
 <td>Document manager</td>
 <td><a href="#profiler">Profiler</a></td>
 </tr>
@@ -223,7 +223,7 @@ complete URI instead, as a text field.
 <td><a href="#expath-console-for-marklogic">Intro</a></td>
 <td><a href="#install">Install</a></td>
 <td><a href="#package-manager">Package manager</a></td>
-<td><a href="#browser">Bbrowser</a></td>
+<td><a href="#browser">Browser</a></td>
 <td><a href="#document-manager">Document manager</a></td>
 <td>Profiler</td>
 </tr>
