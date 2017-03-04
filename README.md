@@ -46,8 +46,8 @@ following commands from the download directory (the one containing the
 and password as needed (use `-z` to get prompted for the password):
 
 ```
-mlproj -e prod -host newhost -p port:9000 setup
-mlproj -e prod -host newhost deploy
+mlproj -e prod -h newhost -p port:9000 setup
+mlproj -e prod -h newhost deploy
 ```
 
 If you want to use the modules straight from the file system, use the
@@ -60,7 +60,7 @@ mlproj -e dev setup
 Instead of overriding some values on the command line every time
 (e.g. if you have to change the host name), you can create a new
 environment file in `xproject/ml/`, which imports either `dev.json` or
-`prod.json`, and set different values as needed.  See
+`prod.json`, and set different values as needed.  See `mlproj help` or
 http://mlproj.org/ for details.
 
 If you kept the default port number, you can access the Console
