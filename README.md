@@ -1,5 +1,16 @@
 # EXPath Console for MarkLogic
 
+<table>
+<tr>
+<td><a href="#expath-console-for-marklogic">Intro</a></td>
+<td><a href="#install">Install</a></td>
+<td><a href="#the-package-manager">The package manager</a></td>
+<td><a href="#the-browser">The browser</a></td>
+<td><a href="#the-document-manager">The document manager</a></td>
+<td><a href="#the-profiler">The profiler</a></td>
+</tr>
+</table>
+
 The EXPath Console for MarkLogic, or just "the Console" for short,
 provides the following main features:
 
@@ -19,7 +30,7 @@ This document contains an overview of each main feature, as well as an
 install guide:
 
 - [Install](#install)
-- [The package manager](#the-package manager)
+- [The package manager](#the-package-manager)
 - [The browser](#the-browser)
 - [The document manager](#the-document-manager)
 - [The profiler](#the-profiler)
