@@ -1,5 +1,3 @@
-# EXPath Console for MarkLogic
-
 <table>
 <tr>
 <td>Intro</td>
@@ -10,6 +8,8 @@
 <td><a href="#the-profiler">The profiler</a></td>
 </tr>
 </table>
+
+# EXPath Console for MarkLogic
 
 The EXPath Console for MarkLogic, or just "the Console" for short,
 provides the following main features:
@@ -35,8 +35,6 @@ install guide:
 - [The document manager](#the-document-manager)
 - [The profiler](#the-profiler)
 
-## Install
-
 <table>
 <tr>
 <td><a href="#expath-console-for-marklogic">Intro</a></td>
@@ -47,6 +45,8 @@ install guide:
 <td><a href="#the-profiler">The profiler</a></td>
 </tr>
 </table>
+
+## Install
 
 Use `mlproj`.  To install it, just use the following:
 
@@ -87,6 +87,17 @@ http://mlproj.org/ for details.
 
 If you kept the default port number, you can access the Console
 on [http://localhost:8010/](http://localhost:8010/).
+
+<table>
+<tr>
+<td><a href="#expath-console-for-marklogic">Intro</a></td>
+<td><a href="#install">Install</a></td>
+<td>The package manager</td>
+<td><a href="#the-browser">The browser</a></td>
+<td><a href="#the-document-manager">The document manager</a></td>
+<td><a href="#the-profiler">The profiler</a></td>
+</tr>
+</table>
 
 ## The package manager
 
