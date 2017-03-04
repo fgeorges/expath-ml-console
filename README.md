@@ -2,10 +2,10 @@
 <tr>
 <td>Intro</td>
 <td><a href="#install">Install</a></td>
-<td><a href="#the-package-manager">The package manager</a></td>
-<td><a href="#the-browser">The browser</a></td>
-<td><a href="#the-document-manager">The document manager</a></td>
-<td><a href="#the-profiler">The profiler</a></td>
+<td><a href="#package-manager">Package manager</a></td>
+<td><a href="#browser">Bbrowser</a></td>
+<td><a href="#document-manager">Document manager</a></td>
+<td><a href="#profiler">Profiler</a></td>
 </tr>
 </table>
 
@@ -31,10 +31,10 @@ report it to the EXPath [mailing list](http://expath.org/lists).
 <tr>
 <td><a href="#expath-console-for-marklogic">Intro</a></td>
 <td>Install</td>
-<td><a href="#the-package-manager">The package manager</a></td>
-<td><a href="#the-browser">The browser</a></td>
-<td><a href="#the-document-manager">The document manager</a></td>
-<td><a href="#the-profiler">The profiler</a></td>
+<td><a href="#package-manager">Package manager</a></td>
+<td><a href="#browser">Bbrowser</a></td>
+<td><a href="#document-manager">Document manager</a></td>
+<td><a href="#profiler">Profiler</a></td>
 </tr>
 </table>
 
@@ -85,14 +85,14 @@ on [http://localhost:8010/](http://localhost:8010/).
 <tr>
 <td><a href="#expath-console-for-marklogic">Intro</a></td>
 <td><a href="#install">Install</a></td>
-<td>The package manager</td>
-<td><a href="#the-browser">The browser</a></td>
-<td><a href="#the-document-manager">The document manager</a></td>
-<td><a href="#the-profiler">The profiler</a></td>
+<td>Package manager</td>
+<td><a href="#browser">Bbrowser</a></td>
+<td><a href="#document-manager">Document manager</a></td>
+<td><a href="#profiler">Profiler</a></td>
 </tr>
 </table>
 
-## The package manager
+## Package manager
 
 ![Screenshot of the package manager](doc/pkg-manager.png)
 
@@ -136,14 +136,14 @@ import module namespace "http://example.org/cool/lib.xql";
 <tr>
 <td><a href="#expath-console-for-marklogic">Intro</a></td>
 <td><a href="#install">Install</a></td>
-<td><a href="#the-package-manager">The package manager</a></td>
-<td>The browser</td>
-<td><a href="#the-document-manager">The document manager</a></td>
-<td><a href="#the-profiler">The profiler</a></td>
+<td><a href="#package-manager">Package manager</a></td>
+<td>Bbrowser</td>
+<td><a href="#document-manager">Document manager</a></td>
+<td><a href="#profiler">Profiler</a></td>
 </tr>
 </table>
 
-## The browser
+## Bbrowser
 
 ![Screenshot of the browser](doc/browser.png)
 
@@ -180,14 +180,14 @@ same subject URI).
 <tr>
 <td><a href="#expath-console-for-marklogic">Intro</a></td>
 <td><a href="#install">Install</a></td>
-<td><a href="#the-package-manager">The package manager</a></td>
-<td><a href="#the-browser">The browser</a></td>
-<td>The document manager</td>
-<td><a href="#the-profiler">The profiler</a></td>
+<td><a href="#package-manager">Package manager</a></td>
+<td><a href="#browser">Bbrowser</a></td>
+<td>Document manager</td>
+<td><a href="#profiler">Profiler</a></td>
 </tr>
 </table>
 
-## The document manager
+## Document manager
 
 ![Screenshot of the document manager](doc/doc-manager.png)
 
@@ -222,14 +222,14 @@ complete URI instead, as a text field.
 <tr>
 <td><a href="#expath-console-for-marklogic">Intro</a></td>
 <td><a href="#install">Install</a></td>
-<td><a href="#the-package-manager">The package manager</a></td>
-<td><a href="#the-browser">The browser</a></td>
-<td><a href="#the-document-manager">The document manager</a></td>
-<td>The profiler</td>
+<td><a href="#package-manager">Package manager</a></td>
+<td><a href="#browser">Bbrowser</a></td>
+<td><a href="#document-manager">Document manager</a></td>
+<td>Profiler</td>
 </tr>
 </table>
 
-## The profiler
+## Profiler
 
 ![Screenshot of the profiler](doc/profiler.png)
 
