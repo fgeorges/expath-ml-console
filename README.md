@@ -35,7 +35,7 @@ sudo npm install mlproj -g
 Get the latest stable version from the
 EXPath [download area](http://expath.org/files) (search for the ZIP
 file with the name "*EXPath Console for MarkLogic*", and unzip it).
-Or clone
+Or clone or download
 the [GitHub repository](https://github.com/fgeorges/expath-ml-console)
 (the branch `master` should correspond to the latest stable release,
 when `develop` is the main development branch).
