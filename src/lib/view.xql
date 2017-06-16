@@ -5,8 +5,8 @@ xquery version "3.0";
  :)
 module namespace v = "http://expath.org/ns/ml/console/view";
 
-import module namespace a = "http://expath.org/ns/ml/console/admin"  at "admin.xql";
-import module namespace t = "http://expath.org/ns/ml/console/tools"  at "../lib/tools.xql";
+import module namespace a = "http://expath.org/ns/ml/console/admin"  at "admin.xqy";
+import module namespace t = "http://expath.org/ns/ml/console/tools"  at "../lib/tools.xqy";
 
 declare namespace c    = "http://expath.org/ns/ml/console";
 declare namespace h    = "http://www.w3.org/1999/xhtml";

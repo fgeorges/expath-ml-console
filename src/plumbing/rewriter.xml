@@ -345,6 +345,10 @@
       <add-query-param name="src">$2</add-query-param>
       <dispatch>/project/src.xq</dispatch>
    </match-path>
+   <match-path matches="^/project/([-0-9a-zA-Z]+)/environ$">
+      <add-query-param name="id">$1</add-query-param>
+      <dispatch>/project/environments.sjs</dispatch>
+   </match-path>
 
    <!--
        Old stuff.

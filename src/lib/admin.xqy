@@ -6,7 +6,7 @@ xquery version "3.0";
 module namespace a = "http://expath.org/ns/ml/console/admin";
 
 import module namespace t     = "http://expath.org/ns/ml/console/tools"
-   at "tools.xql";
+   at "tools.xqy";
 import module namespace admin = "http://marklogic.com/xdmp/admin"
    at "/MarkLogic/admin.xqy";
 import module namespace sec   = "http://marklogic.com/xdmp/security"

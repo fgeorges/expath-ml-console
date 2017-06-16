@@ -6,14 +6,13 @@ import module namespace proj = "http://expath.org/ns/ml/console/project" at "../
 import module namespace t    = "http://expath.org/ns/ml/console/tools"   at "../../lib/tools.xql";
 import module namespace v    = "http://expath.org/ns/ml/console/view"    at "../../lib/view.xql";
 
-import module namespace xproject = "http://expath.org/ns/ml/console/project/xproject" at "../xproject-lib.xql";
+import module namespace xproject = "http://expath.org/ns/ml/console/project/xproject"
+   at "../xproject-lib.xql";
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
 declare namespace mlc = "http://expath.org/ns/ml/console";
 declare namespace xp  = "http://expath.org/ns/project";
-
-declare namespace __xdmp = "http://marklogic.com/xdmp";
 
 declare function disp:page(
    $id   as xs:string,
@@ -30,6 +29,7 @@ declare function disp:page(
          <p>{ v:proj-link($id, $id) } - { xs:string($desc/xp:title) }.</p>,
          <ul>
             <li><a href="{ $id }/src">Sources</a></li>
+            <li><a href="{ $id }/environ">Environments</a></li>
             <li><a href="{ $id }/checkup">Check up</a></li>
          </ul>
       )
