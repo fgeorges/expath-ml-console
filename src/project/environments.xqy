@@ -19,7 +19,7 @@ declare function env:environs($envs)
    order by $name
    return
       <li> {
-         $name,
+         <a href="environ/{ $name }/show">{ $name }</a>,
          (' - ' || $title)[$title]
       }
       </li>

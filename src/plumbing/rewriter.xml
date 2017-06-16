@@ -349,6 +349,11 @@
       <add-query-param name="id">$1</add-query-param>
       <dispatch>/project/environments.sjs</dispatch>
    </match-path>
+   <match-path matches="^/project/([-0-9a-zA-Z]+)/environ/([-0-9a-zA-Z]+)/show$">
+      <add-query-param name="project">$1</add-query-param>
+      <add-query-param name="environ">$2</add-query-param>
+      <dispatch>/project/environ/show.sjs</dispatch>
+   </match-path>
 
    <!--
        Old stuff.

@@ -1,0 +1,25 @@
+{
+  "name": "expath-ml-console",
+  "version": "0.10.0",
+  "description": "EXPath Console for MarkLogic",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fgeorges/expath-ml-console.git"
+  },
+  "author": "Florent Georges",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/fgeorges/expath-ml-console/issues"
+  },
+  "homepage": "https://github.com/fgeorges/expath-ml-console#readme",
+  "dependencies": {
+    "mlproj-core": "^0.1.0"
+  }
+}

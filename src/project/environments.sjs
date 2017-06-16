@@ -41,13 +41,4 @@ for ( let env of envs ) {
     }
 }
 
-// let res = '';
-// let format = env => {
-//     res += env.name;
-//     if ( env.title ) {
-// 	res += ' - ' + env.title;
-//     }
-//     res += '\n';
-// };
-// leaves.forEach(format);
 view.page(leaves, libs);
