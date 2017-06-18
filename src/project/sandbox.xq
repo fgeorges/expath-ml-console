@@ -9,8 +9,8 @@ import module namespace xqd = "http://github.com/xquery/xquerydoc"
 import module namespace xqdc = "XQDocComments"
    at "xquerydoc/src/xquery/parsers/XQDocComments.xq";
 
-import module namespace proj = "http://expath.org/ns/ml/console/project" at "proj-lib.xql";
-import module namespace a    = "http://expath.org/ns/ml/console/admin"   at "../lib/admin.xql";
+import module namespace proj = "http://expath.org/ns/ml/console/project" at "proj-lib.xqy";
+import module namespace a    = "http://expath.org/ns/ml/console/admin"   at "../lib/admin.xqy";
 import module namespace v    = "http://expath.org/ns/ml/console/view"    at "../lib/view.xql";
 
 declare namespace xdmp = "http://marklogic.com/xdmp";

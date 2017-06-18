@@ -9,7 +9,7 @@ import module namespace dbdir    = "http://expath.org/ns/ml/console/project/dbdi
 import module namespace srcdir   = "http://expath.org/ns/ml/console/project/srcdir"   at "srcdir-lib.xql";
 import module namespace xproject = "http://expath.org/ns/ml/console/project/xproject" at "xproject-lib.xql";
 
-import module namespace t = "http://expath.org/ns/ml/console/tools" at "../lib/tools.xql";
+import module namespace t = "http://expath.org/ns/ml/console/tools" at "../lib/tools.xqy";
 
 declare namespace mlc = "http://expath.org/ns/ml/console";
 
