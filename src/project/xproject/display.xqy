@@ -4,10 +4,10 @@ module namespace disp = "http://expath.org/ns/ml/console/project/xproject/displa
 
 import module namespace proj = "http://expath.org/ns/ml/console/project" at "../proj-lib.xqy";
 import module namespace t    = "http://expath.org/ns/ml/console/tools"   at "../../lib/tools.xqy";
-import module namespace v    = "http://expath.org/ns/ml/console/view"    at "../../lib/view.xql";
+import module namespace v    = "http://expath.org/ns/ml/console/view"    at "../../lib/view.xqy";
 
 import module namespace xproject = "http://expath.org/ns/ml/console/project/xproject"
-   at "../xproject-lib.xql";
+   at "../xproject-lib.xqy";
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 

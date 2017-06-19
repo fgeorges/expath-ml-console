@@ -5,7 +5,7 @@ xquery version "3.0";
 module namespace this = "http://expath.org/ns/ml/console/environ/load";
 
 import module namespace t = "http://expath.org/ns/ml/console/tools" at "../../lib/tools.xqy";
-import module namespace v = "http://expath.org/ns/ml/console/view"  at "../../lib/view.xql";
+import module namespace v = "http://expath.org/ns/ml/console/view"  at "../../lib/view.xqy";
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 

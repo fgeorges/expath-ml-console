@@ -2,7 +2,7 @@ xquery version "3.0";
 
 module namespace xqp = "http://expath.org/ns/ml/console/parser/xquery";
 
-import module namespace parser   = "http://expath.org/ns/ml/console/parser" at "parser-lib.xql";
+import module namespace parser   = "http://expath.org/ns/ml/console/parser" at "parser-lib.xqy";
 import module namespace xqparser = "http://github.com/jpcs/xqueryparser.xq" at "xqueryparser.xq";
 import module namespace xqdoc    = "XQDocComments"                          at "lib/XQDocComments.xq";
 

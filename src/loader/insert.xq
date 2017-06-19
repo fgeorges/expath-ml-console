@@ -29,11 +29,11 @@ xquery version "3.0";
  : TODO: Split into 3 different queries for the 3 cases above...?
  :)
 
-import module namespace i = "http://expath.org/ns/ml/console/insert" at "insert-lib.xql";
+import module namespace i = "http://expath.org/ns/ml/console/insert" at "insert-lib.xqy";
 import module namespace a = "http://expath.org/ns/ml/console/admin"  at "../lib/admin.xqy";
 import module namespace b = "http://expath.org/ns/ml/console/binary" at "../lib/binary.xqy";
 import module namespace t = "http://expath.org/ns/ml/console/tools"  at "../lib/tools.xqy";
-import module namespace v = "http://expath.org/ns/ml/console/view"   at "../lib/view.xql";
+import module namespace v = "http://expath.org/ns/ml/console/view"   at "../lib/view.xqy";
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 

@@ -7,7 +7,7 @@ xquery version "3.0";
 import module namespace a = "http://expath.org/ns/ml/console/admin"
    at "../../lib/admin.xqy";
 import module namespace p = "http://expath.org/ns/ml/console/profile"
-   at "../../profiler/profile-lib.xql";
+   at "../../profiler/profile-lib.xqy";
 
 declare variable $db as xs:string :=
    a:get-databases()/a:database[a:name eq 'Documents']/@id;

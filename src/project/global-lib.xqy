@@ -5,9 +5,9 @@ xquery version "3.0";
  :)
 module namespace global = "http://expath.org/ns/ml/console/project/global";
 
-import module namespace dbdir    = "http://expath.org/ns/ml/console/project/dbdir"    at "dbdir-lib.xql";
-import module namespace srcdir   = "http://expath.org/ns/ml/console/project/srcdir"   at "srcdir-lib.xql";
-import module namespace xproject = "http://expath.org/ns/ml/console/project/xproject" at "xproject-lib.xql";
+import module namespace dbdir    = "http://expath.org/ns/ml/console/project/dbdir"    at "dbdir-lib.xqy";
+import module namespace srcdir   = "http://expath.org/ns/ml/console/project/srcdir"   at "srcdir-lib.xqy";
+import module namespace xproject = "http://expath.org/ns/ml/console/project/xproject" at "xproject-lib.xqy";
 
 import module namespace t = "http://expath.org/ns/ml/console/tools" at "../lib/tools.xqy";
 

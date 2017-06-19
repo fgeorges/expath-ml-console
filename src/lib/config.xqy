@@ -75,14 +75,14 @@ xquery version "3.0";
 module namespace cfg = "http://expath.org/ns/ml/console/config";
 
 import module namespace a = "http://expath.org/ns/ml/console/admin" at "admin.xqy";
-import module namespace r = "http://expath.org/ns/ml/console/repo"  at "repo.xql";
+import module namespace r = "http://expath.org/ns/ml/console/repo"  at "repo.xqy";
 import module namespace t = "http://expath.org/ns/ml/console/tools" at "tools.xqy";
 
 declare namespace c    = "http://expath.org/ns/ml/console";
 declare namespace w    = "http://expath.org/ns/ml/webapp";
 declare namespace xdmp = "http://marklogic.com/xdmp";
 
-(: TODO: Nothing should depend on this namespace here, move it to repo.xql or similar... :)
+(: TODO: Nothing should depend on this namespace here, move it to repo.xqy or similar... :)
 declare namespace pp = "http://expath.org/ns/repo/packages";
 
 declare variable $cfg:config-docname     := "http://expath.org/coll/console/config.xml";
@@ -546,7 +546,7 @@ declare function cfg:install-exapth-web-to-appserver(
                         t:error('internal-error', 'App Server modules neither on DB nor FS?')
    let $dest  := fn:concat($as/a:root, 'expath/web/')
    let $trunk := cfg:get-trunk-path($this-root)
-   for $file  in ('binary.xqy', 'dispatcher.xql', 'launcher.xq', 'url-rewriter.xq')
+   for $file  in ('binary.xqy', 'dispatcher.xqy', 'launcher.xq', 'url-rewriter.xq')
    return
       $copy-fn(fn:concat($trunk, $file), fn:concat($dest, $file)),
    a:set-url-rewriter-if-not-yet($as, '/expath/web/url-rewriter.xq')
@@ -558,13 +558,13 @@ declare %private function cfg:get-trunk-path($root as xs:string) as xs:string
    (: Handle other cases, like none of them ends (or starts) with a slash... :)
    let $idx  := if ( fn:ends-with($root, '/') and fn:starts-with($path, '/') ) then 2 else 1
    return
-      if ( fn:ends-with($path, '/lib/config.xql') ) then
+      if ( fn:ends-with($path, '/lib/config.xqy') ) then
          fn:concat(
             $root,
             fn:substring($path, $idx, fn:string-length($path) - $idx - 13),
             'trunk/expath-web/')
       else
-         t:error('internal-error', 'The module config.xql is not at the expected place...!')
+         t:error('internal-error', 'The module config.xqy is not at the expected place...!')
 };
 
 declare %private function cfg:copy-file-fs-to-fs(

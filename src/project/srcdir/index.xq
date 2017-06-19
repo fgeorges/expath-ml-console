@@ -1,7 +1,7 @@
 xquery version "3.0";
 
 import module namespace v = "http://expath.org/ns/ml/console/view"
-   at "../../lib/view.xql";
+   at "../../lib/view.xqy";
 
 declare function local:page() as element()+
 {
