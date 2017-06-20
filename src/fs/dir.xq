@@ -2,7 +2,7 @@ xquery version "3.0";
 
 import module namespace b = "http://expath.org/ns/ml/console/browse" at "../database/browse-lib.xql";
 
-import module namespace a = "http://expath.org/ns/ml/console/admin" at "../lib/admin.xql";
+import module namespace a = "http://expath.org/ns/ml/console/admin" at "../lib/admin.xqy";
 import module namespace t = "http://expath.org/ns/ml/console/tools" at "../lib/tools.xql";
 import module namespace v = "http://expath.org/ns/ml/console/view"  at "../lib/view.xql";
 
@@ -24,7 +24,7 @@ declare namespace h   = "http://www.w3.org/1999/xhtml";
  : TODO: Document... (especially the fact it accesses the entire URI index,
  : should be a problem with large databases, with a shit loads of documents.
  :
- : TODO: The details of how to retrieve the children must be in lib/admin.xql.
+ : TODO: The details of how to retrieve the children must be in lib/admin.xqy.
  :
  : TODO: Lot of duplicated code with local:page() in roots.xq, factorize out?
  :)

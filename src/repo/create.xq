@@ -1,6 +1,6 @@
 xquery version "3.0";
 
-import module namespace a   = "http://expath.org/ns/ml/console/admin"  at "../lib/admin.xql";
+import module namespace a   = "http://expath.org/ns/ml/console/admin"  at "../lib/admin.xqy";
 import module namespace cfg = "http://expath.org/ns/ml/console/config" at "../lib/config.xql";
 import module namespace t   = "http://expath.org/ns/ml/console/tools"  at "../lib/tools.xql";
 import module namespace v   = "http://expath.org/ns/ml/console/view"   at "../lib/view.xql";
@@ -44,7 +44,7 @@ declare function local:page()
 
 (:~
  : TODO: ...
- : TODO: Duplicated in web/create.xq, factorize out! Probably in lib/admin.xql?
+ : TODO: Duplicated in web/create.xq, factorize out! Probably in lib/admin.xqy?
  :)
 declare function local:create-repo-in-appserver(
    $id   as xs:string,
@@ -67,7 +67,7 @@ declare function local:create-repo-in-appserver(
 
 (:~
  : TODO: ...
- : TODO: Duplicated in web/create.xq, factorize out! Probably in lib/admin.xql?
+ : TODO: Duplicated in web/create.xq, factorize out! Probably in lib/admin.xqy?
  :)
 declare function local:create-repo-in-database(
    $id   as xs:string,
@@ -92,7 +92,7 @@ declare function local:create-repo-in-database(
 
 (:~
  : TODO: ...
- : TODO: Duplicated in web/create.xq, factorize out! Probably in lib/admin.xql?
+ : TODO: Duplicated in web/create.xq, factorize out! Probably in lib/admin.xqy?
  :)
 declare function local:create-repo-in-directory(
    $id   as xs:string,

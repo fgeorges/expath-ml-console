@@ -275,7 +275,7 @@ declare function b:get-matching-rsrc(
  : @todo Document... (especially the fact it accesses the entire URI index,
  : should be a problem with large databases, with a shit loads of documents.
  :
- : @todo The details of how to retrieve the children must be in lib/admin.xql.
+ : @todo The details of how to retrieve the children must be in lib/admin.xqy.
  :
  : @param endpoint The endpoint being used (to generate "next" and "previous" links)
  :)

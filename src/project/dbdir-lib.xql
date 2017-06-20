@@ -71,7 +71,7 @@ declare variable $source-exts :=
       </lang>
    </extensions>;
 
-(: TODO: Add filtering by extension to admin.xql...
+(: TODO: Add filtering by extension to admin.xqy...
  :)
 declare function this:sources-1($proj as element(mlc:project), $db as xs:string, $dir as xs:string)
    as element(file)*
