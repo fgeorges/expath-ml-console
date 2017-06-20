@@ -589,8 +589,12 @@ declare function v:ace-editor(
  : Form tools
  :)
 
-declare function v:inject-attr($name as xs:string, $value as xs:string, $sep as xs:string, $attrs as attribute()*)
-   as attribute()+
+declare function v:inject-attr(
+   $name  as xs:string,
+   $value as xs:string,
+   $sep   as xs:string,
+   $attrs as attribute()*
+) as attribute()+
 {
    let $a := $attrs[fn:name(.) eq $name]
    return
@@ -616,8 +620,12 @@ declare function v:form($action as xs:string, $attrs as attribute()*, $content a
    v:form($action, $attrs, $content, ())
 };
 
-declare function v:form($action as xs:string, $attrs as attribute()*, $content as element()+, $method as xs:string?)
-   as element(h:form)
+declare function v:form(
+   $action  as xs:string,
+   $attrs   as attribute()*,
+   $content as element()+,
+   $method  as xs:string?
+) as element(h:form)
 {
    v:form-impl($action, v:inject-attr('class', 'form-horizontal', ' ', $attrs), $content, $method)
 };
