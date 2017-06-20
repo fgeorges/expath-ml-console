@@ -12,7 +12,7 @@ declare function env:environs($id as xs:string)
 {
    let $p     := proj:project($id)
    let $dir   := proj:directory($p)
-   let $files := a:get-directory($dir || 'xproject/ml/')/dir:entry
+   let $files := a:get-directory($dir || 'xproject/mlenvs/')/dir:entry
    return
       $files/dir:pathname[fn:ends-with(., '.json')]
 };
