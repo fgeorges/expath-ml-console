@@ -37,7 +37,13 @@ declare function env:page(
       v:form('to/be/set', attribute { 'data-action-template' } { 'environ/{env}/show' }, (
          v:input-text('environ', 'Environment', '<to be replaced>', (),
                       attribute { 'disabled' } { 'disabled' }),
-         v:submit('Show')))
+         v:submit('Show'))),
+      <h3>Setup</h3>,
+      <p>Setup or update all components in an environment (its databases, servers, etc.)</p>,
+      v:form('to/be/set', attribute { 'data-action-template' } { 'environ/{env}/setup' }, (
+         v:input-text('environ', 'Environment', '<to be replaced>', (),
+                      attribute { 'disabled' } { 'disabled' }),
+         v:submit('Setup')))
    },
    (<script>
       function updateContextEnviron() {{

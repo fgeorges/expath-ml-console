@@ -1,8 +1,8 @@
 xquery version "3.0";
 
-(: TODO: Factorize this script with setup.xqy. :)
+(: TODO: Factorize this script with show.xqy. :)
 
-module namespace this = "http://expath.org/ns/ml/console/environ/show";
+module namespace this = "http://expath.org/ns/ml/console/environ/setup";
 
 import module namespace v = "http://expath.org/ns/ml/console/view" at "../../lib/view.xql";
 

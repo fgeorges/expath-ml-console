@@ -903,6 +903,23 @@ declare function v:input-checkbox($id as xs:string, $label as xs:string, $checke
    </div>
 };
 
+declare function v:input-radio(
+   $name  as xs:string,
+   $id    as xs:string,
+   $value as xs:string,
+   $label as xs:string
+) as element(h:div)
+{
+   <div xmlns="http://www.w3.org/1999/xhtml" class="radio">
+      <label>
+	 <input type="radio" name="{ $name }" id="{ $id }" value="{ $value }"> {
+            $label
+	 }
+	 </input>
+      </label>
+   </div>
+};
+
 declare function v:input-hidden($id as xs:string, $val as xs:string)
    as element(h:input)
 {

@@ -12,6 +12,35 @@ declare namespace xdmp = "http://marklogic.com/xdmp";
 declare namespace map  = "http://marklogic.com/xdmp/map";
 declare namespace json = "http://marklogic.com/xdmp/json";
 
+declare function disp:check(
+   $indent as xs:integer,
+   $msg    as xs:string,
+   $arg    as xs:string?
+) as element()+
+{
+   <p>TODO: disp:check - { $indent } - { $msg } - { $arg }</p>
+};
+
+declare function disp:add(
+   $indent as xs:integer,
+   $verb   as xs:string,
+   $msg    as xs:string,
+   $arg    as xs:string?
+) as element()+
+{
+   <p>TODO: disp:add - { $indent } - { $verb } - { $msg } - { $arg }</p>
+};
+
+declare function disp:remove(
+   $indent as xs:integer,
+   $verb   as xs:string,
+   $msg    as xs:string,
+   $arg    as xs:string?
+) as element()+
+{
+   <p>TODO: disp:remove - { $indent } - { $verb } - { $msg } - { $arg }</p>
+};
+
 declare function disp:property($prop as item((: map:map :))) as element(h:tr)
 {
    disp:property($prop, 1)

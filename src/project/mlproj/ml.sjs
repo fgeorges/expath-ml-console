@@ -38,6 +38,72 @@
             console.log('mlproj: ' + msg);
         }
 
+        get(api, url, error, success) {
+            var url  = this.url(api, url);
+            var user = this.space.param('@user');
+            var pwd  = this.space.param('@password');
+            if ( ! user ) {
+                throw new Error('No user in space');
+            }
+            if ( ! pwd ) {
+                throw new Error('No pwd in space (TODO: Allow to pass via form values...)');
+            }
+            var options = {
+                headers: {
+                    Accept: 'application/json'
+                },
+		authentication: {
+		    // TODO: Set method accordingly...
+		    method   : 'digest',
+		    username : user,
+		    password : pwd
+		}
+            };
+            var resp = xdmp.httpGet(url, options);
+	    var info = fn.head(resp);
+	    var body = fn.head(fn.tail(resp));
+            if ( info.code === 200 ) {
+                return JSON.parse(body);
+            }
+            else if ( info.code === 404 ) {
+                return;
+            }
+            else {
+                throw new Error('Error retrieving entity: ' + (body.errorResponse
+                                ? body.errorResponse.message : body));
+            }
+        }
+
+	// TODO: Display specific, to be removed...
+        bold(s) {
+            return s;
+        }
+
+	// TODO: Display specific, to be removed...
+        yellow(s) {
+            return s;
+        }
+
+	// TODO: Display specific, to be removed...
+        red(s) {
+            return s;
+        }
+
+	// TODO: Display specific, to be removed...
+        green(s) {
+            return s;
+        }
+
+	// TODO: Display specific, to be removed...
+        log(msg) {
+            console.log(msg);;
+        }
+
+	// TODO: Display specific, to be removed...
+        warn(msg) {
+            console.log(msg);;
+        }
+
 	// TODO: Handle proper configuration...
         config(name) {
         }
@@ -87,15 +153,15 @@
 	}
 
         check(indent, msg, arg) {
-	    throw new Error('Implement me!');
+            this.save(disp.check(indent, msg, arg));
 	}
 
         add(indent, verb, msg, arg) {
-	    throw new Error('Implement me!');
+            this.save(disp.add(indent, verb, msg, arg));
 	}
 
         remove(indent, verb, msg, arg) {
-	    throw new Error('Implement me!');
+            this.save(disp.remove(indent, verb, msg, arg));
 	}
     }
 
