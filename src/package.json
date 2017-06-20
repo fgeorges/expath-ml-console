@@ -20,6 +20,6 @@
   },
   "homepage": "https://github.com/fgeorges/expath-ml-console#readme",
   "dependencies": {
-    "mlproj-core": "^0.6.7"
+    "mlproj-core": "^0.8.0"
   }
 }
