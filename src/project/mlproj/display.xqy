@@ -2,6 +2,8 @@ xquery version "3.0";
 
 module namespace disp = "http://expath.org/ns/ml/console/mlproj/display";
 
+import module namespace bin = "http://expath.org/ns/ml/console/binary" at "../../lib/binary.xql";
+
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
 declare namespace h = "http://www.w3.org/1999/xhtml";
@@ -10,20 +12,35 @@ declare namespace xdmp = "http://marklogic.com/xdmp";
 declare namespace map  = "http://marklogic.com/xdmp/map";
 declare namespace json = "http://marklogic.com/xdmp/json";
 
-(: TODO: Support when $value is an attay... :)
+declare function disp:property($prop as item((: map:map :))) as element(h:tr)
+{
+   disp:property($prop, 1)
+};
+
+(: TODO: Use sub-tables instead of $level...? :)
 declare function disp:property(
    $prop  as item((: map:map :)),
    $level as xs:integer
-) as element(h:tr)
+) as element(h:tr)+
 {
    let $value := map:get($prop, 'value')
    let $def   := map:get($prop, 'prop')
    let $label := map:get($def,  'label')
    return
-      <tr>
-	 <td>{ $label }</td>
-	 <td>{ $value }</td>
-      </tr>
+      if ( bin:is-json-array($value) ) then
+         for $v in json:array-values($value)
+         return (
+            <tr>
+               <td>{ fn:string-join((1 to (($level - 1) * 8)) ! '&#160;', '') }{ $label }</td>
+               <td/>
+            </tr>,
+            map:keys($v) ! disp:property(map:get($v, .), $level + 1)
+         )
+      else
+         <tr>
+            <td>{ fn:string-join((1 to (($level - 1) * 8)) ! '&#160;', '') }{ $label }</td>
+            <td>{ $value }</td>
+         </tr>
 };
 
 declare function disp:database(
@@ -52,7 +69,7 @@ declare function disp:database(
 	 { <tr><td>Forests</td>     <td>      { $forests[1] }       </td></tr>[$forests]  }
          {
             fn:tail($forests) ! <tr><td/><td>{ . }</td></tr>,
-            map:keys($props) ! disp:property(map:get($props, .), 1)
+            map:keys($props) ! disp:property(map:get($props, .))
 	 }
       </tbody>
    </table>
@@ -81,7 +98,7 @@ declare function disp:server(
 	 { <tr><td>Content DB</td> <td>      { $content }       </td></tr>[$content] }
 	 { <tr><td>Modules DB</td> <td>      { $modules }       </td></tr>[$modules] }
          {
-            map:keys($props) ! disp:property(map:get($props, .), 1)
+            map:keys($props) ! disp:property(map:get($props, .))
 	 }
       </tbody>
    </table>

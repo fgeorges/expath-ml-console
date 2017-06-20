@@ -47,3 +47,9 @@ declare function bin:is-json($arg as node())
       case null-node()    return fn:true()
       default             return fn:false()
 };
+
+declare function bin:is-json-array($arg as item())
+   as xs:boolean
+{
+   $arg instance of json:array
+};
