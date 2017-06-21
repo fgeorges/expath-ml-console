@@ -1,6 +1,6 @@
 "use strict";
 
-// TODO: Factorize this script with setup.sjs.
+// TODO: Factorize this script with setup.sjs and action.sjs.
 
 const cmd  = require('../mlproj/commands');
 const ml   = require('../mlproj/ml');
@@ -28,7 +28,8 @@ try {
     const p = platform.project(environ, null, dir, params, force);
     // execute the command
     const command = new cmd.ShowCommand({}, {}, platform, display, p);
-    command.execute();
+    const actions = command.prepare();
+    command.execute(actions);
     // draw the page
     view.page(environ, project, display.content);
 }

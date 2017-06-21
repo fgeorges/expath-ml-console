@@ -323,6 +323,16 @@ declare function t:respond-not-found($content as item()*)
 };
 
 (:~
+ : Set "500 Internal server error" on the HTTP response.
+ :)
+declare function t:respond-internal-error($content as item()*)
+   as item()*
+{
+   xdmp:set-response-code(500, 'Internal server error'),
+   $content
+};
+
+(:~
  : Set "501 Not implemented" on the HTTP response.
  :)
 declare function t:respond-not-implemented($content as item()*)

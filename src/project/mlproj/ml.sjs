@@ -38,7 +38,27 @@
             console.log('mlproj: ' + msg);
         }
 
-        get(api, url, error, success) {
+        credentials() {
+            var user = this.space.param('@user');
+            var pwd  = this.space.param('@password');
+            if ( ! user ) {
+                throw new Error('No user in space');
+            }
+            if ( ! pwd ) {
+                throw new Error('No pwd in space (TODO: Allow to pass via form values...)');
+            }
+            var options = {
+                authentication: {
+                    // TODO: Set method accordingly...
+                    method   : 'digest',
+                    username : user,
+                    password : pwd
+                }
+            };
+            return options;
+        }
+
+        get(api, url) {
             var url  = this.url(api, url);
             var user = this.space.param('@user');
             var pwd  = this.space.param('@password');
@@ -75,6 +95,111 @@
         }
 
 	// TODO: Display specific, to be removed...
+        post(api, url, data) {
+            var url  = this.url(api, url);
+            var user = this.space.param('@user');
+            var pwd  = this.space.param('@password');
+            if ( ! user ) {
+                throw new Error('No user in space');
+            }
+            if ( ! pwd ) {
+                throw new Error('No pwd in space (TODO: Allow to pass via form values...)');
+            }
+            var options = {
+                authentication: {
+                    // TODO: Set method accordingly...
+                    method   : 'digest',
+                    username : user,
+                    password : pwd
+                },
+                headers: {
+                    "Content-Type": 'application/x-www-form-urlencoded'
+                }
+            };
+            if ( data ) {
+                options.headers["Content-Type"] = 'application/json';
+                options.data                    = JSON.stringify(data);
+            }
+            var resp = xdmp.httpPost(url, options);
+            var info = fn.head(resp);
+            var body = fn.head(fn.tail(resp));
+            if ( info.code === (data ? 201 : 200) ) {
+                return;
+            }
+            else {
+                throw new Error('Entity not created: ' + (body.errorResponse
+                                ? body.errorResponse.message : body));
+            }
+        }
+
+        put(api, url, data, type) {
+            var url     = this.url(api, url);
+            var options = this.credentials();
+            options.headers = {
+                Accept: 'application/json'
+            };
+            if ( data ) {
+                if ( type ) {
+                    options.headers['Content-Type'] = type;
+                    options.data                    = data;
+                }
+                else {
+                    options.headers["Content-Type"] = 'application/json';
+                    options.data                    = JSON.stringify(data);
+                }
+            }
+            else {
+                options.headers['Content-Type'] = 'application/x-www-form-urlencoded';
+            }
+            var resp = xdmp.httpPut(url, options);
+            var info = fn.head(resp);
+            var body = fn.head(fn.tail(resp));
+            // XDBC PUT /insert returns 200
+            if ( info.code === 200 || info.code === 201 || info.code === 204 ) {
+                return;
+            }
+            // when operation needs a server restart
+            else if ( info.code === 202 ) {
+                if ( ! body.root.restart ) {
+                    throw new Error('202 returned NOT for a restart reason?!?');
+                }
+                return Date.parse(body.root.restart['last-startup'][0].value);
+            }
+            else {
+                throw new Error('Entity not updated: ' + (body.errorResponse
+                                ? body.errorResponse.message : body));
+            }
+        }
+
+        // TODO: Do something different when target is "localhost"?
+        restart(last) {
+            var ping;
+            var body;
+            var num = 1;
+            do {
+                xdmp.sleep(1000);
+                if ( ! (num % 3) ) {
+                    // TODO: Says "Still waiting...", somehow?
+                }
+                try {
+                    var res = xdmp.httpGet(this.url('admin', '/timestamp'), this.credentials());
+                    ping = fn.head(res);
+                    body = fn.head(fn.tail(res));
+                }
+                catch ( err ) {
+                    ping = err;
+                }
+            }
+            while ( ++num < 10 && (ping.code === 503) );
+            if ( ping.code !== 200 ) {
+                throw new Error('Error waiting for server restart: ' + num + ' - ' + ping);
+            }
+            var now = Date.parse(body);
+            if ( last >= now ) {
+                throw new Error('Error waiting for server restart: ' + last + ' - ' + now);
+            }
+        }
+
         bold(s) {
             return s;
         }
@@ -163,6 +288,27 @@
         remove(indent, verb, msg, arg) {
             this.save(disp.remove(indent, verb, msg, arg));
 	}
+
+        error(e, verbose) {
+            switch ( e.name ) {
+            case 'server-no-content':
+                this.save(disp.toImplement(
+                    'Error: The server ' + e.server + ' has no content DB.'));
+                this.save(disp.toImplement(
+                    'Are you sure you want to load documents on it?  Check your environ file.'));
+            case 'server-no-modules':
+                this.save(disp.toImplement(
+                    'Error: The server ' + e.server + ' has no modules DB.'));
+                this.save(disp.toImplement(
+                    'There is no need to deploy when server modules are on the filesystem.'));
+            default:
+                this.save(disp.toImplement('Error: ' + e.message));
+            }
+            if ( verbose ) {
+                this.save(disp.toImplement('Stacktrace:'));
+                this.save(disp.code(e.stack));
+            }
+        }
     }
 
     module.exports = {

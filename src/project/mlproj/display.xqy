@@ -12,6 +12,16 @@ declare namespace xdmp = "http://marklogic.com/xdmp";
 declare namespace map  = "http://marklogic.com/xdmp/map";
 declare namespace json = "http://marklogic.com/xdmp/json";
 
+declare function disp:code($code as xs:string) as element()+
+{
+   <pre>{ $code }</pre>
+};
+
+declare function disp:to-implement($msg as xs:string) as element()+
+{
+   <p>TO IMPLEMENT: { $msg }</p>
+};
+
 declare function disp:check(
    $indent as xs:integer,
    $msg    as xs:string,
