@@ -223,7 +223,7 @@
 
         isDirectory(path) {
             try {
-		xdmp.filesystemDirectory(dir);
+		xdmp.filesystemDirectory(path);
 		return true;
 	    }
 	    catch (err) {
