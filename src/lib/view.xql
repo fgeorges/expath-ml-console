@@ -781,24 +781,19 @@ declare function v:submit($label as xs:string)
    </div>
 };
 
-declare function v:input-select($id as xs:string, $label as xs:string, $options as element(h:option)*)
-   as element(h:div)
+declare function v:input-select(
+   $id      as xs:string,
+   $label   as xs:string,
+   $options as element((: h:option|h:optgroup :))*
+) as element(h:div)
 {
-   <div xmlns="http://www.w3.org/1999/xhtml" class="form-group">
-      <label for="{ $id }" class="col-sm-2 control-label">{ $label }</label>
-      <div class="col-sm-10">
-         <select name="{ $id }" class="form-control"> {
-            $options
-         }
-         </select>
-      </div>
-   </div>
+   v:input-select($id, $label, $options, (), ())
 };
 
 declare function v:input-select(
    $id           as xs:string,
    $label        as xs:string,
-   $options      as element(h:option)*,
+   $options      as element((: h:option|h:optgroup :))*,
    $div-attrs    as attribute()*,
    $select-attrs as attribute()*
 ) as element(h:div)
@@ -814,6 +809,14 @@ declare function v:input-select(
          </select>
       </div>
    </div>
+};
+
+declare function v:input-optgroup(
+   $label   as xs:string,
+   $options as element(h:option)*
+) as element(h:optgroup)
+{
+   <optgroup xmlns="http://www.w3.org/1999/xhtml" label="{ $label }">{ $options }</optgroup>
 };
 
 declare function v:input-option($val as xs:string, $label as xs:string)
