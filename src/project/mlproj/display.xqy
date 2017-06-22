@@ -214,7 +214,14 @@ declare function disp:environ(
 	 { <tr><td>User</td>         <td><code>{ $user     }</code></td></tr>[$user]     }
 	 { <tr><td>Password</td>     <td>*****</td>                     </tr>[$password] }
 	 { <tr><td>Sources dir</td>  <td><code>{ $srcdir   }</code></td></tr>[$srcdir]   }
-	 { <tr><td>Modules DB</td>   <td><code>{ $mods     }</code></td></tr>[$mods]     }
+	 { <tr>
+              <td>Modules DB</td>
+              <td> {
+                 if ( $mods eq '(filesystem)' ) then $mods else <code>{ $mods }</code>
+              }
+              </td>
+           </tr>[$mods]
+         }
       </tbody>
    </table>,
    let $seq := json:array-values($params)
