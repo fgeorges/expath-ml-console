@@ -608,6 +608,22 @@ declare function v:inject-attr(
       )
 };
 
+declare function v:inject-class(
+   $value as xs:string,
+   $attrs as attribute()*
+) as attribute()+
+{
+   v:inject-attr('class', $value, ' ', $attrs)
+};
+
+declare function v:inject-style(
+   $value as xs:string,
+   $attrs as attribute()*
+) as attribute()+
+{
+   v:inject-attr('style', $value, '; ', $attrs)
+};
+
 declare function v:form($action as xs:string, $content as element()+)
    as element(h:form)
 {
@@ -627,7 +643,7 @@ declare function v:form(
    $method  as xs:string?
 ) as element(h:form)
 {
-   v:form-impl($action, v:inject-attr('class', 'form-horizontal', ' ', $attrs), $content, $method)
+   v:form-impl($action, v:inject-class('form-horizontal', $attrs), $content, $method)
 };
 
 declare function v:inline-form($action as xs:string, $content as element()+)
@@ -641,8 +657,8 @@ declare function v:inline-form($action as xs:string, $attrs as attribute()*, $co
 {
    v:form-impl(
       $action,
-      v:inject-attr('class', 'form-inline', ' ',
-         v:inject-attr('style', 'height: 12pt', '; ', $attrs)),
+      v:inject-class('form-inline',
+         v:inject-style('height: 12pt', $attrs)),
       $content,
       ())
 };
@@ -760,11 +776,11 @@ declare function v:input-text(
 ) as element(h:div)
 {
    <div xmlns="http://www.w3.org/1999/xhtml">
-      { v:inject-attr('class', 'form-group', ' ', $div-attrs) }
+      { v:inject-class('form-group', $div-attrs) }
       <label for="{ $id }" class="col-sm-2 control-label">{ $label }</label>
       <div class="col-sm-10">
          <input type="text" name="{ $id }" placeholder="{ $placeholder }"> {
-            v:inject-attr('class', 'form-control', ' ', $input-attrs)
+            v:inject-class('form-control', $input-attrs)
          }
          </input>
       </div>
@@ -799,11 +815,11 @@ declare function v:input-select(
 ) as element(h:div)
 {
    <div xmlns="http://www.w3.org/1999/xhtml">
-      { v:inject-attr('class', 'form-group', ' ', $div-attrs) }
+      { v:inject-class('form-group', $div-attrs) }
       <label for="{ $id }" class="col-sm-2 control-label">{ $label }</label>
       <div class="col-sm-10">
          <select name="{ $id }"> {
-            v:inject-attr('class', 'form-control', ' ', $select-attrs),
+            v:inject-class('form-control', $select-attrs),
             $options
          }
          </select>
@@ -880,7 +896,7 @@ declare function v:input-select-rulesets(
          (: TODO: What if one of `$checked` is not in any of the `$r`...? :)
          v:input-option($r, $r, $selected[$r = $checked]),
       $div-attrs,
-      v:inject-attr('class', 'selectpicker', ' ',
+      v:inject-class('selectpicker',
          v:inject-attr('multiple', 'multiple', ' ', $select-attrs)))
 };
 
