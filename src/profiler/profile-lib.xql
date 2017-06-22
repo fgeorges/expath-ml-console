@@ -8,7 +8,7 @@ module namespace p = "http://expath.org/ns/ml/console/profile";
 import module namespace a       = "http://expath.org/ns/ml/console/admin"
    at "../lib/admin.xqy";
 import module namespace t       = "http://expath.org/ns/ml/console/tools"
-   at "../lib/tools.xql";
+   at "../lib/tools.xqy";
 import module namespace qc-eval = "http://marklogic.com/appservices/qconsole/evaler"
    at "/MarkLogic/appservices/qconsole/qc-evaler.xqy";
 import module namespace qc-amp  = "http://marklogic.com/appservices/qconsole/util-amped"

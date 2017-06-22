@@ -2,7 +2,7 @@ xquery version "3.0";
 
 module namespace parser = "http://expath.org/ns/ml/console/parser";
 
-import module namespace t = "http://expath.org/ns/ml/console/tools" at "../../lib/tools.xql";
+import module namespace t = "http://expath.org/ns/ml/console/tools" at "../../lib/tools.xqy";
 
 declare namespace map = "http://marklogic.com/xdmp/map";
 

@@ -75,7 +75,7 @@ declare function local:page() as element()+
          parser:parse(
             a:get-from-directory(
                '/Users/fgeorges/projects/expath/ml-console/src/lib/',
-               'tools.xql',
+               'tools.xqy',
                fn:false())))
    }
    </pre>,

@@ -2,7 +2,7 @@
 xquery version "1.0-ml";
 
 import module namespace i = "http://expath.org/ns/ml/console/insert" at "insert-lib.xql";
-import module namespace t = "http://expath.org/ns/ml/console/tools"  at "../lib/tools.xql";
+import module namespace t = "http://expath.org/ns/ml/console/tools"  at "../lib/tools.xqy";
 
 (: TODO: Is it possible to support (or at least detect) multiple files?  The
  : [plugin doc](https://github.com/blueimp/jQuery-File-Upload/wiki/Setup) gives

@@ -3,7 +3,7 @@ xquery version "3.0";
 module namespace dbc = "http://expath.org/ns/ml/console/database/config";
 
 import module namespace a = "http://expath.org/ns/ml/console/admin" at "../lib/admin.xqy";
-import module namespace t = "http://expath.org/ns/ml/console/tools" at "../lib/tools.xql";
+import module namespace t = "http://expath.org/ns/ml/console/tools" at "../lib/tools.xqy";
 
 declare namespace c = "http://expath.org/ns/ml/console";
 
