@@ -137,9 +137,14 @@ declare function this:page(
                   .children('span')
                   .css('color', 'orange');
                if ( data.responseJSON ) {{
+                  var msg = data.responseJSON.error
+                     ? ( data.responseJSON.error.message
+                         ? data.responseJSON.error.message
+                         : JSON.stringify(data.responseJSON.error) )
+                     : JSON.stringify(data.responseJSON);
                   $('#summary')
                      .toggleClass('alert-info alert-danger')
-                     .text(data.responseJSON.error.message);
+                     .text(msg);
                }}
                else {{
                   $('#summary')

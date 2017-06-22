@@ -17,6 +17,6 @@ lib.loadDeploy(
     environ,
     source,
     target,
-    cmd.LoadCommand,
-    (cmdArgs, actions) => view.page(environ, project, 'load', cmdArgs, actions),
+    cmd.DeployCommand,
+    (cmdArgs, actions) => view.page(environ, project, 'deploy', cmdArgs, actions),
     err => view.error(environ, project, err));

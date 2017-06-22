@@ -2,7 +2,7 @@ xquery version "3.0";
 
 (: TODO: Factorize this script with show.xqy. :)
 
-module namespace this = "http://expath.org/ns/ml/console/environ/setup";
+module namespace this = "http://expath.org/ns/ml/console/environ/load";
 
 import module namespace t = "http://expath.org/ns/ml/console/tools" at "../../lib/tools.xqy";
 import module namespace v = "http://expath.org/ns/ml/console/view"  at "../../lib/view.xql";
@@ -82,15 +82,37 @@ declare function this:action($action as item((: map:map :))) as element()
          </p>
 };
 
+declare function this:intro(
+   $environ  as xs:string,
+   $project  as xs:string,
+   $type     as xs:string,
+   $cmd-args as item((: json:array :))
+) as element()
+{
+   let $what   := if ( $type eq 'load' ) then 'Load documents' else 'Deploy sources'
+   let $db     := map:get($cmd-args, 'database')
+   let $srv    := map:get($cmd-args, 'server')
+   let $force  := map:get($cmd-args, 'forceDb')
+   let $target :=
+         if ( $srv ) then
+            $srv ! v:as-link('../../../../appserver/' || ., .)
+         else
+            ($db, $force) ! v:db-link('../../../../db/' || ., .)
+   return
+      <p>{ $what } in the environment <code>{ $environ }</code>, in project
+	 { v:proj-link('../../../' || $project, $project) }, to { $target }.</p>
+};
+
 declare function this:page(
-   $environ as xs:string,
-   $project as xs:string,
-   $actions as item((: json:array :))
+   $environ  as xs:string,
+   $project  as xs:string,
+   $type     as xs:string,
+   $cmd-args as item((: json:array :)),
+   $actions  as item((: json:array :))
 )
 {
    v:console-page('../../../../', 'project', 'Environ ' || $environ, function() {
-      <p>Setup the environment <code>{ $environ }</code>, in project
-	 { v:proj-link('../../../' || $project, $project) }.</p>,
+      this:intro($environ, $project, $type, $cmd-args),
       let $seq := json:array-values($actions)
       return
          if ( fn:empty($seq) ) then (

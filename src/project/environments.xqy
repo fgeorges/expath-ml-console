@@ -15,37 +15,40 @@ declare function env:input-select-text(
    $id            as xs:string,
    $label         as xs:string,
    $placeholder-1 as xs:string,
+   $default       as xs:string,
    $placeholder-2 as xs:string,
    $options       as element(h:option)*
 ) as element(h:div)+
 {
-   <div class="form-group">
-      <label for="{ $id }-path" class="col-sm-2 control-label">{ $label }</label>
-      <div class="col-sm-10">
-         <div class="input-group">
-            <!-- TODO: When source sets supported, only one of both is required... -->
-            <input type="text" id="{ $id }-path" name="{ $id }-path" class="form-control"
-                   placeholder="{ $placeholder-1 }" required="required"/>
-            <span class="input-group-addon">
-               <input type="radio" id="{ $id }-path-check"/>
-            </span>
+   <div class="exclusive">
+      <div class="form-group">
+         <label for="{ $id }-path" class="col-sm-2 control-label">{ $label }</label>
+         <div class="col-sm-10">
+            <div class="input-group">
+               <!-- TODO: When source sets supported, only one of both is required... -->
+               <input type="text" name="{ $id }-path" class="form-control excl-first"
+                      placeholder="{ $placeholder-1 }" required="required" value="{ $default }"/>
+               <span class="input-group-addon">
+                  <input type="radio" name="{ $id }-path-check" class="excl-first-check" checked="checked"/>
+               </span>
+            </div>
          </div>
       </div>
-   </div>,
-   <div class="form-group">
-      { if ( fn:empty($options) ) then attribute { 'hidden' } { 'hidden' } else () }
-      <label for="{ $id }-srcdir" class="col-sm-2 control-label"/>
-      <div class="col-sm-10">
-         <div class="input-group">
-            <select id="{ $id }-srcdir" name="{ $id }-srcdir" class="form-control">
-               <option value="" disabled="disabled" selected="selected" hidden="hidden">
-                  { $placeholder-2 }
-               </option>
-               { $options }
-            </select>
-            <span class="input-group-addon">
-               <input type="radio" id="{ $id }-srcdir-check"/>
-            </span>
+      <div class="form-group">
+         { if ( fn:empty($options) ) then attribute { 'hidden' } { 'hidden' } else () }
+         <label for="{ $id }-srcdir" class="col-sm-2 control-label"/>
+         <div class="col-sm-10">
+            <div class="input-group">
+               <select id="{ $id }-srcdir" name="{ $id }-srcdir" class="form-control excl-second">
+                  <option value="" disabled="disabled" selected="selected" hidden="hidden">
+                     { $placeholder-2 }
+                  </option>
+                  { $options }
+               </select>
+               <span class="input-group-addon">
+                  <input type="radio" name="{ $id }-srcdir-check" class="excl-second-check"/>
+               </span>
+            </div>
          </div>
       </div>
    </div>
@@ -87,13 +90,17 @@ declare function env:page(
                       attribute { 'disabled' } { 'disabled' }),
          v:submit('Setup'))),
       <h3>Load</h3>,
-      <p>Load documents from a source (a source dir, a directory or a file) to a database
+      <p>Load documents from a source (a file set, a directory or a file) to a database
          (you can select a server as well to load to its content database):</p>,
-      v:form('to/be/set', attribute { 'data-action-template' } { 'environ/{env}/load' }, (
+      v:form('to/be/set', (
+         attribute { 'data-action-template' } { 'environ/{env}/load' },
+         attribute { 'data-load-type'       } { 'load' }
+         ), (
          v:input-text('environ', 'Environment', '<to be replaced>', (),
                       attribute { 'disabled' } { 'disabled' }),
          env:input-select-text('source', 'Source',
             'Path to directory or file, relative to project dir...',
+            'data/',
             '...or select a source directory',
             ((: TODO: Add source sets once supported... :))),
          v:input-select('target', 'Target', (
@@ -101,7 +108,27 @@ declare function env:page(
             v:input-optgroup('Servers',         ((: ...code, depending on the... :))),
             v:input-optgroup('Other databases', ((: ...selected environment :)))
          )),
-         v:submit('Load')))
+         v:submit('Load'))),
+      <h3>Deploy</h3>,
+      <p>Deploy sources (from a file set, a directory or a file) to a database
+         (you can select a server as well to deploy to its modules database):</p>,
+      v:form('to/be/set', (
+         attribute { 'data-action-template' } { 'environ/{env}/deploy' },
+         attribute { 'data-load-type'       } { 'deploy' }
+         ), (
+         v:input-text('environ', 'Environment', '<to be replaced>', (),
+                      attribute { 'disabled' } { 'disabled' }),
+         env:input-select-text('source', 'Source',
+            'Path to directory or file, relative to project dir...',
+            'src/',
+            '...or select a source directory',
+            ((: TODO: Add source sets once supported... :))),
+         v:input-select('target', 'Target', (
+            v:input-optgroup('Databases',       ((: set dynamically by JavaScript... :))),
+            v:input-optgroup('Servers',         ((: ...code, depending on the... :))),
+            v:input-optgroup('Other databases', ((: ...selected environment :)))
+         )),
+         v:submit('Deploy')))
    },
    (<script>
       var details = JSON.parse('{ $details }');
@@ -115,10 +142,15 @@ declare function env:page(
          else if ( detail.databases.length === 1 ) {{
             return detail.databases[0].name;
          }}
-         else {{
-            // error, not exactly 1 server or database, just return nothing
-            return;
+         // return nothing if not exactly 1 server or database
+      }}
+
+      function defaultModulesDb(detail) {{
+         // if exactly 1 server, it is its content db
+         if ( detail.servers.length === 1 ) {{
+            return detail.servers[0].modules;
          }}
+         // return nothing if not exactly 1 server
       }}
 
       function updateContextEnviron() {{
@@ -131,83 +163,102 @@ declare function env:page(
             $('input[name="environ"]').val(env);
             // inject it in all form endpoints template
             $('form').each(function() {{
+
                var template = $(this).data('action-template');
                if ( template ) {{
                   var action = template.replace('{{env}}', env);
                   $(this).attr('action', action);
                }}
-            }});
 
-            // the current environ detail
-            var detail = details[env];
-            // the default database to select
-            var defaultDb = defaultContentDb(detail);
+               var type = $(this).data('load-type');
+               if ( type ) {{
+		  // the current environ detail
+		  var detail = details[env];
+		  // the default database to select
+		  var defaultDb = type === 'load'
+                     ? defaultContentDb(detail)
+                     : defaultModulesDb(detail);
 
-            // set the target dropdown lists...
-            // ...the project databases
-            var dbs = $('select[name="target"] optgroup').eq(0);
-            dbs.children().remove();
-            detail.databases.forEach(function(db) {{
-               var opt = $('<option />', {{
-                  text  : db.name,
-                  value : 'db:' + db.name
-               }});
-               dbs.append(opt);
-               if ( db.name === defaultDb ) {{
-                  opt.select();
+		  // set the target dropdown lists...
+		  // ...the project databases
+		  var dbs = $(this).find('select[name="target"] optgroup').eq(0);
+		  dbs.children().remove();
+		  detail.databases.forEach(function(db) {{
+		     var opt = $('<option />', {{
+			text  : db.name,
+			value : 'db:' + db.name
+		     }});
+                     dbs.append(opt);
+		     if ( db.name === defaultDb ) {{
+                        opt.prop('selected', true);
+		     }}
+		  }});
+
+		  // ...the project servers
+		  var srvs = $(this).find('select[name="target"] optgroup').eq(1);
+		  srvs.children().remove();
+		  detail.servers.forEach(function(srv) {{
+		     srvs.append($('<option />', {{
+			text  : srv.name + ' (content db: ' + srv.content + ')',
+			// TODO: Put the content db instead, so we always send a db?
+			value : 'srv:' + srv.name
+		     }}));
+		  }});
+
+		  // ...all other databases
+		  var alldbs = $(this).find('select[name="target"] optgroup').eq(2);
+		  alldbs.children().remove();
+		  details['@all-dbs'].sort().forEach(function(db) {{
+		     alldbs.append($('<option />', {{
+			text  : db,
+			value : 'other:' + db
+		     }}));
+		  }});
                }}
+
             }});
-            // ...the project servers
-            var srvs = $('select[name="target"] optgroup').eq(1);
-            srvs.children().remove();
-            detail.servers.forEach(function(srv) {{
-               srvs.append($('<option />', {{
-                  text  : srv.name + ' (content db: ' + srv.content + ')',
-                  // TODO: Put the content db instead, so we always send a db?
-                  value : 'srv:' + srv.name
-               }}));
-            }});
-            // ...all other databases
-            var alldbs = $('select[name="target"] optgroup').eq(2);
-            alldbs.children().remove();
-            details['@all-dbs'].sort().forEach(function(db) {{
-               alldbs.append($('<option />', {{
-                  text  : db,
-                  value : 'other:' + db
-               }}));
-            }});
+
          }}
+      }}
+
+      function initExclusive() {{
+         var widget = $(this);
+         // make these 2 radio buttons mutually exclusive
+         widget.find('.excl-first-check').change(function() {{
+            if ( $(this).val() === 'on' ) {{
+               widget.find('.excl-first').focus();
+               widget.find('.excl-second-check').prop('checked', false);
+            }}
+         }});
+         widget.find('.excl-second-check').change(function() {{
+            if ( $(this).val() === 'on' ) {{
+               widget.find('.excl-second').focus();
+               widget.find('.excl-first-check').prop('checked', false);
+            }}
+         }});
+         // when a field has focus, select its corresponding radio button
+         widget.find('.excl-first').focus(function() {{
+            widget.find('.excl-first-check').prop('checked', true);
+            widget.find('.excl-second-check').prop('checked', false);
+         }});
+         widget.find('.excl-second').focus(function() {{
+            widget.find('.excl-first-check').prop('checked', false);
+            widget.find('.excl-second-check').prop('checked', true);
+         }});
       }}
    </script>,
    <script>
       $(document).ready(function() {{
+         // set change listener, and select first environ
+         // TODO: Select the default environ instead of the first one...?
          $('input[name="environs"]')
             .change(updateContextEnviron)
             .first()
             .prop("checked", true)
             .trigger('change');
-         // make these 2 radio buttons mutually exclusive
-         $('#source-path-check').change(function() {{
-            if ( $(this).val() === 'on' ) {{
-               $('#source-path').focus();
-               $('#source-srcdir-check').prop('checked', false);
-            }}
-         }});
-         $('#source-srcdir-check').change(function() {{
-            if ( $(this).val() === 'on' ) {{
-               $('#source-srcdir').focus();
-               $('#source-path-check').prop('checked', false);
-            }}
-         }});
-         // when a field has focus, select its corresponding radio button
-         $('#source-path').focus(function() {{
-            $('#source-path-check').prop('checked', true);
-            $('#source-srcdir-check').prop('checked', false);
-         }});
-         $('#source-srcdir').focus(function() {{
-            $('#source-path-check').prop('checked', false);
-            $('#source-srcdir-check').prop('checked', true);
-         }});
+         // initialize the "exclusive" fields
+         $('.exclusive')
+            .each(initExclusive);
       }});
    </script>))
 };

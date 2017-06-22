@@ -247,11 +247,6 @@
         }
 
         // TODO: Display specific, to be removed...
-        green(s) {
-            return s;
-        }
-
-        // TODO: Display specific, to be removed...
         log(msg) {
             console.log(msg);;
         }
