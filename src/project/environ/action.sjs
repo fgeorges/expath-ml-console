@@ -1,6 +1,6 @@
 "use strict";
 
-// TODO: Factorize this script with show.sjs and setup.sjs.
+// TODO: Factorize this script with load.sjs, show.sjs and setup.sjs.
 
 const core = require('../mlproj/core');
 const ml   = require('../mlproj/ml');

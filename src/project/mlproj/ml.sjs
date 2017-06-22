@@ -10,11 +10,15 @@
 
     class Platform extends core.Platform
     {
-        constructor(dry, verbose) {
+        constructor(dry, verbose, cwd) {
             super(dry, verbose);
+	    this.cwd = cwd;
         }
 
         resolve(href, base) {
+	    if ( ! base ) {
+		base = this.cwd;
+	    }
             return new String(fn.resolveUri(href, base));
         }
 
@@ -197,6 +201,34 @@
             if ( last >= now ) {
                 throw new Error('Error waiting for server restart: ' + last + ' - ' + now);
             }
+        }
+
+        dirChildren(dir) {
+	    const path = this.resolve(dir);
+            return xdmp.filesystemDirectory(path)
+		.filter(child => {
+		    return child.type === 'file' || child.type === 'directory'
+		})
+		.map(child => {
+		    var res = {
+			name : child.filename,
+			path : child.pathname
+		    };
+		    if ( child.type === 'directory' ) {
+                        res.files = [];
+		    }
+		    return res;
+		});
+        }
+
+        isDirectory(path) {
+            try {
+		xdmp.filesystemDirectory(dir);
+		return true;
+	    }
+	    catch (err) {
+		return false;
+	    }
         }
 
         // TODO: Display specific, to be removed...
