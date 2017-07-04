@@ -25,11 +25,7 @@
         read(path) {
             const content = a.getFromFilesystem(path);
             if ( ! content ) {
-                // TODO: Define what platform-independent error to throw when
-                // `path` does not exist...
-                let err = new Error('File does not exist: ' + path);
-                err.code = 'ENOENT';
-                throw err;
+                throw core.error.noSuchFile(path);;
             }
             return content;
         }
@@ -227,6 +223,7 @@
 		return true;
 	    }
 	    catch (err) {
+		// TODO: Differentiate between not a dir and not exist (= noSuchFile()...)
 		return false;
 	    }
         }
