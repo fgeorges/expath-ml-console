@@ -19,7 +19,7 @@ This document contains an overview of each main feature, as well as an
 install guide:
 
 - [Quickest install](#quickest-install)
-- [The package manager](#the-package manager)
+- [The package manager](#the-package-manager)
 - [The browser](#the-browser)
 - [The document manager](#the-document-manager)
 - [The profiler](#the-profiler)
