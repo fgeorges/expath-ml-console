@@ -78,7 +78,7 @@ declare function local:summary($uri as xs:string)
             <td> {
                let $doc := fn:doc($uri)
                return
-                  if ( bin:is-json($doc/node()) ) then
+                  if ( fn:empty($doc/node()[2]) and bin:is-json($doc/node()) ) then
                      'JSON'
                   else if ( fn:exists($doc/*) ) then
                      'XML'
@@ -126,7 +126,7 @@ declare function local:content($uri as xs:string, $dir as xs:string?, $root as x
    let $tmp := a:is-temporal($uri)
 :)
 
-      if ( bin:is-json($doc/node()) ) then (
+      if ( fn:empty($doc/node()[2]) and bin:is-json($doc/node()) ) then (
          v:edit-json($doc, $id, $uri, $dir, $root, $sep, $db-root)
       )
       else if ( fn:exists($doc/*) ) then (
