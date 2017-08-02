@@ -31,7 +31,7 @@ xquery version "3.0";
 
 import module namespace i = "http://expath.org/ns/ml/console/insert" at "insert-lib.xql";
 import module namespace a = "http://expath.org/ns/ml/console/admin"  at "../lib/admin.xqy";
-import module namespace b = "http://expath.org/ns/ml/console/binary" at "../lib/binary.xql";
+import module namespace b = "http://expath.org/ns/ml/console/binary" at "../lib/binary.xqy";
 import module namespace t = "http://expath.org/ns/ml/console/tools"  at "../lib/tools.xqy";
 import module namespace v = "http://expath.org/ns/ml/console/view"   at "../lib/view.xql";
 

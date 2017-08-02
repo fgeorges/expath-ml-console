@@ -2,7 +2,7 @@ xquery version "3.0";
 
 module namespace disp = "http://expath.org/ns/ml/console/mlproj/display";
 
-import module namespace bin = "http://expath.org/ns/ml/console/binary" at "../../lib/binary.xql";
+import module namespace bin = "http://expath.org/ns/ml/console/binary" at "../../lib/binary.xqy";
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 

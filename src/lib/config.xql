@@ -546,7 +546,7 @@ declare function cfg:install-exapth-web-to-appserver(
                         t:error('internal-error', 'App Server modules neither on DB nor FS?')
    let $dest  := fn:concat($as/a:root, 'expath/web/')
    let $trunk := cfg:get-trunk-path($this-root)
-   for $file  in ('binary.xql', 'dispatcher.xql', 'launcher.xq', 'url-rewriter.xq')
+   for $file  in ('binary.xqy', 'dispatcher.xql', 'launcher.xq', 'url-rewriter.xq')
    return
       $copy-fn(fn:concat($trunk, $file), fn:concat($dest, $file)),
    a:set-url-rewriter-if-not-yet($as, '/expath/web/url-rewriter.xq')
