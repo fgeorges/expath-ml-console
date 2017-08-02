@@ -1,7 +1,7 @@
 "use strict";
 
-const cmd  = require('../mlproj/commands');
 // WTF is happening to path resolution?!?
+const cmd  = require('../../project/mlproj/commands');
 const lib  = require('../../project/environ/environ-lib');
 const view = require('../../project/environ/load.xqy');
 const t    = require('../../lib/tools.xqy');

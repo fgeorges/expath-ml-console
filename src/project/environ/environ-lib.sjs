@@ -48,7 +48,12 @@
                 throw new Error('Source set and source path both provided');
             }
             else if ( srcSet ) {
-                args.srcset = srcSet;
+                if ( srcSet.startsWith('src:') ) {
+                    args.sourceset = srcSet.slice('src:'.length);
+                }
+                else {
+                    throw new Error('Internal error: source set does not start with src:* - ' + srcSet);
+                }
             }
             else if ( srcPath ) {
                 const path = ctxt.platform.resolve(srcPath);
