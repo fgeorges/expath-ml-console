@@ -36,17 +36,17 @@ declare function env:input-select-text(
       </div>
       <div class="form-group">
          { if ( fn:empty($options) ) then attribute { 'hidden' } { 'hidden' } else () }
-         <label for="{ $id }-srcdir" class="col-sm-2 control-label"/>
+         <label for="{ $id }-srcset" class="col-sm-2 control-label"/>
          <div class="col-sm-10">
             <div class="input-group">
-               <select id="{ $id }-srcdir" name="{ $id }-srcdir" class="form-control excl-second">
+               <select id="{ $id }-srcset" name="{ $id }-srcset" class="form-control excl-second">
                   <option value="" disabled="disabled" selected="selected" hidden="hidden">
                      { $placeholder-2 }
                   </option>
                   { $options }
                </select>
                <span class="input-group-addon">
-                  <input type="radio" name="{ $id }-srcdir-check" class="excl-second-check"/>
+                  <input type="radio" name="{ $id }-srcset-check" class="excl-second-check"/>
                </span>
             </div>
          </div>
@@ -101,8 +101,8 @@ declare function env:page(
          env:input-select-text('source', 'Source',
             'Path to directory or file, relative to project dir...',
             'data/',
-            '...or select a source directory',
-            ((: TODO: Add source sets once supported... :))),
+            '...or select a source set',
+            ((: set dynamically by JavaScript code, depending on the selected environment :))),
          v:input-select('target', 'Target', (
             v:input-optgroup('Databases',       ((: set dynamically by JavaScript... :))),
             v:input-optgroup('Servers',         ((: ...code, depending on the... :))),
@@ -121,8 +121,8 @@ declare function env:page(
          env:input-select-text('source', 'Source',
             'Path to directory or file, relative to project dir...',
             'src/',
-            '...or select a source directory',
-            ((: TODO: Add source sets once supported... :))),
+            '...or select a source set',
+            ((: set dynamically by JavaScript code, depending on the selected environment :))),
          v:input-select('target', 'Target', (
             v:input-optgroup('Databases',       ((: set dynamically by JavaScript... :))),
             v:input-optgroup('Servers',         ((: ...code, depending on the... :))),
@@ -172,48 +172,73 @@ declare function env:page(
 
                var type = $(this).data('load-type');
                if ( type ) {{
-		  // the current environ detail
-		  var detail = details[env];
-		  // the default database to select
-		  var defaultDb = type === 'load'
+                  // the current environ detail
+                  var detail = details[env];
+                  // the default source set to select
+                  var defaultSrc = type === 'load' ? 'data' : 'src';
+                  // the default database to select
+                  var defaultDb  = type === 'load'
                      ? defaultContentDb(detail)
                      : defaultModulesDb(detail);
 
-		  // set the target dropdown lists...
-		  // ...the project databases
-		  var dbs = $(this).find('select[name="target"] optgroup').eq(0);
-		  dbs.children().remove();
-		  detail.databases.forEach(function(db) {{
-		     var opt = $('<option />', {{
-			text  : db.name,
-			value : 'db:' + db.name
-		     }});
-                     dbs.append(opt);
-		     if ( db.name === defaultDb ) {{
+                  // set the source sets dropdown list
+                  var srcs = $(this).find('select[name="source-srcset"]');
+                  srcs.children().remove();
+                  detail.sources.forEach(function(src) {{
+                     var opt = $('<option />', {{
+                        text  : src.name,
+                        value : 'src:' + src.name
+                     }});
+                     srcs.append(opt);
+                     if ( src.name === defaultSrc ) {{
+                        // TODO: In this case, select this field (the radio button on its right)
                         opt.prop('selected', true);
-		     }}
-		  }});
+                     }}
+                  }});
+                  var group = $(this).find('div[class="exclusive"]')
+                      .find('div[class="form-group"]').eq(1);
+                  if ( detail.sources.length ) {{
+                     group.show();
+                  }}
+                  else {{
+                     group.hide();
+                  }}
 
-		  // ...the project servers
-		  var srvs = $(this).find('select[name="target"] optgroup').eq(1);
-		  srvs.children().remove();
-		  detail.servers.forEach(function(srv) {{
-		     srvs.append($('<option />', {{
-			text  : srv.name + ' (content db: ' + srv.content + ')',
-			// TODO: Put the content db instead, so we always send a db?
-			value : 'srv:' + srv.name
-		     }}));
-		  }});
+                  // set the target dropdown lists...
+                  // ...the project databases
+                  var dbs = $(this).find('select[name="target"] optgroup').eq(0);
+                  dbs.children().remove();
+                  detail.databases.forEach(function(db) {{
+                     var opt = $('<option />', {{
+                        text  : db.name,
+                        value : 'db:' + db.name
+                     }});
+                     dbs.append(opt);
+                     if ( db.name === defaultDb ) {{
+                        opt.prop('selected', true);
+                     }}
+                  }});
 
-		  // ...all other databases
-		  var alldbs = $(this).find('select[name="target"] optgroup').eq(2);
-		  alldbs.children().remove();
-		  details['@all-dbs'].sort().forEach(function(db) {{
-		     alldbs.append($('<option />', {{
-			text  : db,
-			value : 'other:' + db
-		     }}));
-		  }});
+                  // ...the project servers
+                  var srvs = $(this).find('select[name="target"] optgroup').eq(1);
+                  srvs.children().remove();
+                  detail.servers.forEach(function(srv) {{
+                     srvs.append($('<option />', {{
+                        text  : srv.name + ' (content db: ' + srv.content + ')',
+                        // TODO: Put the content db instead, so we always send a db?
+                        value : 'srv:' + srv.name
+                     }}));
+                  }});
+
+                  // ...all other databases
+                  var alldbs = $(this).find('select[name="target"] optgroup').eq(2);
+                  alldbs.children().remove();
+                  details['@all-dbs'].sort().forEach(function(db) {{
+                     alldbs.append($('<option />', {{
+                        text  : db,
+                        value : 'other:' + db
+                     }}));
+                  }});
                }}
 
             }});

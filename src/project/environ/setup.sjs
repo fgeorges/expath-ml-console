@@ -12,13 +12,13 @@ const environ = t.mandatoryField('environ');
 lib.withProject(
     project,
     environ,
-    (proj, platform, display) => {
-	const command = new cmd.SetupCommand({}, {}, platform, display, proj);
-	const actions = command.prepare();
-	// draw the action, which will be orchastrated by the client
-	return view.page(environ, project, actions.todo.map(a => a.toValues()));
+    (ctxt, env) => {
+        const command = new cmd.SetupCommand({}, {}, ctxt, env);
+        const actions = command.prepare();
+        // draw the action, which will be orchastrated by the client
+        return view.page(environ, project, actions.todo.map(a => a.toValues()));
     },
     (err) => {
-	// draw the page in case of error
-	return view.error(environ, project, err);
+        // draw the page in case of error
+        return view.error(environ, project, err);
     });

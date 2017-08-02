@@ -12,7 +12,7 @@ const action  = fn.head(t.mandatoryField('action'));
 lib.withProject(
     project,
     environ,
-    (proj, platform, display) => {
+    (ctxt, env) => {
         const ctor = core.actions[action];
         if ( ! ctor ) {
             throw new Error('Action class does not exist: ' + action);
@@ -26,7 +26,7 @@ lib.withProject(
             data : fn.head(t.optionalField('data', '')),
             json : fn.head(t.optionalField('json', 'false')) === 'true'
         });
-        return a.execute(platform);
+        return a.execute(ctxt);
     },
     (err) => {
         return t.respondInternalError(err);

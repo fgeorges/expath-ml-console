@@ -7,19 +7,35 @@
     const utils = require('../../project/mlproj/mlproj-utils.xqy');
     const disp  = require('../../project/mlproj/display.xqy');
     const a     = require('../../lib/admin.xqy');
+    const bin   = require('../../lib/binary.xqy');
+
+    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     * The context implementation for MarkLogic.
+     */
+
+    class Context extends core.Context
+    {
+        constructor(dry, verbose, cwd) {
+            // TODO: Support config files...
+            let conf = null;
+            // instantiate the base object
+            super(new Display(verbose), new Platform(cwd), conf, dry, verbose);
+        }
+    }
+
+    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     * The platform implementation for MarkLogic.
+     */
 
     class Platform extends core.Platform
     {
-        constructor(dry, verbose, cwd) {
-            super(dry, verbose);
-	    this.cwd = cwd;
+        constructor(cwd) {
+            super(cwd);
         }
 
         resolve(href, base) {
-	    if ( ! base ) {
-		base = this.cwd;
-	    }
-            return new String(fn.resolveUri(href, base));
+            let res = fn.resolveUri(href, base || this.cwd);
+            return new String(res);
         }
 
         read(path) {
@@ -34,18 +50,18 @@
             return utils.doProjectXml(path);
         }
 
-        info(msg) {
-            console.log('mlproj: ' + msg);
-        }
-
         credentials() {
-            var user = this.space.param('@user');
-            var pwd  = this.space.param('@password');
+            // set in Environ ctor, find a nicer way to pass the info
+            if ( ! this.environ ) {
+                throw new Error('No environ set on the platform for credentials');
+            }
+            var user = this.environ.param('@user');
+            var pwd  = this.environ.param('@password');
             if ( ! user ) {
-                throw new Error('No user in space');
+                throw new Error('No user in environ');
             }
             if ( ! pwd ) {
-                throw new Error('No pwd in space (TODO: Allow to pass via form values...)');
+                throw new Error('No pwd in environ (TODO: Allow to pass via form values...)');
             }
             var options = {
                 authentication: {
@@ -53,35 +69,20 @@
                     method   : 'digest',
                     username : user,
                     password : pwd
+                },
+                headers: {
+                    Accept: 'application/json'
                 }
             };
             return options;
         }
 
         get(api, url) {
-            var url  = this.url(api, url);
-            var user = this.space.param('@user');
-            var pwd  = this.space.param('@password');
-            if ( ! user ) {
-                throw new Error('No user in space');
-            }
-            if ( ! pwd ) {
-                throw new Error('No pwd in space (TODO: Allow to pass via form values...)');
-            }
-            var options = {
-                headers: {
-                    Accept: 'application/json'
-                },
-                authentication: {
-                    // TODO: Set method accordingly...
-                    method   : 'digest',
-                    username : user,
-                    password : pwd
-                }
-            };
-            var resp = xdmp.httpGet(url, options);
-            var info = fn.head(resp);
-            var body = fn.head(fn.tail(resp));
+            var url     = this.url(api, url);
+            var options = this.credentials();
+            var resp    = xdmp.httpGet(url, options);
+            var info    = fn.head(resp);
+            var body    = fn.head(fn.tail(resp));
             if ( info.code === 200 ) {
                 return JSON.parse(body);
             }
@@ -94,35 +95,31 @@
             }
         }
 
-        post(api, url, data) {
-            var url  = this.url(api, url);
-            var user = this.space.param('@user');
-            var pwd  = this.space.param('@password');
-            if ( ! user ) {
-                throw new Error('No user in space');
+        post(api, url, data, type) {
+            var url     = this.url(api, url);
+            var options = this.credentials();
+            var resp;
+            if ( bin.isBinary(data) ) {
+                options.headers['Content-Type'] = type;
+                resp = xdmp.httpPost(url, options, data);
             }
-            if ( ! pwd ) {
-                throw new Error('No pwd in space (TODO: Allow to pass via form values...)');
-            }
-            var options = {
-                authentication: {
-                    // TODO: Set method accordingly...
-                    method   : 'digest',
-                    username : user,
-                    password : pwd
-                },
-                headers: {
-                    "Content-Type": 'application/x-www-form-urlencoded'
+            else {
+                if ( data && type ) {
+                    options.headers['Content-Type'] = type;
+                    options.data                    = data;
                 }
-            };
-            if ( data ) {
-                options.headers["Content-Type"] = 'application/json';
-                options.data                    = JSON.stringify(data);
+                else if ( data ) {
+                    options.headers["Content-Type"] = 'application/json';
+                    options.data                    = JSON.stringify(data);
+                }
+                else {
+                    options.headers['Content-Type'] = 'application/x-www-form-urlencoded';
+                }
+                resp = xdmp.httpPost(url, options);
             }
-            var resp = xdmp.httpPost(url, options);
             var info = fn.head(resp);
             var body = fn.head(fn.tail(resp));
-            if ( info.code === (data ? 201 : 200) ) {
+            if ( info.code === ((data && ! type) ? 201 : 200) ) {
                 return;
             }
             else {
@@ -134,18 +131,13 @@
         put(api, url, data, type) {
             var url     = this.url(api, url);
             var options = this.credentials();
-            options.headers = {
-                Accept: 'application/json'
-            };
-            if ( data ) {
-                if ( type ) {
-                    options.headers['Content-Type'] = type;
-                    options.data                    = data;
-                }
-                else {
-                    options.headers["Content-Type"] = 'application/json';
-                    options.data                    = JSON.stringify(data);
-                }
+            if ( data && type ) {
+                options.headers['Content-Type'] = type;
+                options.data                    = data;
+            }
+            else if ( data ) {
+                options.headers["Content-Type"] = 'application/json';
+                options.data                    = JSON.stringify(data);
             }
             else {
                 options.headers['Content-Type'] = 'application/x-www-form-urlencoded';
@@ -168,6 +160,26 @@
                 throw new Error('Entity not updated: ' + (body.errorResponse
                                 ? body.errorResponse.message : body));
             }
+        }
+
+        boundary() {
+            return sem.uuidString();
+        }
+
+        multipart(boundary, parts) {
+            let res = xdmp.multipartEncode(
+                boundary,
+                parts.map(part => {
+                    return { headers: {
+                        "Content-Disposition": 'attachment; filename="' + part.uri + '"'
+                    }};
+                }),
+                // read everything as binary, so exactly as it is on the disk
+                parts.map(part => xdmp.externalBinary(part.path)));
+            // add the property length to the binary node (used in the action message)
+            let len = xdmp.binarySize(res);
+            res.length = len;
+            return res;
         }
 
         // TODO: Do something different when target is "localhost"?
@@ -200,32 +212,33 @@
         }
 
         dirChildren(dir) {
-	    const path = this.resolve(dir);
+            const path = this.resolve(dir);
             return xdmp.filesystemDirectory(path)
-		.filter(child => {
-		    return child.type === 'file' || child.type === 'directory'
-		})
-		.map(child => {
-		    var res = {
-			name : child.filename,
-			path : child.pathname
-		    };
-		    if ( child.type === 'directory' ) {
+                .filter(child => {
+                    return child.type === 'file' || child.type === 'directory'
+                })
+                .map(child => {
+                    var res = {
+                        name : child.filename,
+                        path : child.pathname
+                    };
+                    if ( child.type === 'directory' ) {
                         res.files = [];
-		    }
-		    return res;
-		});
+                        res.isdir = true;
+                    }
+                    return res;
+                });
         }
 
         isDirectory(path) {
             try {
-		xdmp.filesystemDirectory(path);
-		return true;
-	    }
-	    catch (err) {
-		// TODO: Differentiate between not a dir and not exist (= noSuchFile()...)
-		return false;
-	    }
+                xdmp.filesystemDirectory(path);
+                return true;
+            }
+            catch (err) {
+                // TODO: Differentiate between not a dir and not exist (= noSuchFile()...)
+                return false;
+            }
         }
 
         // TODO: Display specific, to be removed...
@@ -263,10 +276,14 @@
         }
     }
 
+    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     * The display implementation for MarkLogic.
+     */
+
     class Display extends core.Display
     {
-        constructor() {
-            super();
+        constructor(verbose) {
+            super(verbose);
             this.content = [];
         }
 
@@ -274,6 +291,11 @@
             for ( let e of elems ) {
                 this.content.push(e);
             }
+        }
+
+        // TODO: FIXME: ...
+        info(msg) {
+            console.log('mlproj: ' + msg);
         }
 
         database(name, id, schema, security, triggers, forests, props) {
@@ -291,14 +313,24 @@
                 name, id, group, c, m, props));
         }
 
+        source(name, props) {
+            this.save(disp.source(
+                name, props));
+        }
+
+        mimetype(name, props) {
+            this.save(disp.mimetype(
+                name, props));
+        }
+
         project(code, configs, title, name, version) {
             this.save(disp.project(
                 code, configs, title, name, version));
         }
 
-        environ(envipath, title, desc, host, user, password, srcdir, mods, params, imports) {
+        environ(envipath, title, desc, host, user, password, params, imports) {
             this.save(disp.environ(
-                envipath, title, desc, host, user, password, srcdir, mods, params, imports));
+                envipath, title, desc, host, user, password, params, imports));
         }
 
         check(indent, msg, arg) {
@@ -313,7 +345,7 @@
             this.save(disp.remove(indent, verb, msg, arg));
         }
 
-        error(e, verbose) {
+        error(e) {
             switch ( e.name ) {
             case 'server-no-content':
                 this.save(disp.toImplement(
@@ -328,7 +360,7 @@
             default:
                 this.save(disp.toImplement('Error: ' + e.message));
             }
-            if ( verbose ) {
+            if ( this.verbose ) {
                 this.save(disp.toImplement('Stacktrace:'));
                 this.save(disp.code(e.stack));
             }
@@ -336,6 +368,7 @@
     }
 
     module.exports = {
+        Context  : Context,
         Platform : Platform,
         Display  : Display
     };

@@ -62,6 +62,7 @@ declare variable $this:actions :=
       <action type="ServerCreate"   icon="hdd"/>
       <action type="ServerUpdate"   icon="hdd"/>
       <action type="DocInsert"      icon="file"/>
+      <action type="MultiDocInsert" icon="file"/>
    </actions>;
 
 declare function this:action($action as item((: map:map :))) as element()
@@ -100,7 +101,7 @@ declare function this:intro(
             ($db, $force) ! v:db-link('../../../../db/' || ., .)
    return
       <p>{ $what } in the environment <code>{ $environ }</code>, in project
-	 { v:proj-link('../../../' || $project, $project) }, to { $target }.</p>
+         { v:proj-link('../../../' || $project, $project) }, to { $target }.</p>
 };
 
 declare function this:page(
@@ -116,17 +117,17 @@ declare function this:page(
       let $seq := json:array-values($actions)
       return
          if ( fn:empty($seq) ) then (
-	    <div id="summary" class="alert alert-success" role="alert">
-	       Nothing to load.
-	    </div>
+            <div id="summary" class="alert alert-success" role="alert">
+               Nothing to { $type }.
+            </div>
          )
          else (
-	    <p>Actions to be performed</p>,
-	    json:array-values($actions) ! this:action(.),
-	    <div id="summary" class="alert alert-info" role="alert">
-	       Click on "Execute" to start loading.
-	    </div>,
-	    <button id="doit" type="button" class="btn btn-default">Execute</button>
+            <p>Actions to be performed</p>,
+            json:array-values($actions) ! this:action(.),
+            <div id="summary" class="alert alert-info" role="alert">
+               Click on "Execute" to start loading.
+            </div>,
+            <button id="doit" type="button" class="btn btn-default">Execute</button>
          )
    },
    (<script>
@@ -160,9 +161,11 @@ declare function this:page(
                   .children('span')
                   .css('color', 'orange');
                if ( data.responseJSON ) {{
+                  var errobj = data.responseJSON.error || data.responseJSON;
+                  var errmsg = errobj.message || JSON.stringify(errobj);
                   $('#summary')
                      .toggleClass('alert-info alert-danger')
-                     .text(data.responseJSON.error.message);
+                     .text(errmsg);
                }}
                else {{
                   $('#summary')
@@ -181,7 +184,7 @@ declare function this:page(
          else {{
             $('#summary')
                .toggleClass('alert-info alert-success')
-               .text('Setup is complete.');
+               .text('{ ('Load'[$type eq 'load'], 'Deploy')[1] } is complete.');
          }}
       }}
    </script>,

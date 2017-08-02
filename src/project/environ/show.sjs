@@ -12,11 +12,16 @@ const environ = fn.head(t.mandatoryField('environ'));
 lib.withProject(
     project,
     environ,
-    (proj, platform, display) => {
-	const command = new cmd.ShowCommand({}, {}, platform, display, proj);
+    (ctxt, env) => {
+	const command = new cmd.ShowCommand({}, {}, ctxt, env);
 	const actions = command.prepare();
-	command.execute(actions);
-	return view.page(environ, project, display.content);
+	actions.execute();
+	if ( actions.error ) {
+            return view.error(environ, project, actions.error);
+	}
+	else {
+	    return view.page(environ, project, ctxt.display.content);
+	}
     },
     (err) => {
         return view.error(environ, project, err);

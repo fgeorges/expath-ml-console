@@ -53,3 +53,9 @@ declare function bin:is-json-array($arg as item())
 {
    $arg instance of json:array
 };
+
+declare function bin:is-json-object($arg as item())
+   as xs:boolean
+{
+   $arg instance of json:object
+};

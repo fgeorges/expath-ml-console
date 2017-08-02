@@ -67,14 +67,22 @@ declare function disp:property(
    let $label := map:get($def,  'label')
    return
       if ( bin:is-json-array($value) ) then
-         for $v in json:array-values($value)
-         return (
-            <tr>
-               <td>{ fn:string-join((1 to (($level - 1) * 8)) ! '&#160;', '') }{ $label }</td>
-               <td/>
-            </tr>,
-            map:keys($v) ! disp:property(map:get($v, .), $level + 1)
-         )
+         let $vals := json:array-values($value)
+         return
+            if ( bin:is-json-object($vals[1]) ) then
+               for $v in $vals
+               return (
+                  <tr>
+                     <td>{ fn:string-join((1 to (($level - 1) * 8)) ! '&#160;', '') }{ $label }</td>
+                     <td/>
+                  </tr>,
+                  map:keys($v) ! disp:property(map:get($v, .), $level + 1)
+               )
+            else
+               <tr>
+                  <td>{ fn:string-join((1 to (($level - 1) * 8)) ! '&#160;', '') }{ $label }</td>
+                  <td>{ $vals ! (., <br/>) }</td>
+               </tr>
       else
          <tr>
             <td>{ fn:string-join((1 to (($level - 1) * 8)) ! '&#160;', '') }{ $label }</td>
@@ -143,6 +151,50 @@ declare function disp:server(
    </table>
 };
 
+declare function disp:source(
+   $name  as xs:string,
+   $props as item((: map:map :))
+) as element()+
+{
+   <h3><span class="glyphicon glyphicon-inbox" aria-hidden="true"/>{ ' ' }{ $name }</h3>,
+   <p>Source set <code>{ $name }</code>.</p>,
+   <table class="table table-striped">
+      <thead>
+	 <th>Name</th>
+	 <th>Value</th>
+      </thead>
+      <tbody>
+         <tr>
+            <td>Name</td>
+            <td><code>{ $name }</code></td>
+         </tr>
+         { map:keys($props) ! disp:property(map:get($props, .)) }
+      </tbody>
+   </table>
+};
+
+declare function disp:mimetype(
+   $name  as xs:string,
+   $props as item((: map:map :))
+) as element()+
+{
+   <h3><span class="glyphicon glyphicon-inbox" aria-hidden="true"/>{ ' ' }{ $name }</h3>,
+   <p>Mimetype <code>{ $name }</code>.</p>,
+   <table class="table table-striped">
+      <thead>
+	 <th>Name</th>
+	 <th>Value</th>
+      </thead>
+      <tbody>
+         <tr>
+            <td>Name</td>
+            <td><code>{ $name }</code></td>
+         </tr>
+         { map:keys($props) ! disp:property(map:get($props, .)) }
+      </tbody>
+   </table>
+};
+
 declare function disp:project(
    $code    as xs:string,
    $configs as item((: map:map :)),
@@ -193,8 +245,6 @@ declare function disp:environ(
    $host     as xs:string?,
    $user     as xs:string?,
    $password as xs:string?,
-   $srcdir   as xs:string?,
-   $mods     as xs:string?,
    $params   as item((: json:array :)),
    $imports  as item((: json:array :))
 ) as element()+
@@ -213,15 +263,6 @@ declare function disp:environ(
 	 { <tr><td>Host</td>         <td><code>{ $host     }</code></td></tr>[$host]     }
 	 { <tr><td>User</td>         <td><code>{ $user     }</code></td></tr>[$user]     }
 	 { <tr><td>Password</td>     <td>*****</td>                     </tr>[$password] }
-	 { <tr><td>Sources dir</td>  <td><code>{ $srcdir   }</code></td></tr>[$srcdir]   }
-	 { <tr>
-              <td>Modules DB</td>
-              <td> {
-                 if ( $mods eq '(filesystem)' ) then $mods else <code>{ $mods }</code>
-              }
-              </td>
-           </tr>[$mods]
-         }
       </tbody>
    </table>,
    let $seq := json:array-values($params)
