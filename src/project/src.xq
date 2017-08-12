@@ -23,18 +23,24 @@ declare function local:page($id as xs:string, $src as xs:string, $root as xs:str
       <p>In { v:proj-link($root || $id, $id) },
          in <a href="{ $root }{ $id }/src">sources</a>.</p>
       {
-         let $proj := proj:project($id)
-         let $lang := global:source-lang($proj, $src)
+         let $proj    := proj:project($id)
+         let $lang    := global:source-lang($proj, $src)
+         let $content := global:source($proj, $src)
          return
-            switch ( $lang )
-               case 'xquery' return
-                  xdmp:xslt-invoke('xsl/xquery-module-to-html.xsl',
-                     xqp:parse($src, global:source($proj, $src)))
-               case 'javascript' return
-                  xdmp:xslt-invoke('xsl/js-module-to-html.xsl',
-                     jsp:parse($src, global:source($proj, $src)))
-               default return
-                  <p>Language not supported: <code>{ $lang }</code>.</p>
+            if ( fn:empty($content) ) then
+               <div class="alert alert-danger" role="alert">
+                  Module does not exist!
+               </div>
+            else
+               switch ( $lang )
+                  case 'xquery' return
+                     xdmp:xslt-invoke('xsl/xquery-module-to-html.xsl',
+                        xqp:parse($src, global:source($proj, $src)))
+                  case 'javascript' return
+                     xdmp:xslt-invoke('xsl/js-module-to-html.xsl',
+                        jsp:parse($src, global:source($proj, $src)))
+                  default return
+                     <p>Language not supported: <code>{ $lang }</code>.</p>
       }
    </div>/*
 };
