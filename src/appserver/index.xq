@@ -2,7 +2,7 @@ xquery version "3.0";
 
 import module namespace a = "http://expath.org/ns/ml/console/admin" at "../lib/admin.xqy";
 import module namespace t = "http://expath.org/ns/ml/console/tools" at "../lib/tools.xqy";
-import module namespace v = "http://expath.org/ns/ml/console/view"  at "../lib/view.xql";
+import module namespace v = "http://expath.org/ns/ml/console/view"  at "../lib/view.xqy";
 
 declare namespace h    = "http://www.w3.org/1999/xhtml";
 declare namespace pp   = "http://expath.org/ns/repo/packages";

@@ -3,7 +3,7 @@ xquery version "3.0";
 module namespace b = "http://expath.org/ns/ml/console/browse";
 
 import module namespace t   = "http://expath.org/ns/ml/console/tools" at "../lib/tools.xqy";
-import module namespace v   = "http://expath.org/ns/ml/console/view"  at "../lib/view.xql";
+import module namespace v   = "http://expath.org/ns/ml/console/view"  at "../lib/view.xqy";
 import module namespace sem = "http://marklogic.com/semantics" at "/MarkLogic/semantics.xqy";
 
 declare namespace c    = "http://expath.org/ns/ml/console";
