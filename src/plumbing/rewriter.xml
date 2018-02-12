@@ -271,6 +271,12 @@
    <match-path matches="^/tools/del-perm$">
       <dispatch>/tools/del-perm.xq</dispatch>
    </match-path>
+   <match-path matches="^/tools/add-meta$">
+      <dispatch>/tools/add-meta.xq</dispatch>
+   </match-path>
+   <match-path matches="^/tools/del-meta$">
+      <dispatch>/tools/del-meta.xq</dispatch>
+   </match-path>
 
    <!--
        Web.
