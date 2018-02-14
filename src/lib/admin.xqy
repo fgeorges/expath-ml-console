@@ -203,7 +203,7 @@ declare function a:remove-docs-and-dirs($db as item(), $docs as xs:string*, $dir
 {
    t:update($db, function() {
       $docs ! xdmp:document-delete(.),
-      $dirs ! (. || '*') ! cts:uri-match(.) ! xdmp:document-delete(.)
+      $dirs ! xdmp:directory-delete(.)
    })
 };
 
