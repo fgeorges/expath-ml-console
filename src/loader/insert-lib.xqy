@@ -72,8 +72,7 @@ declare function i:get-node($file as item(), $format as xs:string)
       else if ( $file instance of document-node() and fn:exists($file/text()) ) then
          xdmp:unquote($file)
       else if ( b:is-binary($file) ) then
-         (: TODO: Decode the binary... :)
-         t:error('INSERT102', 'XML file is a binary node, please report this to the mailing list')
+         xdmp:unquote(xdmp:binary-decode($file, 'UTF-8'))
       else
          t:error('INSERT003', 'XML file is neither parsed nor a document node with an element, '
             || 'please report this to the mailing list')
@@ -84,11 +83,10 @@ declare function i:get-node($file as item(), $format as xs:string)
          xdmp:unquote($file)
       else if ( $file instance of document-node() and b:is-json($file/node()) ) then
          $file
-      else if ( b:is-json($file/node()) ) then
+      else if ( $file/node() ! b:is-json(.) ) then
          $file
       else if ( b:is-binary($file) ) then
-         (: TODO: Decode the binary... :)
-         t:error('INSERT102', 'JSON file is a binary node, please report this to the mailing list')
+         xdmp:unquote(xdmp:binary-decode($file, 'UTF-8'))
       else
          t:error('INSERT003', 'JSON file is neither parsed nor a document node with an object, '
             || 'please report this to the mailing list')
