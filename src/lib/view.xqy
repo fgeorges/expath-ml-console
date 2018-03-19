@@ -444,9 +444,9 @@ declare function v:edit-xml(
    $elem as node(),
    $id   as xs:string,
    $uri  as xs:string,
-   $dir  as xs:string,
-   $root as xs:string,
-   $sep  as xs:string,
+   $dir  as xs:string?,
+   $root as xs:string?,
+   $sep  as xs:string?,
    $top  as xs:string
 ) as element()+
 {
@@ -463,9 +463,9 @@ declare function v:edit-json(
    $json as node(),
    $id   as xs:string,
    $uri  as xs:string,
-   $dir  as xs:string,
-   $root as xs:string,
-   $sep  as xs:string,
+   $dir  as xs:string?,
+   $root as xs:string?,
+   $sep  as xs:string?,
    $top  as xs:string
 ) as element()+
 {
@@ -514,9 +514,9 @@ declare function v:edit-text(
    $mode as xs:string,
    $id   as xs:string,
    $uri  as xs:string,
-   $dir  as xs:string,
-   $root as xs:string,
-   $sep  as xs:string,
+   $dir  as xs:string?,
+   $root as xs:string?,
+   $sep  as xs:string?,
    $top  as xs:string
 ) as element()+
 {
@@ -535,23 +535,29 @@ declare function v:edit-node(
    $type as xs:string,
    $id   as xs:string,
    $uri  as xs:string,
-   $dir  as xs:string,
-   $root as xs:string,
-   $sep  as xs:string,
+   $dir  as xs:string?,
+   $root as xs:string?,
+   $sep  as xs:string?,
    $top  as xs:string
 ) as element()+
 {
-   v:ace-editor($node, 'editor', $mode, $id, $uri, $top, '250pt'),
-   <dummy xmlns="http://www.w3.org/1999/xhtml">
-      <button class="btn btn-default" onclick='saveDoc("{ $id }", "{ $type }");'>Save</button>
-      <button class="btn btn-danger pull-right" onclick='deleteDoc("{ $id }");'>Delete</button>
-      <form method="POST" action="{ $top }delete" style="display: none" id="{ $id }-delete">
-         <input type="hidden" name="doc"        value="{ $uri }"/>
-         <input type="hidden" name="back-label" value="the directory"/>
-         <input type="hidden" name="back-url"   value="dir?uri={
-            fn:encode-for-uri($dir) }&amp;root={ fn:encode-for-uri($root) }&amp;sep={ fn:encode-for-uri($sep) }"/>
-      </form>
-   </dummy>/*
+   let $back-params := fn:string-join((
+            $dir  ! ('uri='  || fn:encode-for-uri(.)),
+            $root ! ('root=' || fn:encode-for-uri(.)),
+            $sep  ! ('sep='  || fn:encode-for-uri(.))),
+         '&amp;')
+   return (
+      v:ace-editor($node, 'editor', $mode, $id, $uri, $top, '250pt'),
+      <dummy xmlns="http://www.w3.org/1999/xhtml">
+         <button class="btn btn-default" onclick='saveDoc("{ $id }", "{ $type }");'>Save</button>
+         <button class="btn btn-danger pull-right" onclick='deleteDoc("{ $id }");'>Delete</button>
+         <form method="POST" action="{ $top }delete" style="display: none" id="{ $id }-delete">
+            <input type="hidden" name="doc"        value="{ $uri }"/>
+            <input type="hidden" name="back-label" value="the directory"/>
+            <input type="hidden" name="back-url"   value="dir?uri={ $back-params }"/>
+         </form>
+      </dummy>/*
+   )
 };
 
 (:~
