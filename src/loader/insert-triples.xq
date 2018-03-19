@@ -27,7 +27,10 @@ declare function local:page($file, $format as xs:string)
    <ul> {
       sem:rdf-insert(
          sem:rdf-parse(
-            xdmp:binary-decode($file, 'UTF-8'),
+            if ( fn:exists($file/text()) ) then
+               $file
+            else
+               xdmp:binary-decode($file, 'UTF-8'),
             $format))
          ! <li>{ . }</li>
    }

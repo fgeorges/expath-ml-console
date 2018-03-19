@@ -56,9 +56,9 @@ declare function local:page()
    let $count  := fn:count(($file, $dir, $zipdir))
    return
       if ( fn:not($new) and $count ne 1 ) then
-         <p><b>Error</b>: Exactly 1 parameter out of "file", "new-file", "dir" and "zipdir"
-            should be provided.  Got { $count } of them.  File is "{ $file }", new file is
-            "{ $new }", dir is "{ $dir }" and zipdir is "{ $zipdir }".</p>
+         <p><b>Error</b>: Exactly 1 parameter out of "file", "dir" and "zipdir" must
+            be provided.  Got { $count } of them.  File is "{ $file }" (new file is
+            "{ $new }"), dir is "{ $dir }" and zipdir is "{ $zipdir }".</p>
       else if ( fn:exists($file) or $new ) then
          local:handle-file($file, $new)
       else if ( fn:exists($dir) ) then
@@ -106,11 +106,10 @@ declare function local:handle-file($file as item()?, $new as xs:boolean)
       if ( fn:empty($res) ) then
          <p><b>Error</b>: File already exists at <code>{ $uri }</code>{ <z> (prefix
             is <code>{ $prefix }</code>)</z>[$prefix]/node() }.</p>
+      else if ( $redirect ) then
+         v:redirect('../db/' || $db || '/doc?uri=' || $res)
       else
-         if ( $redirect ) then
-            v:redirect('../db/' || $db || '/doc?uri=' || $res)
-         else
-            <p>File succesfully inserted at <code>{ $res }</code> as { $format }.</p>
+         <p>File succesfully inserted at <code>{ $res }</code> as { $format }.</p>
 };
 
 (:~
