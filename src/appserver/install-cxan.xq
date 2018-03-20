@@ -13,6 +13,8 @@ declare namespace mlerr = "http://marklogic.com/xdmp/error";
 declare namespace pp    = "http://expath.org/ns/repo/packages";
 declare namespace xdmp  = "http://marklogic.com/xdmp";
 
+declare option xdmp:update "true";
+
 (:~
  : The overall page function.
  :)
