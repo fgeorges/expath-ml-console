@@ -425,7 +425,7 @@ function display(reports)
 function displayStackTrace(st, area)
 {
    // the 'whereURI' of the frame where to stop (from the profiler itself)
-   var stop  = '/profiler/profile-lib.xql';
+   var stop  = '/profiler/profile-lib.xqy';
    var stack = st.error.stacktrace.stack;
    for ( var i = 0; i < stack.length; ++i ) {
       var frame = stack[i];

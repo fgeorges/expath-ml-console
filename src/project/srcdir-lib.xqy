@@ -7,7 +7,7 @@ module namespace this = "http://expath.org/ns/ml/console/project/srcdir";
 
 import module namespace proj = "http://expath.org/ns/ml/console/project" at "proj-lib.xqy";
 import module namespace a    = "http://expath.org/ns/ml/console/admin"   at "../lib/admin.xqy";
-import module namespace v    = "http://expath.org/ns/ml/console/view"    at "../lib/view.xql";
+import module namespace v    = "http://expath.org/ns/ml/console/view"    at "../lib/view.xqy";
 
 declare namespace mlc = "http://expath.org/ns/ml/console";
 
