@@ -2,12 +2,13 @@
 
 (function() {
 
-    const core  = require('./core');
+    const core   = require('./core');
+    const mmatch = require('../../node_modules/minimatch/minimatch.js');
     // WTF is happening to path resolution?!?
-    const utils = require('../../project/mlproj/mlproj-utils.xqy');
-    const disp  = require('../../project/mlproj/display.xqy');
-    const a     = require('../../lib/admin.xqy');
-    const bin   = require('../../lib/binary.xqy');
+    const utils  = require('../../project/mlproj/mlproj-utils.xqy');
+    const disp   = require('../../project/mlproj/display.xqy');
+    const a      = require('../../lib/admin.xqy');
+    const bin    = require('../../lib/binary.xqy');
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      * The context implementation for MarkLogic.
@@ -31,6 +32,16 @@
     {
         constructor(cwd) {
             super(cwd);
+        }
+
+        corePackage() {
+            return a.getFromDatabase(
+                xdmp.modulesDatabase(),
+                '/node_modules/mlproj-core/package.json');
+        }
+
+        newMinimatch(pattern, options) {
+            return new mmatch.Minimatch(pattern, options);
         }
 
         resolve(href, base) {
