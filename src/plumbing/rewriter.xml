@@ -317,7 +317,7 @@
       <dispatch>/project/xproject/add.xq</dispatch>
    </match-path>
    <match-path matches="^/project/_/xproject/create$">
-      <dispatch>/project/xproject/create.xq</dispatch>
+      <dispatch>/project/xproject/create.sjs</dispatch>
    </match-path>
    <match-path matches="^/project/_/srcdir$">
       <dispatch>/project/srcdir/index.xq</dispatch>
