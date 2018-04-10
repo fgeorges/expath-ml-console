@@ -18,7 +18,7 @@ declare function local:page($id as xs:string?, $dir as xs:string)
          </p>
       else
          let $proj := a:get-from-directory($dir, 'xproject/project.xml', fn:true())/*
-         let $id   := if ( fn:exists($id) ) then $id else $proj/@abbrev
+         let $id   := ( $id, $proj/@abbrev )[1]
          return
             if ( fn:empty($proj) ) then (
                <p xmlns="http://www.w3.org/1999/xhtml">

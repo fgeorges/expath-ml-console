@@ -25,6 +25,7 @@ lib.loadDeploy(
     srcSet,
     srcPath,
     target,
+    'load',
     cmd.LoadCommand,
     (cmdArgs, actions) => view.page(environ, project, 'load', cmdArgs, actions),
     err => view.error(environ, project, err));

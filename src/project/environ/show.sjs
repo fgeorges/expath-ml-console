@@ -13,7 +13,7 @@ lib.withProject(
     project,
     environ,
     (ctxt, env) => {
-	const command = new cmd.ShowCommand({}, {}, ctxt, env);
+	const command = new cmd.ShowCommand('show', {}, {}, ctxt, env);
 	const actions = command.prepare();
 	actions.execute();
 	if ( actions.error ) {

@@ -6,14 +6,14 @@ const lib  = require('../../project/environ/environ-lib');
 const view = require('../../project/environ/setup.xqy');
 const t    = require('../../lib/tools.xqy');
 
-const project = t.mandatoryField('project');
-const environ = t.mandatoryField('environ');
+const project = fn.head(t.mandatoryField('project'));
+const environ = fn.head(t.mandatoryField('environ'));
 
 lib.withProject(
     project,
     environ,
     (ctxt, env) => {
-        const command = new cmd.SetupCommand({}, {}, ctxt, env);
+        const command = new cmd.SetupCommand('setup', {}, {}, ctxt, env);
         const actions = command.prepare();
         // draw the action, which will be orchastrated by the client
         return view.page(environ, project, actions.todo.map(a => a.toValues()));

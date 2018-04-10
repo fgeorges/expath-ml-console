@@ -9,6 +9,7 @@
     const disp   = require('../../project/mlproj/display.xqy');
     const a      = require('../../lib/admin.xqy');
     const bin    = require('../../lib/binary.xqy');
+    const t      = require('../../lib/tools.xqy');
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      * The context implementation for MarkLogic.
@@ -44,9 +45,23 @@
             return new mmatch.Minimatch(pattern, options);
         }
 
+        mkdir(path, force) {
+            t.ensureDir(path);
+        }
+
+        exists(path) {
+            return a.fileExists(path);
+        }
+
+        write(path, content, force) {
+            if ( ! force && this.exists(path) ) {
+                throw new Error('File already exists, do not override: ' + path);
+            }
+            a.insertIntoFilesystem(path, xdmp.toJSON(content));
+        }
+
         resolve(href, base) {
-            let res = fn.resolveUri(href, base || this.cwd);
-            return new String(res);
+            return fn.resolveUri(href, base || this.cwd).toString();
         }
 
         read(path) {
@@ -69,10 +84,10 @@
             var user = this.environ.param('@user');
             var pwd  = this.environ.param('@password');
             if ( ! user ) {
-                throw new Error('No user in environ');
+                throw core.error.missingValue('@user');
             }
             if ( ! pwd ) {
-                throw new Error('No pwd in environ (TODO: Allow to pass via form values...)');
+                throw core.error.missingValue('@password');
             }
             var options = {
                 authentication: {
@@ -88,67 +103,99 @@
             return options;
         }
 
-        get(api, url) {
-            var url     = this.url(api, url);
+        extractBody(info, body) {
+            let ctype = info.headers && info.headers['content-type'];
+            if ( ctype ) {
+                // TODO: Parse it properly, e.g. "application/json; charset=UTF-8"
+                if ( ctype.startsWith('application/json') ) {
+                    body = body.toObject();
+                }
+            }
+            return body;
+        }
+
+        get(params, path) {
+            var url     = this.url(params, path);
             var options = this.credentials();
+            if ( params.headers ) {
+                Object.keys(params.headers).forEach(name => {
+                    options.headers[name] = params.headers[name];
+                });
+            }
+            if ( ! options.headers.accept ) {
+                options.headers.accept = 'application/json';
+            }
             var resp    = xdmp.httpGet(url, options);
             var info    = fn.head(resp);
             var body    = fn.head(fn.tail(resp));
-            if ( info.code === 200 ) {
-                return JSON.parse(body);
-            }
-            else if ( info.code === 404 ) {
-                return;
-            }
-            else {
-                throw new Error('Error retrieving entity: ' + (body.errorResponse
-                                ? body.errorResponse.message : body));
-            }
+            return {
+                status  : info.code,
+                headers : info.headers,
+                body    : this.extractBody(info, body)
+            };
         }
 
-        post(api, url, data, type) {
-            var url     = this.url(api, url);
+        post(params, path, data, mime) {
+            var url     = this.url(params, path);
             var options = this.credentials();
+            if ( params.headers ) {
+                Object.keys(params.headers).forEach(name => {
+                    options.headers[name] = params.headers[name];
+                });
+            }
+            let content = data || params.body;
+            let type    = mime || params.type || options.headers['content-type'];
+            if ( ! options.headers.accept ) {
+                options.headers.accept = 'application/json';
+            }
             var resp;
-            if ( bin.isBinary(data) ) {
-                options.headers['Content-Type'] = type;
-                resp = xdmp.httpPost(url, options, data);
+            if ( bin.isBinary(content) ) {
+                options.headers['content-type'] = type;
+                resp = xdmp.httpPost(url, options, content);
             }
             else {
-                if ( data && type ) {
-                    options.headers['Content-Type'] = type;
-                    options.data                    = data;
+                if ( content && type ) {
+                    options.headers['content-type'] = type;
+                    options.data                    = content;
                 }
-                else if ( data ) {
-                    options.headers["Content-Type"] = 'application/json';
-                    options.data                    = JSON.stringify(data);
+                else if ( content ) {
+                    options.headers['content-type'] = 'application/json';
+                    options.data                    = JSON.stringify(content);
                 }
                 else {
-                    options.headers['Content-Type'] = 'application/x-www-form-urlencoded';
+                    options.headers['content-type'] = 'application/x-www-form-urlencoded';
                 }
                 resp = xdmp.httpPost(url, options);
             }
             var info = fn.head(resp);
             var body = fn.head(fn.tail(resp));
-            if ( info.code === ((data && ! type) ? 201 : 200) ) {
-                return;
-            }
-            else {
-                throw new Error('Entity not created: ' + (body.errorResponse
-                                ? body.errorResponse.message : body));
-            }
+            return {
+                status  : info.code,
+                headers : info.headers,
+                body    : this.extractBody(info, body)
+            };
         }
 
-        put(api, url, data, type) {
-            var url     = this.url(api, url);
+        put(params, path, data, mime) {
+            var url     = this.url(params, path);
             var options = this.credentials();
-            if ( data && type ) {
-                options.headers['Content-Type'] = type;
-                options.data                    = data;
+            if ( params.headers ) {
+                Object.keys(params.headers).forEach(name => {
+                    options.headers[name] = params.headers[name];
+                });
             }
-            else if ( data ) {
+            let content = data || params.body;
+            let type    = mime || params.type || options.headers['content-type'];
+            if ( ! options.headers.accept ) {
+                options.headers.accept = 'application/json';
+            }
+            if ( content && type ) {
+                options.headers['Content-Type'] = type;
+                options.data                    = content;
+            }
+            else if ( content ) {
                 options.headers["Content-Type"] = 'application/json';
-                options.data                    = JSON.stringify(data);
+                options.data                    = JSON.stringify(content);
             }
             else {
                 options.headers['Content-Type'] = 'application/x-www-form-urlencoded';
@@ -156,21 +203,11 @@
             var resp = xdmp.httpPut(url, options);
             var info = fn.head(resp);
             var body = fn.head(fn.tail(resp));
-            // XDBC PUT /insert returns 200
-            if ( info.code === 200 || info.code === 201 || info.code === 204 ) {
-                return;
-            }
-            // when operation needs a server restart
-            else if ( info.code === 202 ) {
-                if ( ! body.root.restart ) {
-                    throw new Error('202 returned NOT for a restart reason?!?');
-                }
-                return Date.parse(body.root.restart['last-startup'][0].value);
-            }
-            else {
-                throw new Error('Entity not updated: ' + (body.errorResponse
-                                ? body.errorResponse.message : body));
-            }
+            return {
+                status  : info.code,
+                headers : info.headers,
+                body    : this.extractBody(info, body)
+            };
         }
 
         boundary() {
@@ -181,12 +218,30 @@
             let res = xdmp.multipartEncode(
                 boundary,
                 parts.map(part => {
-                    return { headers: {
-                        "Content-Disposition": 'attachment; filename="' + part.uri + '"'
-                    }};
+                    const headers = {};
+                    if ( part.path ) {
+                        headers['Content-Disposition'] = `attachment; filename="${part.uri}"`;
+                    }
+                    else {
+                        if ( part.uri ) {
+                            headers['Content-Disposition'] = `attachment; filename="${part.uri}"; category=metadata`;
+                        }
+                        else {
+                            headers['Content-Disposition'] = 'inline; category=metadata';
+                        }
+                        headers['Content-Type'] = 'application/json';
+                    }
+                    return { headers: headers };
                 }),
                 // read everything as binary, so exactly as it is on the disk
-                parts.map(part => xdmp.externalBinary(part.path)));
+                parts.map(part => {
+                    if ( part.path ) {
+                        return xdmp.externalBinary(part.path);
+                    }
+                    else {
+                        return xdmp.toJSON(part.body);
+                    }
+                }));
             // add the property length to the binary node (used in the action message)
             let len = xdmp.binarySize(res);
             res.length = len;
@@ -317,11 +372,11 @@
                 name, id, sch, sec, tri, forests, props));
         }
 
-        server(name, id, group, content, modules, props) {
+        server(name, id, type, group, content, modules, props) {
             let c = content && content.name;
             let m = modules && modules.name;
             this.save(disp.server(
-                name, id, group, c, m, props));
+                name, id, type, group, c, m, props));
         }
 
         source(name, props) {
@@ -339,9 +394,9 @@
                 code, configs, title, name, version));
         }
 
-        environ(envipath, title, desc, host, user, password, params, imports) {
+        environ(envipath, title, desc, host, user, password, params, apis, commands, imports) {
             this.save(disp.environ(
-                envipath, title, desc, host, user, password, params, imports));
+                envipath, title, desc, host, user, password, params, apis, commands, imports));
         }
 
         check(indent, msg, arg) {

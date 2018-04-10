@@ -43,11 +43,22 @@ const dry     = false;
 const verbose = false;
 const params  = {};
 const force   = {};
-const ctxt    = new ml.Context(dry, verbose);
+
 const dir     = proj.directory(proj.project(id));
-let   details = {
+const ctxt    = new ml.Context(dry, verbose, dir);
+const project = new core.Project(ctxt, dir);
+
+const details = {
     "@all-dbs":  allDbs()
 };
+
+envs.sort((a, b) => {
+    return a.name < b.name
+	? -1
+	: a.name > b.name
+	? 1
+	: 0;
+});
 envs.forEach(env => {
     let d = {
         databases: [],
@@ -57,7 +68,7 @@ envs.forEach(env => {
     details[env.name] = d;
     // reset, having one global environ not needed in this case
     ctxt.platform.environ = null;
-    const environ = new core.Environ(ctxt, env.path);
+    const environ = project.environ(env.name, params, force);
     environ.compile(params, force);
     environ.databases().forEach(db => {
         d.databases.push({

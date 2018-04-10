@@ -42,7 +42,7 @@
         }
     }
 
-    function loadDeploy(project, environ, srcSet, srcPath, target, cmd, view, error) {
+    function loadDeploy(project, environ, srcSet, srcPath, target, name, cmd, view, error) {
         const addSource = (ctxt, args) => {
             if ( srcSet && srcPath ) {
                 throw new Error('Source set and source path both provided');
@@ -93,7 +93,7 @@
                 addSource(ctxt, cmdArgs);
                 addTarget(ctxt, cmdArgs);
                 // prepare the command
-                const command = new cmd({}, cmdArgs, ctxt, env);
+                const command = new cmd(name, {}, cmdArgs, ctxt, env);
                 const actions = command.prepare();
                 // draw the actions, which will be orchestrated by the client
                 return view(cmdArgs, actions.todo.map(a => a.toValues()));

@@ -125,6 +125,7 @@ declare function disp:database(
 declare function disp:server(
    $name    as xs:string,
    $id      as xs:string?,
+   $type    as xs:string,
    $group   as xs:string,
    $content as xs:string?,
    $modules as xs:string?,
@@ -140,6 +141,7 @@ declare function disp:server(
       </thead>
       <tbody>
 	   <tr><td>Name</td>       <td><code>{ $name    }</code></td></tr>
+	   <tr><td>Type</td>       <td><code>{ $type    }</code></td></tr>
 	   <tr><td>Group</td>      <td>      { $group   }       </td></tr>
 	 { <tr><td>ID</td>         <td><code>{ $id      }</code></td></tr>[$id]      }
 	 { <tr><td>Content DB</td> <td>      { $content }       </td></tr>[$content] }
@@ -245,8 +247,10 @@ declare function disp:environ(
    $host     as xs:string?,
    $user     as xs:string?,
    $password as xs:string?,
-   $params   as item((: json:array :)),
-   $imports  as item((: json:array :))
+   $params   as map:map*,
+   $apis     as map:map,
+   $commands as xs:string*,
+   $imports  as map:map*
 ) as element()+
 {
    <h3><span class="glyphicon glyphicon-globe" aria-hidden="true"/>{ ' ' }{ $envipath }</h3>,
@@ -265,35 +269,69 @@ declare function disp:environ(
 	 { <tr><td>Password</td>     <td>*****</td>                     </tr>[$password] }
       </tbody>
    </table>,
-   let $seq := json:array-values($params)
+
+   if ( fn:exists($params) ) then
+      <table class="table table-striped">
+	 <thead>
+	    <th>Parameter</th>
+	    <th>Value</th>
+	 </thead>
+	 <tbody> {
+	    $params ! <tr>
+	       <td>{ map:get(., 'name')  }</td>
+	       <td>{ map:get(., 'value') }</td>
+	    </tr>
+	 }
+	 </tbody>
+      </table>
+   else
+      (),
+
+   let $names := map:keys($apis)
    return
-      if ( fn:exists($seq) ) then
-	 <table class="table table-striped">
-	    <thead>
-	       <th>Parameter</th>
-	       <th>Value</th>
-	    </thead>
-	    <tbody> {
-               $seq ! <tr>
-                  <td>{ map:get(., 'name')  }</td>
-                  <td>{ map:get(., 'value') }</td>
-               </tr>
+      if ( fn:exists($names) ) then
+         <table class="table table-striped">
+            <thead>
+               <th>API</th>
+               <th>Property</th>
+               <th>Value</th>
+            </thead>
+            <tbody> {
+               for $name  in $names
+               let $api   := map:get($apis, $name)
+               let $props := map:keys($api)
+               for $prop  at $p in $props
+               return
+                  <tr>
+                     { <td rowspan="{ fn:count($props) }">{ $name }</td>[$p eq 1] }
+                     <td>{ $prop }</td>
+                     <td>{ map:get($api, $prop) }</td>
+                  </tr>
             }
-	    </tbody>
-	 </table>
+            </tbody>
+         </table>
       else
          (),
-   let $seq := json:array-values($imports)
-   return
-      if ( fn:exists($seq) ) then (
-         <p>Imports:</p>,
-         <pre>
-            { $envipath }
-            { $seq ! ('&#10;' || disp:indent(map:get(., 'level') - 1) || '-> ' || map:get(., 'href')) }
-         </pre>
-      )
-      else (
-      )
+
+   if ( fn:exists($commands) ) then (
+      <p>User commands:</p>,
+      <ul> {
+         $commands ! <li>{ . }</li>
+      }
+      </ul>
+   )
+   else (
+   ),
+
+   if ( fn:exists($imports) ) then (
+      <p>Imports:</p>,
+      <pre>
+	 { $envipath }
+	 { $imports ! ('&#10;' || disp:indent(map:get(., 'level') - 1) || '-> ' || map:get(., 'href')) }
+      </pre>
+   )
+   else (
+   )
 };
 
 declare function disp:indent($level as xs:integer) as xs:string
