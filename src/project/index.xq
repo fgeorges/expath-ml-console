@@ -17,19 +17,20 @@ declare function local:page() as element()+
    <p>The projects on this system:</p>,
    let $projects := proj:projects()
    return
-      if ( fn:empty($projects) ) then
-         <li><em>no project yet</em></li>
-      else
-         <table class="table table-bordered datatable" id="prof-detail">
-            <thead>
-               <th>Name</th>
-               <th>Title</th>
-               <th>Type</th>
-               <th>Info</th>
-            </thead>
-            <tbody> {
+      <table class="table table-bordered datatable" id="prof-detail">
+         <thead>
+            <th>Name</th>
+            <th>Title</th>
+            <th>Type</th>
+            <th>Info</th>
+         </thead>
+         <tbody> {
+            if ( fn:empty($projects) ) then
+               <td colspan="4"><em>no project yet</em></td>
+            else
                for $proj in $projects
                let $id   := xs:string($proj/@id)
+               order by $id
                return
                   <tr>
                      <td>{ v:proj-link('project/' || $id, $id) }</td>
@@ -37,9 +38,9 @@ declare function local:page() as element()+
                      <td>{ xs:string($proj/@type) }</td>
                      <td>{ g:info($proj) }</td>
                   </tr>
-            }
-            </tbody>
-         </table>,
+         }
+         </tbody>
+      </table>,
    <p>Projects let you handle applications and libraries source files.  For now, they allow you
       to browse project XQuery and JavaScript source files, and display their documentation.
       The documentation must be embedded in the source files as xqDoc comments in XQuery, and
