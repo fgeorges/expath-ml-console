@@ -132,7 +132,8 @@ declare %private function b:get-children-impl(
 {
    let $repl := '^(' || $base || '([^' || $sep || ']*' || $sep || ')).*'
    (: TODO: Any way to get rid of distinct-values? :)
-   let $vals := fn:distinct-values(($matcher($base), $matcher($base || '*') ! fn:replace(., $repl, '$1')))
+   let $res  := fn:distinct-values(($matcher($base), $matcher($base || '*') ! fn:replace(., $repl, '$1')))
+   let $vals := $res[fn:not(. eq $base)]
    return
       if ( fn:exists($start) ) then
          $vals[fn:position() ge $start and fn:position() lt $start + $b:page-size] ! <path sep="{ $sep }">{ . }</path>
