@@ -127,6 +127,7 @@ declare function this:page(
             <div id="summary" class="alert alert-info" role="alert">
                Click on "Execute" to start loading.
             </div>,
+            <pre id="error" style="display: none"/>,
             <button id="doit" type="button" class="btn btn-default">Execute</button>
          )
    },
@@ -166,6 +167,11 @@ declare function this:page(
                   $('#summary')
                      .toggleClass('alert-info alert-danger')
                      .text(errmsg);
+                  if ( errobj.stack ) {{
+                     $('#error')
+                        .toggle()
+                        .text(errobj.stack);
+                  }}
                }}
                else {{
                   $('#summary')

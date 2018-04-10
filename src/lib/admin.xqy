@@ -366,6 +366,10 @@ declare function a:insert-into-filesystem(
  : Options supported:
  :
  : - `indent`: indent the XML when serialized to the file.
+ : - `xml`: use the output method `xml`.
+ : - `html`: use the output method `html`.
+ : - `xhtml`: use the output method `xhtml`.
+ : - `text`: use the output method `text`.
  : 
  : @param $file The absolute path of the file.
  : @param $doc The document to save, either a document, an element or a text node.
@@ -387,6 +391,18 @@ declare function a:insert-into-filesystem(
                case 'indent' return (
                   <indent>yes</indent>,
                   <indent-untyped>yes</indent-untyped>
+               )
+               case 'xml' return (
+                  <method>xml</method>
+               )
+               case 'html' return (
+                  <method>html</method>
+               )
+               case 'xhtml' return (
+                  <method>xhtml</method>
+               )
+               case 'text' return (
+                  <method>text</method>
                )
                default return (
                   t:error('not-supported', 'Option not supported: ' || $o)

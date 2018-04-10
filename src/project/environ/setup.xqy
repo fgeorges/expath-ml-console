@@ -98,11 +98,12 @@ declare function this:page(
 	    </div>
          )
          else (
-	    <p>Actions to be performed</p>,
+	    <p>Actions to be performed:</p>,
 	    json:array-values($actions) ! this:action(.),
 	    <div id="summary" class="alert alert-info" role="alert">
 	       Click on "Execute" to start running the actions.
 	    </div>,
+            <pre id="error" style="display: none"/>,
 	    <button id="doit" type="button" class="btn btn-default">Execute</button>
          )
    },
@@ -142,6 +143,11 @@ declare function this:page(
                   $('#summary')
                      .toggleClass('alert-info alert-danger')
                      .text(errmsg);
+                  if ( errobj.stack ) {{
+                     $('#error')
+                        .toggle()
+                        .text(errobj.stack);
+                  }}
                }}
                else {{
                   $('#summary')
