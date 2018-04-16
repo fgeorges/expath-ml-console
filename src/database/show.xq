@@ -297,7 +297,8 @@ return
           }};
           [ 'dir', 'doc', 'cdir', 'cdoc', 'rsrc' ].forEach(function(kind) {{
              var camel = kind.slice(0, 1).toUpperCase() + kind.slice(1);
-             $('.typeahead' + camel).typeahead({{
+             var clazz = '.typeahead' + camel;
+             $(clazz).typeahead({{
                 hint: true,
                 highlight: true,
                 minLength: 3
@@ -305,6 +306,12 @@ return
              {{
                name:   kind,
                source: makeBloodhound(kind)
+             }})
+             .on('typeahead:asyncrequest', function() {{
+                $(clazz).addClass('loading');
+             }})
+             .on('typeahead:asynccancel typeahead:asyncreceive', function() {{
+                $(clazz).removeClass('loading');
              }});
           }});
        </script>,
