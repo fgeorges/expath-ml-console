@@ -413,6 +413,8 @@ function display(reports)
    }
    table.draw();
    table.columns.adjust();
+   // some "width: 0" messes up the table display on Firefox
+   $('#prof-detail').width('');
    $('.prof-success').show();
 }
 
