@@ -68,6 +68,13 @@ declare function local:page()
    as element()+
 {
    <wrapper>
+      <div style="display: none">
+	 <p id="sample-create-xqy">{ $sample-create-xqy }</p>
+	 <p id="sample-create-sjs">{ $sample-create-sjs }</p>
+	 <p id="sample-task-xqy">{ $sample-task-xqy }</p>
+	 <p id="sample-task-sjs">{ $sample-task-sjs }</p>
+      </div>
+
       <p>Bla bla bla...</p>
       <p><b>TODO</b>: Allow to switch between XQuery and JavaScript (or at least
          to send XQuery by changing the hard-coded default.)</p>
@@ -291,4 +298,26 @@ declare function local:format-as(
       </li>
 };
 
-v:console-page('../', 'job', 'Jobs', local:page#0)
+v:console-page('../', 'job', 'Jobs', local:page#0,
+   <script>
+      $('input[type=radio][name=lang]').change(function() {{
+         switchLang(this.value);
+      }});
+
+      function switchLang(lang) {{
+         var mode = lang === 'sjs'
+            ? 'ace/mode/javascript'
+            : 'ace/mode/xquery';
+         switchEditor('create', lang, mode);
+         switchEditor('task',   lang, mode);
+      }}
+
+      function switchEditor(which, lang, mode) {{
+         editors[which + '-code']
+            .editor
+            .setSession(
+	       ace.createEditSession(
+                  $('#sample-' + which + '-' + lang).text(),
+                  mode));
+      }}
+   </script>)

@@ -71,6 +71,9 @@ chunks.forEach((chunk, i) => {
 const res = {};
 
 if ( dry === 'true' ) {
+    // TODO: Cherry-pick which info to return (which is used in the UI).  Especially:
+    // 1) do not return chunks, as they can be huge
+    // 2) we need to return the same relevant info from XQuery
     res.dry   = xdmp.describe(dry);
     res.job   = job.job;
     res.tasks = tasks.map(t => t.task);

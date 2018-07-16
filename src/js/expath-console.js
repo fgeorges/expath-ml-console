@@ -526,7 +526,7 @@ function jobCreate(codeId, detailId, timeId, countId, uriId, collId, dryId)
    var data = new FormData();
    data.append('code', editorContent(codeId));
    // TODO: Retrieve the selected language, content db and modules db...
-   data.append('lang', 'sjs');
+   data.append('lang', $('input[name=lang]:checked').val());
    data.append('database', 'Documents');
    var url = '/api/job/create';
    if ( $('#' + dryId).is(':checked') ) {
@@ -576,6 +576,8 @@ function jobCreate(codeId, detailId, timeId, countId, uriId, collId, dryId)
          );
       });
       table.columns.adjust().draw();
+      // some "width: 0" messes up the table display on Firefox
+      $('#create-detail').width('');
+      $('.create-success').show();
    });
-   $('.create-success').show();
 }
