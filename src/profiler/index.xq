@@ -81,33 +81,7 @@ declare function local:page()
          appserver instead of a database).  Before evaluating an expression, you
          need to <b>select a source</b> first.</p>
 
-      <h3>Query</h3>
-      { v:edit-text(text { $fibonacci }, 'xquery', 'prof-query', 'profile') }
-
-      <div class="row">
-         <div class="col-sm-3">
-            <button id="go-profile"
-                    class="btn btn-default"
-                    disabled="disabled"
-                    onclick='profile("prof-query", "prof-json");'>Profile</button>
-            <button id="go-as-xml"
-                    class="btn btn-default"
-                    disabled="disabled"
-                    onclick='profileXml("prof-query");'
-                    style="margin-left: 10px;">As XML</button>
-         </div>
-         <div class="col-sm-6"/>
-         <div class="col-sm-3">
-            <button class="btn btn-default pull-right"
-                    onclick='$("#jsonFile").click();'
-                    style="margin-left: 10px;">Load JSON</button>
-            <button class="btn btn-default pull-right"
-                    onclick='$("#xmlFile").click();'>Load XML</button>
-         </div>
-      </div>
-
-      <p/>
-
+      <h3>Source</h3>
       <div class="row">
          <div class="col-sm-12">
             <div class="btn-group">
@@ -129,10 +103,7 @@ declare function local:page()
                   HTTP servers <span class="caret"/>
                </button>
                <ul class="dropdown-menu" style="min-width: 400pt"> {
-                  for $as in $appservers[@type eq 'http']
-                  order by $as/a:name
-                  return
-                     local:format-as($as, 'target-id', 'target-label')
+                  local:format-asses('http')
                }
                </ul>
             </div>
@@ -142,10 +113,7 @@ declare function local:page()
                   XDBC servers <span class="caret"/>
                </button>
                <ul class="dropdown-menu" style="min-width: 400pt"> {
-                  for $as in $appservers[@type eq 'xdbc']
-                  order by $as/a:name
-                  return
-                     local:format-as($as, 'target-id', 'target-label')
+                  local:format-asses('xdbc')
                }
                </ul>
             </div>
@@ -155,10 +123,7 @@ declare function local:page()
                   ODBC servers <span class="caret"/>
                </button>
                <ul class="dropdown-menu" style="min-width: 400pt"> {
-                  for $as in $appservers[@type eq 'odbc']
-                  order by $as/a:name
-                  return
-                     local:format-as($as, 'target-id', 'target-label')
+                  local:format-asses('odbc')
                }
                </ul>
             </div>
@@ -168,10 +133,7 @@ declare function local:page()
                   WebDAV servers <span class="caret"/>
                </button>
                <ul class="dropdown-menu" style="min-width: 400pt"> {
-                  for $as in $appservers[@type eq 'webDAV']
-                  order by $as/a:name
-                  return
-                     local:format-as($as, 'target-id', 'target-label')
+                  local:format-asses('webDAV')
                }
                </ul>
             </div>
@@ -179,6 +141,23 @@ declare function local:page()
                <button id="target-label" type="button" class="btn btn-danger" disabled="disabled">select a source</button>
             </div>
             <div id="target-id" style="display: none"/>
+         </div>
+      </div>
+
+      <h3>Query</h3>
+      { v:edit-text(text { $fibonacci }, 'xquery', 'prof-query', 'profile') }
+
+      <div class="row">
+         <div class="col-sm-3">
+            <button id="go-profile"
+                    class="btn btn-default"
+                    disabled="disabled"
+                    onclick='profile("prof-query", "prof-json");'>Profile</button>
+            <button id="go-as-xml"
+                    class="btn btn-default"
+                    disabled="disabled"
+                    onclick='profileXml("prof-query");'
+                    style="margin-left: 10px;">As XML</button>
          </div>
       </div>
 
@@ -198,6 +177,15 @@ declare function local:page()
          </thead>
          <tbody/>
       </table>
+      <div class="row">
+         <div class="col-sm-3">
+            <button class="btn btn-default"
+                    onclick='$("#jsonFile").click();'>Load JSON</button>
+            <button class="btn btn-default"
+                    onclick='$("#xmlFile").click();'
+                    style="margin-left: 10px;">Load XML</button>
+         </div>
+      </div>
 
       <h3 class="prof-failure" style="display: none">Stacktrace</h3>
       <div id="stacktrace" class="prof-failure" style="display: none"/>
@@ -223,6 +211,19 @@ declare function local:format-db(
       }
       </a>
    </li>
+};
+
+declare function local:format-asses($type as xs:string)
+{
+   let $asses := $appservers[@type eq $type]
+   return
+      if ( fn:exists($asses) ) then
+         for $as in $asses
+         order by $as/a:name
+         return
+            local:format-as($as, 'target-id', 'target-label')
+      else
+         <li><a style="font-style: italic">(none)</a></li>
 };
 
 declare function local:format-as(
