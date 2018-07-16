@@ -1,7 +1,13 @@
 xquery version "3.0";
 
 (:~
- : The profiler page.
+ : The job page.
+ :
+ : TODO: Endpoints to support this page (and beyond):
+ :
+ : - POST /api/job/create            -- create and save the job and all its tasks
+ : - POST /api/job/create?test=true  -- return the job and its first task, no save
+ : - POST /api/job/xxx/run           -- run the job xxx
  :)
 
 import module namespace a = "http://expath.org/ns/ml/console/admin" at "../lib/admin.xqy";
@@ -9,56 +15,50 @@ import module namespace v = "http://expath.org/ns/ml/console/view"  at "../lib/v
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
+declare namespace xdmp = "http://marklogic.com/xdmp";
+
 declare variable $appservers := a:get-appservers()/a:appserver;
 
-declare variable $fibonacci :=
+declare variable $sample-create-xqy :=
 '
-(: This is an example query.
- : Replace this buffer with the query you want to profile.
+(: This is a job creation query.
+ : Replace this buffer with your own query.
  :)
 
-xquery version "3.0";
+xquery version "3.1";
 
-(:~
- : Fibonacci, recursive version.
+(''001'', ''002'', ''003'')
+';
+
+declare variable $sample-create-sjs :=
+'
+// This is a job creation script.
+// Replace this buffer with your own script.
+
+"use strict";
+
+[''001'', ''002'', ''003''];
+';
+
+declare variable $sample-task-xqy :=
+'
+(: TODO: ...
  :)
-declare function local:fib-recur($n as xs:integer) as xs:integer?
-{
-   if ( $n lt 0 ) then
-      ()
-   else if ( $n eq 0 ) then
-      0
-   else if ( $n eq 1 ) then
-      1
-   else
-      local:fib-recur($n - 2) + local:fib-recur($n - 1)
-};
 
-(:~
- : Fibonacci, iterative version.
- :)
-declare function local:fib-iter($n as xs:integer) as xs:integer?
-{
-   if ( $n lt 0 ) then
-      ()
-   else if ( $n eq 0 ) then
-      0
-   else
-      local:fib-iter-1($n, 0, 1)
-};
+xquery version "3.1";
 
-declare function local:fib-iter-1($n as xs:integer, $m1 as xs:integer, $m2 as xs:integer) as xs:integer
-{
-   if ( $n eq 1 ) then
-      $m2
-   else
-      local:fib-iter-1($n - 1, $m2, $m1 + $m2)
-};
+declare namespace xdmp = "http://marklogic.com/xdmp";
 
-(: Call them. :)
+xdmp:log("Bla bla bla")
+';
 
-local:fib-recur(20),
-local:fib-iter(20)
+declare variable $sample-task-sjs :=
+'
+// TODO: ...
+
+"use strict";
+
+console.log("Bla bla bla");
 ';
 
 (:~
@@ -68,20 +68,21 @@ declare function local:page()
    as element()+
 {
    <wrapper>
-      <p>The profiler helps you profile an XQuery expression, save the profiling
-         report (both XML and JSON) and load existing reports (both XML and JSON).</p>
-      <p>The button <b>Profile</b> profiles the expression, displays the profile
-         report in the table, and display it as JSON below the table.</p>
-      <p>The button <b>As XML</b> profiles the expression and returns the XML report,
-         but does not show it in the interface.</p>
-      <p>The button <b>Save JSON</b> saves whatever is in the JSON editor (which is
-         populated with each <b>Profile</b> pass).</p>
-      <p>The query is evaluated with the selected content database, and optionally
-         using the modules database of the selected appserver (when you select an
-         appserver instead of a database).  Before evaluating an expression, you
-         need to <b>select a source</b> first.</p>
+      <p>Bla bla bla...</p>
+      <p><b>TODO</b>: Allow to switch between XQuery and JavaScript (or at least
+         to send XQuery by changing the hard-coded default.)</p>
+      <p>Then try the creation phase (and runtime?) by chuncking all URIs in, say,
+         "Documents".</p>
+      <p>Bla bla bla...</p>
 
-      <h3>Source</h3>
+      <h3>Setup</h3>
+      <label class="radio-inline">
+	 <input type="radio" name="lang" id="lang-xqy" value="xqy"/> XQuery
+      </label>
+      <label class="radio-inline">
+	 <input type="radio" name="lang" id="lang-sjs" value="sjs" checked="checked"/> JavaScript
+      </label>
+      <p/>
       <div class="row">
          <div class="col-sm-12">
             <div class="btn-group">
@@ -103,7 +104,7 @@ declare function local:page()
                   HTTP servers <span class="caret"/>
                </button>
                <ul class="dropdown-menu" style="min-width: 400pt"> {
-                  local:format-asses('http')
+		  local:format-asses('http')
                }
                </ul>
             </div>
@@ -113,7 +114,7 @@ declare function local:page()
                   XDBC servers <span class="caret"/>
                </button>
                <ul class="dropdown-menu" style="min-width: 400pt"> {
-                  local:format-asses('xdbc')
+		  local:format-asses('xdbc')
                }
                </ul>
             </div>
@@ -123,7 +124,7 @@ declare function local:page()
                   ODBC servers <span class="caret"/>
                </button>
                <ul class="dropdown-menu" style="min-width: 400pt"> {
-                  local:format-asses('odbc')
+		  local:format-asses('odbc')
                }
                </ul>
             </div>
@@ -133,7 +134,7 @@ declare function local:page()
                   WebDAV servers <span class="caret"/>
                </button>
                <ul class="dropdown-menu" style="min-width: 400pt"> {
-                  local:format-asses('webDAV')
+		  local:format-asses('webDAV')
                }
                </ul>
             </div>
@@ -144,58 +145,82 @@ declare function local:page()
          </div>
       </div>
 
-      <h3>Query</h3>
-      { v:edit-text(text { $fibonacci }, 'xquery', 'prof-query', 'profile') }
+      <h3>Create job</h3>
+      <!-- TODO: How to change dynamically the language of the editor, depending
+	   on the value of the "lang" radio buttons?  And its content to
+           $sample-create-xqy? -->
+      { v:edit-text(text { $sample-create-sjs }, 'javascript', 'create-code') }
 
       <div class="row">
          <div class="col-sm-3">
             <button id="go-profile"
                     class="btn btn-default"
-                    disabled="disabled"
-                    onclick='profile("prof-query", "prof-json");'>Profile</button>
-            <button id="go-as-xml"
-                    class="btn btn-default"
-                    disabled="disabled"
-                    onclick='profileXml("prof-query");'
-                    style="margin-left: 10px;">As XML</button>
+                    onclick="jobCreate('create-code', 'create-detail', 'total-time', 'tasks-count', 'job-uri', 'job-coll', 'create-dry');">Create</button>
+	    <div class="checkbox">
+	       <label>
+		  <input type="checkbox" value="" checked="checked" id="create-dry"/> Dry mode
+	       </label>
+	    </div>
          </div>
       </div>
 
-      <h3 class="prof-success">Profiling result</h3>
-      <p class="prof-success">
-         Total time: <span id="total-time"/>
-      </p>
-      <table class="table table-bordered prof-datatable prof-success" id="prof-detail" data-order-on="-3">
-         <thead>
-            <th>Location</th>
-            <th class="col-num">Count</th>
-            <th class="col-num">Shallow %</th>
-            <th class="col-num">Shallow µs</th>
-            <th class="col-num">Deep %</th>
-            <th class="col-num">Deep µs</th>
-            <th class="col-expr">Expression</th>
-         </thead>
-         <tbody/>
-      </table>
+      <div class="create-success" style="display: none">
+	 <h3>Created job</h3>
+	 <p>
+	    Total time: <span id="total-time"/>
+	 </p>
+	 <p>
+	    Number of tasks created: <span id="tasks-count"/>
+	 </p>
+	 {
+	    let $db := xdmp:database-name(xdmp:database())
+	    return (
+	       <p>
+		  <span>Job URI: </span>
+		  <a data-href="db/{ $db }/doc?uri=">
+		     <code class="doc" id="job-uri"/>
+		  </a>
+	       </p>,
+	       <p>
+		  <span>Collection: </span>
+		  <a data-href="db/{ $db }/coll?uri=">
+		     <code class="coll" id="job-coll"/>
+		  </a>
+	       </p>
+	    )
+	 }
+	 <table class="table table-bordered prof-datatable" id="create-detail" data-order-on="1">
+	    <thead>
+	       <tr>
+		  <th>Number</th>
+		  <th>Created</th>
+		  <th>Label</th>
+		  <th>URI</th>
+	       </tr>
+	    </thead>
+	    <tbody/>
+	 </table>
+      </div>
+
+      <h3>Task code</h3>
+      <!-- TODO: How to change dynamically the language of the editor, depending
+	   on the value of the "lang" radio buttons?  And its content to
+           $sample-task-xqy? -->
+      { v:edit-text(text { $sample-task-sjs }, 'javascript', 'task-code') }
+
+      <!-- TODO: Disable the buttons (test create, run job, etc.) until a source has
+	   been selected.  Look at the profiler to see how it is done there. -->
       <div class="row">
          <div class="col-sm-3">
-            <button class="btn btn-default"
-                    onclick='$("#jsonFile").click();'>Load JSON</button>
-            <button class="btn btn-default"
-                    onclick='$("#xmlFile").click();'
-                    style="margin-left: 10px;">Load XML</button>
+            <button id="run-job"
+                    class="btn btn-default"
+                    onclick="alert('TODO: Still to implement creating and launching the job.') // runJob('create-code', 'task-code', 'create-detail', 'total-time', 'tasks-count', 'job-uri', 'job-coll');">Run job</button>
+            <button id="test-task"
+                    class="btn btn-default"
+                    onclick="alert('TODO: Still to implement a way to test a single task, live.');"
+                    style="margin-left: 10px;">Test task</button>
          </div>
       </div>
-
-      <h3 class="prof-failure" style="display: none">Stacktrace</h3>
-      <div id="stacktrace" class="prof-failure" style="display: none"/>
-
-      <h3>JSON report</h3>
-      { v:edit-text(text { '' }, 'json', 'prof-json', 'profile') }
-      <button class="btn btn-default" onclick='saveJson("prof-json");'>Save JSON</button>
-      <!-- hidden fields -->
-      <input type="file" id="xmlFile"  style="display: none" onchange='loadXml(this.files[0],  "prof-json")'/>
-      <input type="file" id="jsonFile" style="display: none" onchange='loadJson(this.files[0], "prof-json")'/>
    </wrapper>/*
 };
 
@@ -266,4 +291,4 @@ declare function local:format-as(
       </li>
 };
 
-v:console-page('../', 'profiler', 'Profiler', local:page#0)
+v:console-page('../', 'job', 'Jobs', local:page#0)

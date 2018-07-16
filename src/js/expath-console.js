@@ -1,3 +1,22 @@
+
+//
+// FIXME: TODO: Split this file in several files, and cherry-pick those to load
+// for each page in the console.
+//
+// Profiler-specific code must go to a profile-specific JavaScript file.  Same
+// for job-specific code.  As they both share quite some code, there must be a
+// way to have common "libraries".
+//
+// Same for the ACE-related code, etc.  And for HTTP-related code (instead of
+// using $.ajax()...)
+//
+// TODO: Instead of using alert(), use some temporary messages on the page,
+// e.g. when saving a doc in a db.  Use a dismissable alert from Bootstrap 4:
+// https://getbootstrap.com/docs/4.1/components/alerts/.
+//
+// TODO: Upgrade to Bootstrap 4?
+//
+
 var highlight = ace.require('ace/ext/static_highlight');
 
 /*~
@@ -126,16 +145,27 @@ $(document).ready(function () {
       // no initial oredering
       order: []
    });
-   $('.prof-datatable').DataTable({
-      info: false,
-      paging: false,
-      searching: false,
-      order: [2, 'desc'],
-      columnDefs: [
-         { targets: 'col-num',  type: 'num',    className: 'dt-body-right' },
-         { targets: 'col-expr', type: 'string', className: 'cell-code' },
-         { targets: '_all',     type: 'string' }
-      ]
+   $('.prof-datatable').each(function() {
+      var elem    = $(this);
+      var order   = elem.data('order-on');
+      var options = {
+         info: false,
+         paging: false,
+         searching: false,
+         order: [],
+         columnDefs: [
+            { targets: 'col-num',  type: 'num',    className: 'dt-body-right' },
+            { targets: 'col-expr', type: 'string', className: 'cell-code' },
+            { targets: '_all',     type: 'string' }
+         ]
+      };
+      if ( order !== undefined ) {
+         options.order = [
+	    Math.abs(order) - 1,
+	    order < 0 ? 'desc' : 'asc'
+	 ];
+      }
+      elem.DataTable(options);
    });
 });
 
@@ -484,4 +514,68 @@ function selectTarget(targetId, id, targetLabel, label)
       $('#go-profile').prop('disabled', false);
       $('#go-as-xml').prop('disabled', false);
    }
+}
+
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * Job support
+ */
+
+function jobCreate(codeId, detailId, timeId, countId, uriId, collId, dryId)
+{
+   $('.create-success').hide();
+   var data = new FormData();
+   data.append('code', editorContent(codeId));
+   // TODO: Retrieve the selected language, content db and modules db...
+   data.append('lang', 'sjs');
+   data.append('database', 'Documents');
+   var url = '/api/job/create';
+   if ( $('#' + dryId).is(':checked') ) {
+      url += '?dry=true';
+   }
+   fetch(url, {
+      credentials: 'same-origin',
+      method: 'post',
+      body: data
+   })
+   .then(function(resp) {
+      if ( ! resp.ok ) {
+         const msg = 'Job creation service response was not ok: '
+             + resp.status + ' - ' + resp.statusText;
+	 resp.text().then(function(text) {
+            console.log(text);
+	 });
+         alert(msg);
+         throw new Error(msg);
+      }
+      return resp.json();
+   })
+   .then(function(data) {
+      var link = function(id, val) {
+	 var uri  = $('#' + id);
+	 var dad  = uri.parent();
+	 var href = dad.data('href');
+	 uri.text(val);
+	 dad.attr('href', href + val);
+      };
+      link(uriId,  data.job.uri);
+      link(collId, data.job.coll);
+      $('#' +  timeId).text(data.time);
+      $('#' + countId).text(data.tasks.length);
+      var table = $('#' + detailId).DataTable();
+      var href  = $('#' + uriId).parent().data('href');
+      table.clear();
+      data.tasks.forEach(function(task) {
+         table.row.add(
+	    $('<tr>')
+	       .append($('<td>').text(task.num))
+	       .append($('<td>').text(task.created))
+	       .append($('<td>').text(task.label))
+	       .append($('<td>')
+		  .append($('<a>').attr('href', href + task.uri)
+	             .append($('<code>').addClass('doc').text(task.uri))))
+         );
+      });
+      table.columns.adjust().draw();
+   });
+   $('.create-success').show();
 }

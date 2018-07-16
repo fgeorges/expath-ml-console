@@ -211,6 +211,27 @@
    </match-path>
 
    <!--
+       Jobs.
+   -->
+   <match-path matches="^/job$">
+      <dispatch>/job/index.xq</dispatch>
+   </match-path>
+   <match-path matches="^/job/job-json$">
+      <dispatch>/job/job-json.xq</dispatch>
+   </match-path>
+   <match-path matches="^/job/job-xml$">
+      <dispatch>/job/job-xml.xq</dispatch>
+   </match-path>
+   <match-path matches="^/job/xml-to-json$">
+      <dispatch>/job/xml-to-json.xq</dispatch>
+   </match-path>
+
+   <!-- job api -->
+   <match-path matches="^/api/job/create$">
+      <dispatch>/api/job/create.sjs</dispatch>
+   </match-path>
+
+   <!--
        Profiler.
    -->
    <match-path matches="^/profiler$">
