@@ -8,8 +8,8 @@ xquery version "3.0";
  :   - format: the format of the triple file (one of those accepted by sem:rdf-parse)
  :)
 
-import module namespace bin = "http://expath.org/ns/ml/console/binary" at "../lib/binary.xql";
-import module namespace t   = "http://expath.org/ns/ml/console/tools"  at "../lib/tools.xql";
+import module namespace bin = "http://expath.org/ns/ml/console/binary" at "../lib/binary.xqy";
+import module namespace t   = "http://expath.org/ns/ml/console/tools"  at "../lib/tools.xqy";
 import module namespace sem = "http://marklogic.com/semantics"         at "/MarkLogic/semantics.xqy";
 
 declare namespace xdmp = "http://marklogic.com/xdmp";

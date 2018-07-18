@@ -5,7 +5,7 @@ xquery version "3.0";
  :)
 
 import module namespace t  = "http://expath.org/ns/ml/console/tools"
-   at "../lib/tools.xql";
+   at "../lib/tools.xqy";
 import module namespace qc = "http://marklogic.com/appservices/qconsole/evaler"
    at "/MarkLogic/appservices/qconsole/qc-evaler.xqy";
 

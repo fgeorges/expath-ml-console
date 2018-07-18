@@ -4,11 +4,11 @@ xquery version "3.0";
  : collections or triples, as the user types down...)
  :)
 
-import module namespace dbc = "http://expath.org/ns/ml/console/database/config" at "db-config-lib.xql";
+import module namespace dbc = "http://expath.org/ns/ml/console/database/config" at "db-config-lib.xqy";
 
-import module namespace a = "http://expath.org/ns/ml/console/admin"  at "../lib/admin.xql";
-import module namespace t = "http://expath.org/ns/ml/console/tools"  at "../lib/tools.xql";
-import module namespace v = "http://expath.org/ns/ml/console/view"   at "../lib/view.xql";
+import module namespace a = "http://expath.org/ns/ml/console/admin"  at "../lib/admin.xqy";
+import module namespace t = "http://expath.org/ns/ml/console/tools"  at "../lib/tools.xqy";
+import module namespace v = "http://expath.org/ns/ml/console/view"   at "../lib/view.xqy";
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
@@ -297,7 +297,8 @@ return
           }};
           [ 'dir', 'doc', 'cdir', 'cdoc', 'rsrc' ].forEach(function(kind) {{
              var camel = kind.slice(0, 1).toUpperCase() + kind.slice(1);
-             $('.typeahead' + camel).typeahead({{
+             var clazz = '.typeahead' + camel;
+             $(clazz).typeahead({{
                 hint: true,
                 highlight: true,
                 minLength: 3
@@ -305,6 +306,12 @@ return
              {{
                name:   kind,
                source: makeBloodhound(kind)
+             }})
+             .on('typeahead:asyncrequest', function() {{
+                $(clazz).addClass('loading');
+             }})
+             .on('typeahead:asynccancel typeahead:asyncreceive', function() {{
+                $(clazz).removeClass('loading');
              }});
           }});
        </script>,

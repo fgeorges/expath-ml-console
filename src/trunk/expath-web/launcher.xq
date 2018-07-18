@@ -1,6 +1,6 @@
 xquery version "3.0";
 
-import module namespace b = "http://expath.org/ns/ml/webapp/binary" at "binary.xql";
+import module namespace b = "http://expath.org/ns/ml/webapp/binary" at "binary.xqy";
 
 declare namespace map    = "http://marklogic.com/xdmp/map";
 declare namespace pkg    = "http://expath.org/ns/pkg";

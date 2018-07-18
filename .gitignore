@@ -1,1 +1,3 @@
 dist/
+src/node_modules/mlproj-core/
+xproject/mlenvs/fgeorges*.json
