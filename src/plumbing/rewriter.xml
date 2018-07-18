@@ -1,91 +1,162 @@
 <rewriter xmlns="http://marklogic.com/xdmp/rewriter">
+
+   <!--
+       Home, resources and misc.
+   -->
    <match-path matches="^/$">
       <dispatch>/home.xq</dispatch>
    </match-path>
-   <match-path matches="^/appserver/([0-9]+)$">
+   <match-path matches="^/(images|js|style)/.+$">
+      <dispatch>$0</dispatch>
+   </match-path>
+   <match-path matches="^/devel$">
+      <dispatch>/devel.xq</dispatch>
+   </match-path>
+   <match-path matches="^/help$">
+      <dispatch>/help.xq</dispatch>
+   </match-path>
+
+   <!--
+       App servers.
+   -->
+   <match-path matches="^/appserver/([-_0-9a-zA-Z]+)$">
       <add-query-param name="id">$1</add-query-param>
       <dispatch>/appserver/index.xq</dispatch>
    </match-path>
-   <match-path matches="^/appserver/([0-9]+)/init-repo$">
+   <match-path matches="^/appserver/([-_0-9a-zA-Z]+)/init-repo$">
       <add-query-param name="id">$1</add-query-param>
       <dispatch>/appserver/init-repo.xq</dispatch>
    </match-path>
-   <match-path matches="^/appserver/([0-9]+)/delete-repo$">
+   <match-path matches="^/appserver/([-_0-9a-zA-Z]+)/delete-repo$">
       <add-query-param name="id">$1</add-query-param>
       <dispatch>/appserver/delete-repo.xq</dispatch>
    </match-path>
-   <match-path matches="^/appserver/([0-9]+)/install-pkg$">
+   <match-path matches="^/appserver/([-_0-9a-zA-Z]+)/install-pkg$">
       <add-query-param name="id">$1</add-query-param>
       <dispatch>/appserver/install-pkg.xq</dispatch>
    </match-path>
-   <match-path matches="^/appserver/([0-9]+)/install-cxan$">
+   <match-path matches="^/appserver/([-_0-9a-zA-Z]+)/install-cxan$">
       <add-query-param name="id">$1</add-query-param>
       <dispatch>/appserver/install-cxan.xq</dispatch>
    </match-path>
-   <match-path matches="^/appserver/([0-9]+)/pkg/([^/]+)/delete$">
+   <match-path matches="^/appserver/([-_0-9a-zA-Z]+)/pkg/([^/]+)/delete$">
       <add-query-param name="id">$1</add-query-param>
       <add-query-param name="pkg">$2</add-query-param>
       <dispatch>/appserver/delete-pkg.xq</dispatch>
    </match-path>
-   <match-path matches="^/db/([0-9]+)/browse$">
-      <add-query-param name="id">$1</add-query-param>
-      <dispatch>/database/browse.xq</dispatch>
+
+   <!--
+       Databases.
+   -->
+   <match-path matches="^/db$">
+      <dispatch>/database/index.xq</dispatch>
    </match-path>
-   <match-path matches="^/db/([0-9]+)/browse/(http://.+)$">
-      <add-query-param name="id">$1</add-query-param>
-      <add-query-param name="path">$2</add-query-param>
-      <dispatch>/database/browse.xq</dispatch>
+   <match-path matches="^/db/([-_0-9a-zA-Z]+)$">
+      <add-query-param name="name">$1</add-query-param>
+      <dispatch>/database/show.xq</dispatch>
    </match-path>
-   <match-path matches="^/db/([0-9]+)/browse(/.*)$">
-      <add-query-param name="id">$1</add-query-param>
-      <add-query-param name="path">$2</add-query-param>
-      <dispatch>/database/browse.xq</dispatch>
+   <match-path matches="^/db/([-_0-9a-zA-Z]+)/axes$">
+      <add-query-param name="database">$1</add-query-param>
+      <dispatch>/database/axes.xq</dispatch>
    </match-path>
-   <match-path matches="^/db/([0-9]+)/colls$">
-      <add-query-param name="id">$1</add-query-param>
-      <dispatch>/database/collections.xq</dispatch>
+   <match-path matches="^/db/([-_0-9a-zA-Z]+)/bin$">
+      <add-query-param name="name">$1</add-query-param>
+      <dispatch>/database/bin.xq</dispatch>
    </match-path>
-   <match-path matches="^/db/([0-9]+)/colls/(http://.+)$">
-      <add-query-param name="id">$1</add-query-param>
-      <add-query-param name="path">$2</add-query-param>
-      <dispatch>/database/collections.xq</dispatch>
+   <match-path matches="^/db/([-_0-9a-zA-Z]+)/croots$">
+      <add-query-param name="name">$1</add-query-param>
+      <add-query-param name="type">coll</add-query-param>
+      <dispatch>/database/roots.xq</dispatch>
    </match-path>
-   <match-path matches="^/db/([0-9]+)/colls(/.*)$">
-      <add-query-param name="id">$1</add-query-param>
-      <add-query-param name="path">$2</add-query-param>
-      <dispatch>/database/collections.xq</dispatch>
+   <match-path matches="^/db/([-_0-9a-zA-Z]+)/cdir$">
+      <add-query-param name="name">$1</add-query-param>
+      <add-query-param name="type">coll</add-query-param>
+      <dispatch>/database/dir.xq</dispatch>
    </match-path>
-   <match-path matches="^/db/([0-9]+)/triples$">
-      <add-query-param name="id">$1</add-query-param>
+   <match-path matches="^/db/([-_0-9a-zA-Z]+)/coll$">
+      <add-query-param name="name">$1</add-query-param>
+      <dispatch>/database/coll.xq</dispatch>
+   </match-path>
+   <match-path matches="^/db/([-_0-9a-zA-Z]+)/roots$">
+      <add-query-param name="name">$1</add-query-param>
+      <add-query-param name="type">docs</add-query-param>
+      <dispatch>/database/roots.xq</dispatch>
+   </match-path>
+   <match-path matches="^/db/([-_0-9a-zA-Z]+)/dir$">
+      <add-query-param name="name">$1</add-query-param>
+      <add-query-param name="type">docs</add-query-param>
+      <dispatch>/database/dir.xq</dispatch>
+   </match-path>
+   <match-path matches="^/db/([-_0-9a-zA-Z]+)/doc$">
+      <add-query-param name="name">$1</add-query-param>
+      <dispatch>/database/doc.xq</dispatch>
+   </match-path>
+   <match-path matches="^/db/([-_0-9a-zA-Z]+)/triples$">
+      <add-query-param name="name">$1</add-query-param>
       <dispatch>/database/triples.xq</dispatch>
    </match-path>
-   <match-path matches="^/db/([0-9]+)/triples(/.*)$">
-      <add-query-param name="id">$1</add-query-param>
-      <add-query-param name="rsrc">$2</add-query-param>
+   <match-path matches="^/db/([-_0-9a-zA-Z]+)/triples/([^/]+)$">
+      <add-query-param name="name">$1</add-query-param>
+      <add-query-param name="curie">$2</add-query-param>
       <dispatch>/database/triples.xq</dispatch>
    </match-path>
-   <match-path matches="^/db/([0-9]+)/classes$">
-      <add-query-param name="id">$1</add-query-param>
+   <match-path matches="^/db/([-_0-9a-zA-Z]+)/classes$">
+      <add-query-param name="name">$1</add-query-param>
       <dispatch>/database/classes.xq</dispatch>
    </match-path>
-   <match-path matches="^/db/([0-9]+)/save-doc$">
-      <add-query-param name="id">$1</add-query-param>
+   <match-path matches="^/db/([-_0-9a-zA-Z]+)/classes/([^/]+)$">
+      <add-query-param name="name">$1</add-query-param>
+      <add-query-param name="curie">$2</add-query-param>
+      <dispatch>/database/classes.xq</dispatch>
+   </match-path>
+   <match-path matches="^/db/([-_0-9a-zA-Z]+)/save-xml$">
+      <add-query-param name="name">$1</add-query-param>
+      <add-query-param name="type">xml</add-query-param>
       <dispatch>/database/save-doc.xq</dispatch>
    </match-path>
-   <match-path matches="^/db/([0-9]+)/save-text$">
-      <add-query-param name="id">$1</add-query-param>
-      <add-query-param name="text">true</add-query-param>
+   <match-path matches="^/db/([-_0-9a-zA-Z]+)/save-json$">
+      <add-query-param name="name">$1</add-query-param>
+      <add-query-param name="type">json</add-query-param>
       <dispatch>/database/save-doc.xq</dispatch>
    </match-path>
-   <match-path matches="^/db/([0-9]+)/delete$">
+   <match-path matches="^/db/([-_0-9a-zA-Z]+)/save-text$">
+      <add-query-param name="name">$1</add-query-param>
+      <add-query-param name="type">text</add-query-param>
+      <dispatch>/database/save-doc.xq</dispatch>
+   </match-path>
+   <match-path matches="^/db/([-_0-9a-zA-Z]+)/delete$">
       <add-query-param name="database">$1</add-query-param>
       <add-query-param name="top">../../</add-query-param>
       <dispatch>/tools/delete.xq</dispatch>
    </match-path>
-   <match-path matches="^/db/([0-9]+)/bulk-delete$">
-      <add-query-param name="database">$1</add-query-param>
+   <match-path matches="^/db/([-_0-9a-zA-Z]+)/bulk-delete$">
+      <add-query-param name="name">$1</add-query-param>
       <dispatch>/database/bulk-delete.xq</dispatch>
    </match-path>
+   <match-path matches="^/db/([-_0-9a-zA-Z]+)/matching$">
+      <add-query-param name="name">$1</add-query-param>
+      <dispatch>/database/matching.xq</dispatch>
+   </match-path>
+
+   <!--
+       File system.
+   -->
+   <match-path matches="^/fs/roots$">
+      <dispatch>/fs/roots.xq</dispatch>
+   </match-path>
+   <match-path matches="^/fs/dir$">
+      <dispatch>/fs/dir.xq</dispatch>
+   </match-path>
+   <match-path matches="^/fs/doc$">
+      <dispatch>/fs/doc.xq</dispatch>
+   </match-path>
+   <match-path matches="^/fs/bin$">
+      <dispatch>/fs/bin.xq</dispatch>
+   </match-path>
+
+   <!--
+       CXAN.
+   -->
    <match-path matches="^/cxan$">
       <dispatch>/cxan/index.xq</dispatch>
    </match-path>
@@ -95,15 +166,10 @@
    <match-path matches="^/cxan/install$">
       <dispatch>/cxan/install.xq</dispatch>
    </match-path>
-   <match-path matches="^/devel$">
-      <dispatch>/devel.xq</dispatch>
-   </match-path>
-   <match-path matches="^/help$">
-      <dispatch>/help.xq</dispatch>
-   </match-path>
-   <match-path matches="^/(images|js|style)/.+$">
-      <dispatch>$0</dispatch>
-   </match-path>
+
+   <!--
+       Packages.
+   -->
    <match-path matches="^/pkg$">
       <dispatch>/repo/index.xq</dispatch>
    </match-path>
@@ -122,6 +188,10 @@
    <match-path matches="^/repo/show$">
       <dispatch>/repo/show.xq</dispatch>
    </match-path>
+
+   <!--
+       Browser and loader.
+   -->
    <match-path matches="^/browser$">
       <dispatch>/browser/index.xq</dispatch>
    </match-path>
@@ -139,6 +209,10 @@
       <!--dispatch>/loader/upload.sjs</dispatch-->
       <dispatch>/loader/upload.xq</dispatch>
    </match-path>
+
+   <!--
+       Profiler.
+   -->
    <match-path matches="^/profiler$">
       <dispatch>/profiler/index.xq</dispatch>
    </match-path>
@@ -151,6 +225,10 @@
    <match-path matches="^/profiler/xml-to-json$">
       <dispatch>/profiler/xml-to-json.xq</dispatch>
    </match-path>
+
+   <!--
+       Tools.
+   -->
    <match-path matches="^/tools$">
       <dispatch>/tools/index.xq</dispatch>
    </match-path>
@@ -166,6 +244,9 @@
    <match-path matches="^/tools/convert-triples$">
       <dispatch>/tools/convert-triples.xq</dispatch>
    </match-path>
+   <match-path matches="^/tools/axes$">
+      <dispatch>/tools/axes.xq</dispatch>
+   </match-path>
    <match-path matches="^/tools/browse-db$">
       <dispatch>/tools/browse-db.xq</dispatch>
    </match-path>
@@ -178,12 +259,22 @@
    <match-path matches="^/tools/browse-classes$">
       <dispatch>/tools/browse-classes.xq</dispatch>
    </match-path>
+   <match-path matches="^/tools/add-coll$">
+      <dispatch>/tools/add-coll.xq</dispatch>
+   </match-path>
+   <match-path matches="^/tools/del-coll$">
+      <dispatch>/tools/del-coll.xq</dispatch>
+   </match-path>
    <match-path matches="^/tools/add-perm$">
       <dispatch>/tools/add-perm.xq</dispatch>
    </match-path>
    <match-path matches="^/tools/del-perm$">
       <dispatch>/tools/del-perm.xq</dispatch>
    </match-path>
+
+   <!--
+       Web.
+   -->
    <match-path matches="^/web$">
       <dispatch>/web/index.xq</dispatch>
    </match-path>
@@ -202,12 +293,72 @@
    <match-path matches="^/web/show$">
       <dispatch>/web/show.xq</dispatch>
    </match-path>
+
+   <!--
+       Projects.
+   -->
+   <!--
+       TODO: Just temporary, to use this code from somewhere, during development...
+   -->
+   <match-path matches="^/project/_/sandbox$">
+      <dispatch>/project/sandbox.xq</dispatch>
+   </match-path>
+   <!-- /todo -->
+   <match-path matches="^/project/_/xproject$">
+      <dispatch>/project/xproject/index.xq</dispatch>
+   </match-path>
+   <match-path matches="^/project/_/xproject/add$">
+      <dispatch>/project/xproject/add.xq</dispatch>
+   </match-path>
+   <match-path matches="^/project/_/xproject/create$">
+      <dispatch>/project/xproject/create.xq</dispatch>
+   </match-path>
+   <match-path matches="^/project/_/srcdir$">
+      <dispatch>/project/srcdir/index.xq</dispatch>
+   </match-path>
+   <match-path matches="^/project/_/srcdir/add$">
+      <dispatch>/project/srcdir/add.xq</dispatch>
+   </match-path>
+   <match-path matches="^/project/_/dbdir$">
+      <dispatch>/project/dbdir/index.xq</dispatch>
+   </match-path>
+   <match-path matches="^/project/_/dbdir/add$">
+      <dispatch>/project/dbdir/add.xq</dispatch>
+   </match-path>
+   <match-path matches="^/project$">
+      <dispatch>/project/index.xq</dispatch>
+   </match-path>
+   <match-path matches="^/project/([-_0-9a-zA-Z]+)$">
+      <add-query-param name="id">$1</add-query-param>
+      <dispatch>/project/display.xq</dispatch>
+   </match-path>
+   <match-path matches="^/project/([-_0-9a-zA-Z]+)/checkup$">
+      <add-query-param name="id">$1</add-query-param>
+      <dispatch>/project/checkup.xq</dispatch>
+   </match-path>
+   <match-path matches="^/project/([-_0-9a-zA-Z]+)/src$">
+      <add-query-param name="id">$1</add-query-param>
+      <dispatch>/project/sources.xq</dispatch>
+   </match-path>
+   <match-path matches="^/project/([-_0-9a-zA-Z]+)/src/(.+)$">
+      <add-query-param name="id">$1</add-query-param>
+      <add-query-param name="src">$2</add-query-param>
+      <dispatch>/project/src.xq</dispatch>
+   </match-path>
+
+   <!--
+       Old stuff.
+   -->
    <match-path matches="^/xproject$">
       <dispatch>/xproject.xq</dispatch>
    </match-path>
    <match-path matches="^/xspec$">
       <dispatch>/xspec.xq</dispatch>
    </match-path>
+
+   <!--
+       Tests.
+   -->
 <!--
    TODO: I'd like to redirect "/test" to "/test/", but it seems it is
    not possible using the declarative XML rewriter.
@@ -237,7 +388,12 @@
    <match-path matches="^/test/profiler/([-a-z]+)$">
       <dispatch>/test/profiler/$1.xq</dispatch>
    </match-path>
-   <match-path matches=".xq$">
+
+   <!--
+       Catch all for *.xq, *.xqy and *.sjs.
+   -->
+   <match-path matches="\.(xq|xqy|sjs)$">
       <error>Not allowed to invoke modules directly</error>
    </match-path>
+
 </rewriter>

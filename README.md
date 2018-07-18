@@ -1,3 +1,14 @@
+<table>
+<tr>
+<td>Intro</td>
+<td><a href="#install">Install</a></td>
+<td><a href="#package-manager">Package manager</a></td>
+<td><a href="#browser">Browser</a></td>
+<td><a href="#document-manager">Document manager</a></td>
+<td><a href="#profiler">Profiler</a></td>
+</tr>
+</table>
+
 # EXPath Console for MarkLogic
 
 The EXPath Console for MarkLogic, or just "the Console" for short,
@@ -15,49 +26,73 @@ report it to the EXPath [mailing list](http://expath.org/lists).
 
 ![Screenshot of the Console](doc/screenshot.png)
 
-## Installation
+<hr/>
+<table>
+<tr>
+<td><a href="#expath-console-for-marklogic">Intro</a></td>
+<td>Install</td>
+<td><a href="#package-manager">Package manager</a></td>
+<td><a href="#browser">Browser</a></td>
+<td><a href="#document-manager">Document manager</a></td>
+<td><a href="#profiler">Profiler</a></td>
+</tr>
+</table>
 
-You need to:
+## Install
 
-- Get the code.
-- Create a new HTTP app server.
-- Set its modules location.
-- Set its URL rewriter.
+Use `mlproj`.  To install it, just use the following:
 
-You can get the code from to different sources (in both cases the root
-of the sources is the directory `src/`):
+```
+sudo npm install mlproj -g
+```
 
-- Get the latest stable version from the EXPath
-  [download area](http://expath.org/files) (search for the ZIP file
-  with the name "*EXPath Console for MarkLogic*").
-- Clone the
-  [GitHub repository](https://github.com/fgeorges/expath-ml-console)
-  (the branch `master` should correspond to the latest stable release,
-  when `develop` is the main development branch).
+Get the latest stable version from the
+EXPath [download area](http://expath.org/files) (search for the ZIP
+file with the name "*EXPath Console for MarkLogic*", and unzip it).
+Or clone or download
+the [GitHub repository](https://github.com/fgeorges/expath-ml-console)
+(the branch `master` should correspond to the latest stable release,
+when `develop` is the main development branch).
 
-Then you can create the HTTP app server and make it point to the
-source directory (or upload the sources to a modules database if you
-really need to):
+Then setup the databases and the app server on MarkLogic.  Execute the
+following commands from the download directory (the one containing the
+`src/` directory.)  On the command line, override the host, username
+and password as needed (use `-z` to get prompted for the password):
 
-- Create a new HTTP server in the MarkLogic admin console.
-- Put the source code of the Console at the root of the App Server
-  (depending on the options you selected creating the App Server, it
-  could be on its modules database or on the filesystem if you decided
-  to store the modules of this App Server on the filesystem).
-- Make sure to set the app server URL rewriter field (at the end of
-  the admin console page for the app server) to the value
-  `/plumbing/rewriter.xml`.
+```
+mlproj -e prod -h newhost -p port:9000 setup
+mlproj -e prod -h newhost deploy
+```
 
-The document database linked to the HTTP server will not be used by
-the EXPath Console for MarkLogic.  So use whetever database you want
-for that field (e.g. use the default `Documents` database).
+If you want to use the modules straight from the file system, use the
+following instead (MarkLogic must be installed on `localhost` then)::
 
-That's it!  You can now access the Console by pointing your preferred
-browser to the appropriate App Server (you might need to adapt the
-port number, depending on how you configured your app server):
-[http://localhost:8010/](http://localhost:8010/).
+```
+mlproj -e dev setup
+```
 
-## The package manager
+Instead of overriding some values on the command line every time
+(e.g. if you have to change the host name), you can create a new
+environment file in `xproject/ml/`, which imports either `dev.json` or
+`prod.json`, and set different values as needed.  See `mlproj help` or
+http://mlproj.org/ for details.
+
+If you kept the default port number, you can access the Console
+on [http://localhost:8010/](http://localhost:8010/).
+
+<hr/>
+<table>
+<tr>
+<td><a href="#expath-console-for-marklogic">Intro</a></td>
+<td><a href="#install">Install</a></td>
+<td>Package manager</td>
+<td><a href="#browser">Browser</a></td>
+<td><a href="#document-manager">Document manager</a></td>
+<td><a href="#profiler">Profiler</a></td>
+</tr>
+</table>
+
+## Package manager
 
 ![Screenshot of the package manager](doc/pkg-manager.png)
 
@@ -96,7 +131,19 @@ importing and the imported modules:
 import module namespace "http://example.org/cool/lib.xql";
 ```
 
-## The browser
+<hr/>
+<table>
+<tr>
+<td><a href="#expath-console-for-marklogic">Intro</a></td>
+<td><a href="#install">Install</a></td>
+<td><a href="#package-manager">Package manager</a></td>
+<td>Browser</td>
+<td><a href="#document-manager">Document manager</a></td>
+<td><a href="#profiler">Profiler</a></td>
+</tr>
+</table>
+
+## Browser
 
 ![Screenshot of the browser](doc/browser.png)
 
@@ -128,7 +175,19 @@ least one triple.  Displaying the resouce itself shows you all its
 properties (that is, the properties and values of all triples with the
 same subject URI).
 
-## The document manager
+<hr/>
+<table>
+<tr>
+<td><a href="#expath-console-for-marklogic">Intro</a></td>
+<td><a href="#install">Install</a></td>
+<td><a href="#package-manager">Package manager</a></td>
+<td><a href="#browser">Browser</a></td>
+<td>Document manager</td>
+<td><a href="#profiler">Profiler</a></td>
+</tr>
+</table>
+
+## Document manager
 
 ![Screenshot of the document manager](doc/doc-manager.png)
 
@@ -158,7 +217,19 @@ The last forms let you delete documents and directories.  You can
 achieve the same by using the browser, but here, you provide a
 complete URI instead, as a text field.
 
-## The profiler
+<hr/>
+<table>
+<tr>
+<td><a href="#expath-console-for-marklogic">Intro</a></td>
+<td><a href="#install">Install</a></td>
+<td><a href="#package-manager">Package manager</a></td>
+<td><a href="#browser">Browser</a></td>
+<td><a href="#document-manager">Document manager</a></td>
+<td>Profiler</td>
+</tr>
+</table>
+
+## Profiler
 
 ![Screenshot of the profiler](doc/profiler.png)
 

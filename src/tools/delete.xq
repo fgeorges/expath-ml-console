@@ -20,6 +20,10 @@ import module namespace v = "http://expath.org/ns/ml/console/view"  at "../lib/v
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
+declare namespace xdmp = "http://marklogic.com/xdmp";
+
+declare option xdmp:update "true";
+
 (:~
  : The overall page function.
  :)
@@ -27,8 +31,7 @@ declare function local:page()
    as element()+
 {
    (: TODO: Check the params are there, and validate them... :)
-   let $db-id      := xs:unsignedLong(t:mandatory-field('database'))
-   let $db         := a:get-database($db-id)
+   let $db         := t:mandatory-field('database')
    let $back-url   := t:mandatory-field('back-url')
    let $back-label := t:mandatory-field('back-label')
    let $doc        := t:optional-field('doc', ())
@@ -47,7 +50,7 @@ declare function local:page()
          )
          else (
             <p><b>Error</b>: The document "{ $doc }" does not exist on the
-               database "{ xs:string($db/a:name) }".</p>
+               database "{ $db }".</p>
          )
       )
       else (

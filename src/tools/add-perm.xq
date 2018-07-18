@@ -28,9 +28,7 @@ declare option xdmp:update "true";
 declare function local:page()
    as element()+
 {
-   (: TODO: Check the params are there, and validate them... :)
-   let $db-id      := xs:unsignedLong(t:mandatory-field('database'))
-   let $db         := a:get-database($db-id)
+   let $db         := t:mandatory-field('database')
    let $uri        := t:mandatory-field('uri')
    let $capability := t:mandatory-field('capability')
    let $role       := t:mandatory-field('role')
@@ -38,27 +36,17 @@ declare function local:page()
    return
       if ( fn:not(a:exists-on-database($db, $uri)) ) then (
          <p><b>Error</b>: The document "{ $uri }" does not exist on the
-            database "{ xs:string($db/a:name) }".</p>
+            database "{ $db }".</p>
       )
       else (
-         a:eval-on-database(
-            $db,
-            'declare namespace xdmp = "http://marklogic.com/xdmp";
-             declare variable $uri  as xs:string external;
-             declare variable $cap  as xs:string external;
-             declare variable $role as xs:string external;
-             xdmp:document-add-permissions(
-                $uri,
-                xdmp:permission($role, $cap))',
-            map:new((
-               map:entry('uri',  $uri),
-               map:entry('cap',  $capability),
-               map:entry('role', $role)))),
+         t:query($db, function() {
+            xdmp:document-add-permissions(
+               $uri,
+               xdmp:permission($role, $capability))
+         }),
          if ( $redirect ) then (
             v:redirect(
-               '../db/' || $db-id || '/browse'
-               || '/'[fn:not(fn:starts-with($uri, '/'))]
-               || fn:string-join(fn:tokenize($uri, '/') ! fn:encode-for-uri(.), '/'))
+               '../db/' || $db || '/doc?uri=' || fn:encode-for-uri($uri))
          )
          else (
             <p>Permission "<code>{ $capability }</code>" successfully added to

@@ -1,6 +1,6 @@
 xquery version "3.0";
 
-import module namespace a   = "http://expath.org/ns/ml/console/admin"  at "lib/admin.xql";
+import module namespace t   = "http://expath.org/ns/ml/console/tools"  at "lib/tools.xql";
 import module namespace cfg = "http://expath.org/ns/ml/console/config" at "lib/config.xql";
 import module namespace r   = "http://expath.org/ns/ml/console/repo"   at "lib/repo.xql";
 import module namespace v   = "http://expath.org/ns/ml/console/view"   at "lib/view.xql";
@@ -28,12 +28,9 @@ declare function local:page()
          let $db-id := $repo/c:database/@id
          let $root  := $repo/c:root
          let $docs  :=
-               a:eval-on-database(
-                  $db-id,
-                  'declare variable $path external;
-                   xdmp:directory($path, "infinity")',
-                  map:entry('path', $root))
-                  (: map:entry('path', $root || '.expath-pkg/')) :)
+               t:query($db-id, function() {
+                  xdmp:directory($root (: $root || '.expath-pkg/' :), 'infinity')
+               })
          for $d in $docs
          return
             <li>{ fn:document-uri($d) }</li>

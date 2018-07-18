@@ -26,6 +26,10 @@ declare function local:page()
       <p>You will find the following types of component in the Console:</p>
       <ul>
          <li>
+            { v:proj-link('#', 'project') } -
+            a project
+         </li>
+         <li>
             { v:db-link('#', 'database') } -
             a database (all types of database: content, schemas, security, etc.)
          </li>
@@ -47,15 +51,15 @@ declare function local:page()
             document and collection URIs)
          </li>
          <li>
-            { v:rsrc-link('#', 'resource') } -
+            { v:rsrc-link('#', 'resource', ()) } -
             an RDF resource (that is, an IRI which is subject of at least one triple)
          </li>
          <li>
-            { v:prop-link('#', 'property') } -
+            { v:prop-link('#', 'property', ()) } -
             an RDF property
          </li>
          <li>
-            { v:class-link('#', 'class') } -
+            { v:class-link('#', 'class', ()) } -
             an RDF class
          </li>
       </ul>

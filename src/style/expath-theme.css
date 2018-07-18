@@ -13,6 +13,7 @@ table {
 
  a code ,
  p code ,
+td code ,
 li code {
   font-family: "Source Code Pro", Consolas, Menlo, Monaco, "Courier New", monospace;
   padding: 2px 4px;
@@ -25,9 +26,9 @@ li code {
   border-radius: 3px;
 }
 
- a code:after ,
- p code:after ,
-li code:after {
+ a code::after ,
+ p code::after ,
+li code::after {
   display: inline-block;
   border-left: 1px solid rgba(0, 0, 0, 0.2);
   margin-left: 4px;
@@ -43,6 +44,14 @@ a:active {
   text-decoration: none;
 }
 
+/* red */
+code.todo {
+  color: #D14;
+  background-color: #fcf6f8;
+  border: 1px solid #f7d6df;
+  white-space: nowrap;
+}
+
 /* green */
 code.doc {
   color: #095c05;
@@ -51,7 +60,7 @@ code.doc {
   white-space: nowrap;
 }
 
-code.doc:after {
+code.doc::after {
   content: 'Doc';
 }
 
@@ -63,7 +72,7 @@ code.coll {
   white-space: nowrap;
 }
 
-code.coll:after {
+code.coll::after {
   content: 'Coll';
 }
 
@@ -75,7 +84,7 @@ code.dir {
   white-space: nowrap;
 }
 
-code.dir:after {
+code.dir::after {
   content: 'Dir';
 }
 
@@ -87,8 +96,20 @@ code.rsrc {
   white-space: nowrap;
 }
 
-code.rsrc:after {
+code.rsrc::after {
   content: 'Rsrc';
+}
+
+/* lighter blue */
+code.blank {
+  color: #7fb4c4;
+  background-color: #f7fbfb;
+  border: 1px solid #caeaf3;
+  white-space: nowrap;
+}
+
+code.blank::after {
+  content: 'Blank';
 }
 
 /* purple */
@@ -99,7 +120,7 @@ code.class {
   white-space: nowrap;
 }
 
-code.class:after {
+code.class::after {
   content: 'Class';
 }
 
@@ -111,7 +132,7 @@ code.prop {
   white-space: nowrap;
 }
 
-code.prop:after {
+code.prop::after {
   content: 'Prop';
 }
 
@@ -123,7 +144,7 @@ code.db {
   white-space: nowrap;
 }
 
-code.db:after {
+code.db::after {
   content: 'DB';
 }
 
@@ -135,8 +156,20 @@ code.as {
   white-space: nowrap;
 }
 
-code.as:after {
+code.as::after {
   content: 'AS';
+}
+
+/* blue/grey */
+code.proj {
+  color: #464e50;
+  background-color: #f2f7f9;
+  border: 1px solid #b8c3c5;
+  white-space: nowrap;
+}
+
+code.proj::after {
+  content: 'Proj';
 }
 
 /*

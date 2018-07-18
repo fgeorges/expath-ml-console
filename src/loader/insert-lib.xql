@@ -2,22 +2,25 @@ xquery version "3.0";
 
 module namespace i = "http://expath.org/ns/ml/console/insert";
 
+import module namespace dbc = "http://expath.org/ns/ml/console/database/config" at "../database/db-config-lib.xql";
+
 import module namespace a = "http://expath.org/ns/ml/console/admin"  at "../lib/admin.xql";
 import module namespace b = "http://expath.org/ns/ml/console/binary" at "../lib/binary.xql";
 import module namespace t = "http://expath.org/ns/ml/console/tools"  at "../lib/tools.xql";
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
+declare namespace c    = "http://expath.org/ns/ml/console";
 declare namespace xdmp = "http://marklogic.com/xdmp";
 
 (:~
  : Insert a document.
  :
- : Return the URI of the newly inserted document, or the empty sequence if a
+ : @return The URI of the newly inserted document, or the empty sequence if a
  : document already exists for that URI and `$override` is false..
  :)
 declare function i:handle-file(
-   $db       as item(), (: element(a:database) | xs:unsidnedLong :)
+   $db       as item(), (: element(a:database) | xs:unsidnedLong | xs:string :)
    $content  as item(),
    $format   as xs:string,
    $uri      as xs:string,
@@ -25,18 +28,9 @@ declare function i:handle-file(
    $override as xs:boolean
 ) as xs:string?
 {
-               
-   let $prefix   := fn:string-join(fn:tokenize($prefix, '/') ! fn:encode-for-uri(.), '/')
-   let $uri      := fn:string-join(fn:tokenize($uri, '/') ! fn:encode-for-uri(.), '/')
-   let $doc-uri  :=
-         if ( fn:starts-with($uri, '/') or fn:starts-with($uri, 'http://') ) then
-            $uri
-         else if ( fn:exists($prefix) ) then
-            $prefix || '/'[fn:not(fn:ends-with($prefix, '/'))] || $uri
-         else
-            $uri
+   let $doc-uri := dbc:resolve($uri, $prefix, dbc:config-uri-schemes($db))
    return
-      if ( fn:doc-available($doc-uri) and fn:not($override) ) then
+      if ( t:query($db, function() { fn:doc-available($doc-uri) }) and fn:not($override) ) then
          ()
       else
          a:insert-into-database($db, $doc-uri, i:get-node($content, $format))
@@ -78,10 +72,23 @@ declare function i:get-node($file as item(), $format as xs:string)
       else if ( $file instance of document-node() and fn:exists($file/text()) ) then
          xdmp:unquote($file)
       else if ( b:is-binary($file) ) then
-         (: TODO: Decode the binary... :)
-         t:error('INSERT102', 'XML file is a binary node, please report this to the mailing list')
+         xdmp:unquote(xdmp:binary-decode($file, 'UTF-8'))
       else
          t:error('INSERT003', 'XML file is neither parsed nor a document node with an element, '
+            || 'please report this to the mailing list')
+   else if ( $format eq 'json' ) then
+      if ( $file instance of xs:string ) then
+         xdmp:unquote($file)
+      else if ( $file instance of document-node() and $file/node() instance of text() ) then
+         xdmp:unquote($file)
+      else if ( $file instance of document-node() and b:is-json($file/node()) ) then
+         $file
+      else if ( $file/node() ! b:is-json(.) ) then
+         $file
+      else if ( b:is-binary($file) ) then
+         xdmp:unquote(xdmp:binary-decode($file, 'UTF-8'))
+      else
+         t:error('INSERT003', 'JSON file is neither parsed nor a document node with an object, '
             || 'please report this to the mailing list')
    else
       t:error('INSERT004', 'Format not known: "' || $format || '"')

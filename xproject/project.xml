@@ -1,0 +1,8 @@
+<project xmlns="http://expath.org/ns/project"
+         name="http://expath.org/app/ml-console"
+         abbrev="emlc"
+         version="0.5.0">
+
+   <title>The EXPath Console for MarkLogic</title>
+
+</project>

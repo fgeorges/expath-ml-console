@@ -1,6 +1,6 @@
 var highlight = ace.require('ace/ext/static_highlight');
 
-/**
+/*~
  * Init a (read-only) code snippet on the page.
  */
 function initCodeSnippet()
@@ -20,10 +20,10 @@ function initCodeSnippet()
       });
 }
 
-/** Contains all editors on the page, by ID. */
+/*~ Contains all editors on the page, by ID. */
 var editors = { };
 
-/**
+/*~
  * Init a code editor on the page.
  */
 function initCodeEditor()
@@ -41,7 +41,7 @@ function initCodeEditor()
    editors[e.id] = e;
 }
 
-/**
+/*~
  * Send a REST request to the CXAN website selected in the CXAN install form.
  *
  * @param endpoint The endpoint to send the request to.
@@ -62,7 +62,7 @@ function cxanRest(endpoint, callback)
    }).done(callback);
 }
 
-/**
+/*~
  * Handler for `change` event for field `std-website` of the CXAN install form.
  *
  * Remove all options on the field `repo`, send a REST request to CXAN to get the
@@ -84,7 +84,7 @@ function cxanWebsiteChanges()
    });
 }
 
-/**
+/*~
  * Handler for `change` event for field `repo` of the CXAN install form.
  *
  * Remove all options on the field `pkg`, send a REST request to CXAN to get the
@@ -116,6 +116,8 @@ $(document).ready(function () {
    var site = $("#cxan-install :input[name='std-website']");
    site.change(cxanWebsiteChanges);
    site.change();
+   // initialize popovers
+   $('[data-toggle="popover"]').popover({ html: true });
    // initialise the data tables
    $('.datatable').DataTable({
       info: false,
@@ -200,9 +202,11 @@ function editorSetContent(id, value)
    }
 };
 
-/* ==== Browser support ======================================================== */
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * Browser support
+ */
 
-/**
+/*~
  * Delete all selected URIs.
  *
  * There are 2 forms (with the ID origId and hiddenId resp.)  The original form
@@ -235,10 +239,11 @@ function deleteUris(origId, hiddenId)
    // for each of them...
    for ( var i = 0; i != checked.length; ++i ) {
       // the input field and its name
-      var field = checked[i];
-      var name  = field.name;
-      if ( ! name.startsWith('delete-') ) {
-         alert('Error: The checkbox ID is not starting with "delete-": ' + name);
+      var field  = checked[i];
+      var name   = field.name;
+      var parsed = /^delete-(doc|dir)-([0-9]+)$/.exec(name);
+      if ( ! parsed ) {
+         alert('Error: The checkbox ID is not matching "delete-xxx-nnn": ' + name);
          return;
       }
       if ( field.form.id != origId ) {
@@ -246,11 +251,12 @@ function deleteUris(origId, hiddenId)
          return;
       }
       // get the value of the corresponding hidden field with the URI
-      var num = name.substr('delete'.length);
-      var value = orig.elements['name' + num].value;
+      var type  = parsed[1];
+      var num   = parsed[2];
+      var value = orig.elements['name-' + num].value;
       // create the new input field in the second form, to be submitted
       var input = document.createElement('input');
-      input.setAttribute('name',  'uri-to-delete-' + (i + 1));
+      input.setAttribute('name',  type + '-to-delete-' + (i + 1));
       input.setAttribute('type',  'hidden');
       input.setAttribute('value', value);
       // add the new field to the second form
@@ -260,7 +266,9 @@ function deleteUris(origId, hiddenId)
    hidden.submit();
 };
 
-/* ==== Profiler support ======================================================== */
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * Profiler support
+ */
 
 function loadJson(file, jsonId)
 {
@@ -408,7 +416,7 @@ function display(reports)
    $('.prof-success').show();
 }
 
-/**
+/*~
  * Display a stacktrace.
  *
  * @param st   The stacktrace to display, as a JSON object.

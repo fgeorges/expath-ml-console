@@ -2,22 +2,68 @@ xquery version "3.0";
 
 module namespace t = "http://expath.org/ns/ml/console/tools";
 
-declare namespace c    = "http://expath.org/ns/ml/console";
-declare namespace xdmp = "http://marklogic.com/xdmp";
+declare namespace err   = "http://www.w3.org/2005/xqt-errors";
+declare namespace mlerr = "http://marklogic.com/xdmp/error";
+declare namespace xdmp  = "http://marklogic.com/xdmp";
 
-(: ==== Simple tools ======================================================== :)
+(:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ : Work on different databases
+ :)
 
 (:~
- : If $pred is true, return $content, if not, return the empty sequence.
+ : Return a database ID.
+ :
+ : If `$db` is an xs:unsignedLong, it is returned as is.  If it is an a:database
+ : element, its `@id` is returned.  If it is neither, it then must be the name
+ : of a database, which is then resolved to an ID (if such a database does not
+ : exist, the empty sequence is returned).
  :)
-declare function t:cond($pred as xs:boolean, $content as item()*)
-   as item()*
+declare function t:database-id($db as item()) as xs:unsignedLong?
 {
-   if ( $pred ) then
-      $content
+   if ( $db instance of element() and fn:exists($db/@id) ) then
+      xs:unsignedLong($db/@id)
+   else if ( $db castable as xs:unsignedLong ) then
+      xs:unsignedLong($db)
    else
-      ()
+      t:catch-ml('XDMP-NOSUCHDB', function() {
+         xdmp:database($db)
+      })
 };
+
+(:~
+ : Invoke the function on the given database.
+ :)
+declare function t:query(
+   $db  as item(),
+   $fun as function() as item()*
+) as item()*
+{
+   xdmp:invoke-function(
+      $fun,
+      <options xmlns="xdmp:eval">
+         <database>{ t:database-id($db) }</database>
+      </options>)
+};
+
+(:~
+ : Invoke the function on the given database, in update transaction mode.
+ :)
+declare function t:update(
+   $db  as item(),
+   $fun as function() as item()*
+) as item()*
+{
+   xdmp:invoke-function(
+      $fun,
+      <options xmlns="xdmp:eval">
+         <database>{ t:database-id($db) }</database>
+         <transaction-mode>update-auto-commit</transaction-mode>
+      </options>)
+};
+
+(:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ : Simple tools
+ :)
 
 (:~
  : Ignore its parameter and always return the empty sequence.
@@ -28,7 +74,103 @@ declare function t:ignore($seq as item()*)
    ()
 };
 
-(: ==== Error handling ======================================================== :)
+(:~
+ : If `$pred` is true, return `$then`, if not, return the empty sequence.
+ :)
+declare function t:when($pred as xs:boolean, $then as item()*)
+   as item()*
+{
+   t:when($pred, $then, ())
+};
+
+(:~
+ : If `$pred` is true, return `$then`, if not, return `$else`.
+ :)
+declare function t:when($pred as xs:boolean, $then as item()*, $else as item()*)
+   as item()*
+{
+   if ( $pred ) then
+      $then
+   else
+      $else
+};
+
+(:~
+ : If `$pred` is false, return `$then`, if not, return the empty sequence.
+ :)
+declare function t:unless($pred as xs:boolean, $then as item()*)
+   as item()*
+{
+   t:when(fn:not($pred), $then, ())
+};
+
+(:~
+ : If `$pred` is false, return `$then`, if not, return `$else`.
+ :)
+declare function t:unless($pred as xs:boolean, $then as item()*, $else as item()*)
+   as item()*
+{
+   t:when(fn:not($pred), $then, $else)
+};
+
+(:~
+ : If `$seq` is not empty, return `$then`, if not, return the empty sequence.
+ :)
+declare function t:exists($seq as item()*, $then as item()*)
+   as item()*
+{
+   t:when(fn:exists($seq), $then)
+};
+
+(:~
+ : If `$seq` is not empty, return `$then`, if not, return `$else`.
+ :)
+declare function t:exists($seq as item()*, $then as item()*, $else as item()*)
+   as item()*
+{
+   t:when(fn:exists($seq), $then, $else)
+};
+
+(:~
+ : If `$seq` is non empty, return it, if it is empty, return `$default` instead.
+ :)
+declare function t:default($seq as item()*, $default as item()*)
+   as item()*
+{
+   if ( fn:exists($seq) ) then
+      $seq
+   else
+      $default
+};
+
+(:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ : Error handling
+ :)
+
+(:~
+ : Catch a MarkLogic error.
+ :
+ : Evaluate the function and catch a MarkLogic error, only if it is with the code
+ : `$code`.  If there is an error, but with a different code, it is rethrown.  If
+ : there is no error, the return value of the function is returned.  If the given
+ : error is caught, then it is ignored and `()` is returned.
+ :
+ : @return `()` if the error is caught, or the original return value.
+ :)
+declare function t:catch-ml($codes as xs:string+, $fun as function() as item()*)
+   as item()*
+{
+   try {
+      $fun()
+   }
+   catch err:FOER0000 {
+      if ( $err:additional/mlerr:code = $codes ) then
+         ()
+      else
+         (: TODO: How to rethrow it? :)
+         fn:error($err:code, $err:description, $err:value)
+   }
+};
 
 (:~
  : TODO: Return an HTTP error instead... (or rather create a proper error handler?)
@@ -53,27 +195,69 @@ declare function t:error($code as xs:string, $msg as xs:string, $info as item()*
       $info)
 };
 
-(: ==== HTTP request fields ======================================================== :)
+(:~
+ : If `$pred` is true, throw an error.
+ : 
+ : `t:when` is not usable as it is not a macro.  For instance, in the following
+ : example, evaluating `t:error` to get the value of its parameter would always
+ : throw an error:
+ : 
+ :     t:when($value gt 42,
+ :        t:error('foobar', 'Value is greater than 42.'))
+ :)
+declare function t:error-when(
+   $pred as xs:boolean,
+   $code as xs:string,
+   $msg  as xs:string
+) as empty-sequence()
+{
+   if ( $pred ) then
+      t:error($code, $msg)
+   else
+      ()
+};
+
+declare function t:error-when(
+   $pred as xs:boolean,
+   $code as xs:string,
+   $msg  as xs:string,
+   $info as item()*
+) as empty-sequence()
+{
+   if ( $pred ) then
+      t:error($code, $msg, $info)
+   else
+      ()
+};
+
+(:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ : HTTP request fields
+ :)
 
 (:~
  : Return a request field, or a default value if it has not been passed.
  :)
 declare function t:optional-field($name as xs:string, $default as item()?)
-   as item()?
+   as item()*
 {
-   ( xdmp:get-request-field($name), $default )[1]
+   let $v := xdmp:get-request-field($name)[.]
+   return
+      if ( fn:exists($v) ) then
+         $v
+      else
+         $default
 };
 
 (:~
  : Return a request field, or throw an error if it has not been passed.
  :)
 declare function t:mandatory-field($name as xs:string)
-   as item()
+   as item()+
 {
-   let $f := xdmp:get-request-field($name)
+   let $v := xdmp:get-request-field($name)[.]
    return
-      if ( fn:exists($f) ) then
-         $f
+      if ( fn:exists($v) ) then
+         $v
       else
          t:error('TOOLS001', 'Mandatory field not passed: ' || $name)
 };
@@ -124,7 +308,33 @@ declare function t:mandatory-field-content-type($name as xs:string)
          t:error('TOOLS001', 'Mandatory field content-type not passed: ' || $name)
 };
 
-(: ==== XML tools ======================================================== :)
+(:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ : HTTP response helpers
+ :)
+
+(:~
+ : Set "404 Not found" on the HTTP response.
+ :)
+declare function t:respond-not-found($content as item()*)
+   as item()*
+{
+   xdmp:set-response-code(404, 'Not found'),
+   $content
+};
+
+(:~
+ : Set "501 Not implemented" on the HTTP response.
+ :)
+declare function t:respond-not-implemented($content as item()*)
+   as item()*
+{
+   xdmp:set-response-code(501, 'Not implemented'),
+   $content
+};
+
+(:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ : XML tools
+ :)
 
 (:~
  : Add an element as last child of a parent element. Return the modified parent.
@@ -158,7 +368,9 @@ declare function t:remove-child($parent as element(), $child as element())
       }
 };
 
-(: ==== String tools ======================================================== :)
+(:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ : String tools
+ :)
 
 (:~
  : Build a string by repeating `$str`, `$n` times.
@@ -172,7 +384,9 @@ declare function t:make-string($str as xs:string, $n as xs:integer)
       ()
 };
 
-(: ==== File and URI tools ======================================================== :)
+(:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ : File and URI tools
+ :)
 
 (:~
  : Given a path, strip the last component unless it ends with a slash.
@@ -211,7 +425,9 @@ declare function t:ensure-relative($file as xs:string)
       $file
 };
 
-(: ==== HTTP Content-Type parsing ======================================================== :)
+(:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ : HTTP Content-Type parsing
+ :)
 
 (:~
  : Parse a HTTP Content-Type value.
