@@ -4,6 +4,14 @@
         "params": {
             "port": "8010"
         },
+        "sources": [{
+            "name":    "src",
+            "dir":     "src",
+	    "include": [ "*.xq", "*.xqy", "*.xml", "*.sjs", "*.xsl" ]
+        }, {
+            "name": "full",
+            "dir":  "full"
+        }],
         "databases": [{
 	    "id": "content",
 	    "name": "@{code}-content"

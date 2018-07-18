@@ -1,10 +1,10 @@
 xquery version "3.0";
 
-import module namespace dbc = "http://expath.org/ns/ml/console/database/config" at "db-config-lib.xql";
+import module namespace dbc = "http://expath.org/ns/ml/console/database/config" at "db-config-lib.xqy";
 
-import module namespace a   = "http://expath.org/ns/ml/console/admin" at "../lib/admin.xql";
-import module namespace t   = "http://expath.org/ns/ml/console/tools" at "../lib/tools.xql";
-import module namespace v   = "http://expath.org/ns/ml/console/view"  at "../lib/view.xql";
+import module namespace a   = "http://expath.org/ns/ml/console/admin" at "../lib/admin.xqy";
+import module namespace t   = "http://expath.org/ns/ml/console/tools" at "../lib/tools.xqy";
+import module namespace v   = "http://expath.org/ns/ml/console/view"  at "../lib/view.xqy";
 import module namespace sem = "http://marklogic.com/semantics" at "/MarkLogic/semantics.xqy";
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
@@ -107,21 +107,25 @@ declare function local:page--rsrc(
    local:subject-table($rsrc, $root, $rules, $decls, fn:true()),
 
    <h3>Inbound links</h3>,
-   <table class="table table-striped datatable">
-      <thead>
-         <th>Subject</th>
-         <th>Property</th>
-      </thead>
+   let $body :=
       <tbody> {
          (: TODO: Support windowing, in case one single resources has thousands of links. :)
          for $r in sem:sparql(
-                      'SELECT ?s ?p WHERE { ?s ?p ?o } ORDER BY ?p',
+                      'PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+                       SELECT ?s ?p ?l WHERE {
+                        ?s ?p ?o .
+                        OPTIONAL {
+                          ?s rdfs:label ?l .
+                        }
+                       }
+                       ORDER BY ?p',
                       map:entry('o', sem:iri($rsrc)),
                       (),
                       (: TODO: For temporal documents, should be sem:store((), cts:collection-query('latest')) :)
                       sem:ruleset-store($rules, sem:store()))
          let $s := map:get($r, 's')
          let $p := map:get($r, 'p')
+         let $l := map:get($r, 'l')
          return
             if ( sem:isBlank($s) ) then
                let $unik := xdmp:random()
@@ -143,6 +147,7 @@ declare function local:page--rsrc(
                         local:display-value($p, 'prop', $root, $decls)
                      }
                      </td>
+                     <td rowspan="2">{ $l }</td>
                   </tr>,
                   <tr>
                      <td id="table{ $unik }" style="display: none"> {
@@ -155,10 +160,25 @@ declare function local:page--rsrc(
                <tr>
                   <td>{ local:display-value($s, 'rsrc', $root, $decls) }</td>
                   <td>{ local:display-value($p, 'prop', $root, $decls) }</td>
+                  <td>{ $l }</td>
                </tr>
       }
       </tbody>
-   </table>,
+   let $any-label := fn:exists($body/h:tr/h:td[3][node()])
+   return
+      <table class="table table-striped datatable">
+         <thead>
+            <th>Subject</th>
+            <th>Property</th>
+            { <th>Label</th>[$any-label] }
+         </thead>
+         {
+            if ( $any-label ) then
+               $body
+            else
+               local:strip-3d-column($body)
+         }
+      </table>,
 
    <h3>Rulesets</h3>,
    <p>The following rulesets have been used to query the triples shown on this page:</p>,
@@ -204,24 +224,25 @@ declare function local:subject-table(
    $top   as xs:boolean
 ) as element(h:table)
 {
-   <table class="table table-striped datatable">
-      {
-         <thead>
-            <th>Property</th>
-            <th>Object</th>
-            <th>Type</th>
-         </thead>[$top]
-      }
+   let $body :=
       <tbody> {
          (: TODO: Support windowing, in case one single resources has thousands of triples. :)
          for $r in sem:sparql(
-                      'SELECT ?p ?o WHERE { ?s ?p ?o } ORDER BY ?p',
+                      'PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+                       SELECT ?p ?o ?l WHERE {
+                        ?s ?p ?o .
+                        OPTIONAL {
+                          ?o rdfs:label ?l .
+                        }
+                       }
+                       ORDER BY ?p',
                       map:entry('s', sem:iri($rsrc)),
                       (),
                       (: TODO: For temporal documents, should be sem:store((), cts:collection-query('latest')) :)
                       sem:ruleset-store($rules, sem:store()))
          let $p := map:get($r, 'p')
          let $o := map:get($r, 'o')
+         let $l := map:get($r, 'l')
          return
             if ( sem:isBlank($o) ) then
                let $unik := xdmp:random()
@@ -240,6 +261,7 @@ declare function local:subject-table(
                         { ' ' }
                         { local:display-value($o, 'rsrc', $root, $decls) }
                      </td>
+                     <td rowspan="2">{ $l }</td>
                      <td rowspan="2">{ local:display-type($o) }</td>
                   </tr>,
                   <tr>
@@ -253,11 +275,47 @@ declare function local:subject-table(
                <tr>
                   <td>{ local:display-value($p, 'prop', $root, $decls) }</td>
                   <td>{ local:display-value($o, 'rsrc', $root, $decls) }</td>
+                  <td>{ $l }</td>
                   <td>{ local:display-type($o) }</td>
                </tr>
       }
       </tbody>
-   </table>
+   let $any-label := fn:exists($body/h:tr/h:td[3][node()])
+   return
+      <table class="table table-striped datatable"> {
+         if ( $top ) then
+            <thead>
+               <th>Property</th>
+               <th>Object</th>
+               { <th>Label</th>[$any-label] }
+               <th>Type</th>
+            </thead>
+         else
+            (),
+         if ( $any-label ) then
+            $body
+         else
+            local:strip-3d-column($body)
+      }
+      </table>
+};
+
+declare function local:strip-3d-column($node as node())
+{
+   typeswitch ( $node )
+   case element(h:tr) return
+      <tr> {
+         $node/@*,
+         $node/(node() except h:td[3])
+      }
+      </tr>
+   case element() return
+      element { fn:node-name($node) } {
+         $node/@*,
+         $node/node() ! local:strip-3d-column(.)
+      }
+   default return
+      $node
 };
 
 declare function local:display-value(

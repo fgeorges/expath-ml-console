@@ -1,12 +1,12 @@
 xquery version "3.0";
 
-import module namespace proj = "http://expath.org/ns/ml/console/project" at "proj-lib.xql";
-import module namespace t    = "http://expath.org/ns/ml/console/tools"   at "../lib/tools.xql";
-import module namespace v    = "http://expath.org/ns/ml/console/view"    at "../lib/view.xql";
+import module namespace proj = "http://expath.org/ns/ml/console/project" at "proj-lib.xqy";
+import module namespace t    = "http://expath.org/ns/ml/console/tools"   at "../lib/tools.xqy";
+import module namespace v    = "http://expath.org/ns/ml/console/view"    at "../lib/view.xqy";
 
-import module namespace dbdir    = "http://expath.org/ns/ml/console/project/dbdir"    at "dbdir-lib.xql";
-import module namespace srcdir   = "http://expath.org/ns/ml/console/project/srcdir"   at "srcdir-lib.xql";
-import module namespace xproject = "http://expath.org/ns/ml/console/project/xproject" at "xproject-lib.xql";
+import module namespace dbdir    = "http://expath.org/ns/ml/console/project/dbdir"    at "dbdir-lib.xqy";
+import module namespace srcdir   = "http://expath.org/ns/ml/console/project/srcdir"   at "srcdir-lib.xqy";
+import module namespace xproject = "http://expath.org/ns/ml/console/project/xproject" at "xproject-lib.xqy";
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 

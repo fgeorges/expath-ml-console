@@ -9,9 +9,9 @@ import module namespace xqd = "http://github.com/xquery/xquerydoc"
 import module namespace xqdc = "XQDocComments"
    at "xquerydoc/src/xquery/parsers/XQDocComments.xq";
 
-import module namespace proj = "http://expath.org/ns/ml/console/project" at "proj-lib.xql";
-import module namespace a    = "http://expath.org/ns/ml/console/admin"   at "../lib/admin.xql";
-import module namespace v    = "http://expath.org/ns/ml/console/view"    at "../lib/view.xql";
+import module namespace proj = "http://expath.org/ns/ml/console/project" at "proj-lib.xqy";
+import module namespace a    = "http://expath.org/ns/ml/console/admin"   at "../lib/admin.xqy";
+import module namespace v    = "http://expath.org/ns/ml/console/view"    at "../lib/view.xqy";
 
 declare namespace xdmp = "http://marklogic.com/xdmp";
 
@@ -59,13 +59,13 @@ declare function local:page() as element()+
                fn:false())))
    }
    </pre>,
-   <p>yet-another-hello.xql:</p>,
+   <p>yet-another-hello.xqy:</p>,
    <pre> {
       xdmp:quote(
          parser:parse(
             a:get-from-directory(
                '/Users/fgeorges/projects/expath/ml-console/test/hello-world/src/foo/bar/',
-               'yet-another-hello.xql',
+               'yet-another-hello.xqy',
                fn:false())))
    }
    </pre>,
@@ -75,7 +75,7 @@ declare function local:page() as element()+
          parser:parse(
             a:get-from-directory(
                '/Users/fgeorges/projects/expath/ml-console/src/lib/',
-               'tools.xql',
+               'tools.xqy',
                fn:false())))
    }
    </pre>,
@@ -153,7 +153,7 @@ Et maintenant de l'XQuery :
 ```xquery
 xquery version "3.0";
 
-import module namespace v = "http://expath.org/ns/ml/console/view"  at "../lib/view.xql";
+import module namespace v = "http://expath.org/ns/ml/console/view"  at "../lib/view.xqy";
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 

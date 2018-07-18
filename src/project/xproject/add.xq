@@ -1,9 +1,9 @@
 xquery version "3.0";
 
-import module namespace proj = "http://expath.org/ns/ml/console/project" at "../proj-lib.xql";
-import module namespace a    = "http://expath.org/ns/ml/console/admin"   at "../../lib/admin.xql";
-import module namespace t    = "http://expath.org/ns/ml/console/tools"   at "../../lib/tools.xql";
-import module namespace v    = "http://expath.org/ns/ml/console/view"    at "../../lib/view.xql";
+import module namespace proj = "http://expath.org/ns/ml/console/project" at "../proj-lib.xqy";
+import module namespace a    = "http://expath.org/ns/ml/console/admin"   at "../../lib/admin.xqy";
+import module namespace t    = "http://expath.org/ns/ml/console/tools"   at "../../lib/tools.xqy";
+import module namespace v    = "http://expath.org/ns/ml/console/view"    at "../../lib/view.xqy";
 
 declare namespace xp = "http://expath.org/ns/project";
 
@@ -18,7 +18,7 @@ declare function local:page($id as xs:string?, $dir as xs:string)
          </p>
       else
          let $proj := a:get-from-directory($dir, 'xproject/project.xml', fn:true())/*
-         let $id   := if ( fn:exists($id) ) then $id else $proj/@abbrev
+         let $id   := ( $id, $proj/@abbrev )[1]
          return
             if ( fn:empty($proj) ) then (
                <p xmlns="http://www.w3.org/1999/xhtml">

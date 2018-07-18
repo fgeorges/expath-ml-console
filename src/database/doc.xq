@@ -1,17 +1,18 @@
 xquery version "3.0";
 
-import module namespace b   = "http://expath.org/ns/ml/console/browse"          at "browse-lib.xql";
-import module namespace dbc = "http://expath.org/ns/ml/console/database/config" at "db-config-lib.xql";
+import module namespace b   = "http://expath.org/ns/ml/console/browse"          at "browse-lib.xqy";
+import module namespace dbc = "http://expath.org/ns/ml/console/database/config" at "db-config-lib.xqy";
 
-import module namespace a   = "http://expath.org/ns/ml/console/admin"  at "../lib/admin.xql";
-import module namespace bin = "http://expath.org/ns/ml/console/binary" at "../lib/binary.xql";
-import module namespace t   = "http://expath.org/ns/ml/console/tools"  at "../lib/tools.xql";
-import module namespace v   = "http://expath.org/ns/ml/console/view"   at "../lib/view.xql";
+import module namespace a   = "http://expath.org/ns/ml/console/admin"  at "../lib/admin.xqy";
+import module namespace bin = "http://expath.org/ns/ml/console/binary" at "../lib/binary.xqy";
+import module namespace t   = "http://expath.org/ns/ml/console/tools"  at "../lib/tools.xqy";
+import module namespace v   = "http://expath.org/ns/ml/console/view"   at "../lib/view.xqy";
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
 declare namespace c    = "http://expath.org/ns/ml/console";
 declare namespace xdmp = "http://marklogic.com/xdmp";
+declare namespace map  = "http://marklogic.com/xdmp/map";
 declare namespace sec  = "http://marklogic.com/xdmp/security";
 
 (:~
@@ -54,6 +55,7 @@ declare function local:page($db as element(a:database), $uri as xs:string, $sche
          local:summary($uri),
          local:content($uri, $dir, $root, $sep, $db-root),
          local:collections($db, $uri, $db-root, $webapp, $sep),
+         local:metadata($db, $uri, $webapp),
          local:properties($uri),
          local:permissions($db, $uri, $webapp)
       )
@@ -67,7 +69,7 @@ declare function local:summary($uri as xs:string)
    as element()+
 {
    <h3>Summary</h3>,
-   <table class="table table-bordered datatable">
+   <table class="table table-bordered">
       <thead>
          <th>Name</th>
          <th>Value</th>
@@ -198,6 +200,59 @@ declare function local:collections(
          </table>,
    v:form($webapp || 'tools/add-coll', (
       v:input-text('collection', 'Add collection', 'The collection URI to add the document to'),
+      v:input-hidden('uri', $uri),
+      v:input-hidden('database', $db/@id),
+      v:input-hidden('redirect', 'true'),
+      (: TODO: Replace with a Bootstrap character icon... :)
+      v:submit('Add')))
+};
+
+(:~
+ : The metadata section.
+ :)
+declare function local:metadata(
+   $db     as element(a:database),
+   $uri    as xs:string,
+   $webapp as xs:string
+) as element()+
+{
+   <h3>Metadata</h3>,
+   let $mdata := xdmp:document-get-metadata($uri)
+   let $keys  := $mdata ! map:keys(.)
+   return
+      if ( fn:empty($keys) ) then
+         <p>This document does not have any metadata.</p>
+      else
+         <table class="table table-bordered datatable">
+            <thead>
+               <th>Name</th>
+               <th>Value</th>
+               <th>Remove</th>
+            </thead>
+            <tbody> {
+               for $key in $keys
+               order by $key
+               return
+                  <tr>
+                     <td>{ $key }</td>
+                     <td>{ map:get($mdata, $key) }</td>
+                     <td> {
+                        v:inline-form($webapp || 'tools/del-meta', (
+                           <input type="hidden" name="key"      value="{ $key }"/>,
+                           <input type="hidden" name="uri"      value="{ $uri }"/>,
+                           <input type="hidden" name="database" value="{ $db/@id }"/>,
+                           <input type="hidden" name="redirect" value="true"/>,
+                           (: TODO: Replace with a Bootstrap character icon... :)
+                           v:submit('Remove')))
+                     }
+                     </td>
+                  </tr>
+            }
+            </tbody>
+         </table>,
+   v:form($webapp || 'tools/add-meta', (
+      v:input-text('key',   'Metadata key',   'The name of the metadata to set (or override)'),
+      v:input-text('value', 'Metadata value', 'The value of the metadata'),
       v:input-hidden('uri', $uri),
       v:input-hidden('database', $db/@id),
       v:input-hidden('redirect', 'true'),

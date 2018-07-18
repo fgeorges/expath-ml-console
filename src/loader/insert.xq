@@ -29,11 +29,11 @@ xquery version "3.0";
  : TODO: Split into 3 different queries for the 3 cases above...?
  :)
 
-import module namespace i = "http://expath.org/ns/ml/console/insert" at "insert-lib.xql";
-import module namespace a = "http://expath.org/ns/ml/console/admin"  at "../lib/admin.xql";
-import module namespace b = "http://expath.org/ns/ml/console/binary" at "../lib/binary.xql";
-import module namespace t = "http://expath.org/ns/ml/console/tools"  at "../lib/tools.xql";
-import module namespace v = "http://expath.org/ns/ml/console/view"   at "../lib/view.xql";
+import module namespace i = "http://expath.org/ns/ml/console/insert" at "insert-lib.xqy";
+import module namespace a = "http://expath.org/ns/ml/console/admin"  at "../lib/admin.xqy";
+import module namespace b = "http://expath.org/ns/ml/console/binary" at "../lib/binary.xqy";
+import module namespace t = "http://expath.org/ns/ml/console/tools"  at "../lib/tools.xqy";
+import module namespace v = "http://expath.org/ns/ml/console/view"   at "../lib/view.xqy";
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
@@ -56,9 +56,9 @@ declare function local:page()
    let $count  := fn:count(($file, $dir, $zipdir))
    return
       if ( fn:not($new) and $count ne 1 ) then
-         <p><b>Error</b>: Exactly 1 parameter out of "file", "new-file", "dir" and "zipdir"
-            should be provided.  Got { $count } of them.  File is "{ $file }", new file is
-            "{ $new }", dir is "{ $dir }" and zipdir is "{ $zipdir }".</p>
+         <p><b>Error</b>: Exactly 1 parameter out of "file", "dir" and "zipdir" must
+            be provided.  Got { $count } of them.  File is "{ $file }" (new file is
+            "{ $new }"), dir is "{ $dir }" and zipdir is "{ $zipdir }".</p>
       else if ( fn:exists($file) or $new ) then
          local:handle-file($file, $new)
       else if ( fn:exists($dir) ) then
@@ -106,11 +106,10 @@ declare function local:handle-file($file as item()?, $new as xs:boolean)
       if ( fn:empty($res) ) then
          <p><b>Error</b>: File already exists at <code>{ $uri }</code>{ <z> (prefix
             is <code>{ $prefix }</code>)</z>[$prefix]/node() }.</p>
+      else if ( $redirect ) then
+         v:redirect('../db/' || $db || '/doc?uri=' || $res)
       else
-         if ( $redirect ) then
-            v:redirect('../db/' || $db || '/doc?uri=' || $res)
-         else
-            <p>File succesfully inserted at <code>{ $res }</code> as { $format }.</p>
+         <p>File succesfully inserted at <code>{ $res }</code> as { $format }.</p>
 };
 
 (:~

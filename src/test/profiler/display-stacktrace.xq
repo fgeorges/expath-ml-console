@@ -4,8 +4,8 @@ xquery version "3.0";
  : The profiler page.
  :)
 
-import module namespace a = "http://expath.org/ns/ml/console/admin" at "../../lib/admin.xql";
-import module namespace v = "http://expath.org/ns/ml/console/view"  at "../../lib/view.xql";
+import module namespace a = "http://expath.org/ns/ml/console/admin" at "../../lib/admin.xqy";
+import module namespace v = "http://expath.org/ns/ml/console/view"  at "../../lib/view.xqy";
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 

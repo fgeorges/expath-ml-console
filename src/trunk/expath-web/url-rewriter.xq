@@ -1,7 +1,7 @@
 xquery version "3.0";
 
 import module namespace d = "http://expath.org/ns/ml/webapp/dispatcher"
-  at "dispatcher.xql";
+  at "dispatcher.xqy";
 
 declare namespace xdmp = "http://marklogic.com/xdmp";
 
