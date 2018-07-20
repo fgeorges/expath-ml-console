@@ -510,9 +510,8 @@ function selectTarget(targetId, id, targetLabel, label)
    if ( btn.hasClass('btn-danger') ) {
       btn.removeClass('btn-danger');
       btn.addClass('btn-primary');
-      // activate the 'profile' and 'as xml' buttons
-      $('#go-profile').prop('disabled', false);
-      $('#go-as-xml').prop('disabled', false);
+      // activate the buttons waiting for a target
+      $('.need-target').prop('disabled', false);
    }
 }
 
@@ -524,10 +523,10 @@ function jobCreate(codeId, detailId, timeId, countId, uriId, collId, dryId)
 {
    $('.create-success').hide();
    var data = new FormData();
-   data.append('code', editorContent(codeId));
+   data.append('code',   editorContent(codeId));
    // TODO: Retrieve the selected language, content db and modules db...
-   data.append('lang', $('input[name=lang]:checked').val());
-   data.append('database', 'Documents');
+   data.append('lang',   $('input[name=lang]:checked').val());
+   data.append('target', $('#target-id').text());
    var url = '/api/job/create';
    if ( $('#' + dryId).is(':checked') ) {
       url += '?dry=true';
@@ -580,4 +579,9 @@ function jobCreate(codeId, detailId, timeId, countId, uriId, collId, dryId)
       $('#create-detail').width('');
       $('.create-success').show();
    });
+}
+
+function jobRun(jobId, taskId, detailId, timeId, countId, uriId, collId)
+{
+   alert('TODO: Still to implement running the job.');
 }

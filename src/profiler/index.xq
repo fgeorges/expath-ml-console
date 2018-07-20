@@ -150,11 +150,11 @@ declare function local:page()
       <div class="row">
          <div class="col-sm-3">
             <button id="go-profile"
-                    class="btn btn-default"
+                    class="btn btn-default need-target"
                     disabled="disabled"
                     onclick='profile("prof-query", "prof-json");'>Profile</button>
             <button id="go-as-xml"
-                    class="btn btn-default"
+                    class="btn btn-default need-target"
                     disabled="disabled"
                     onclick='profileXml("prof-query");'
                     style="margin-left: 10px;">As XML</button>

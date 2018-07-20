@@ -1,86 +1,141 @@
 "use strict";
 
-const t = require('../../lib/tools.xqy');
+declareUpdate();
 
-const code     = fn.head(t.mandatoryField('code'));
-const lang     = fn.head(t.mandatoryField('lang'));
-const database = fn.head(t.optionalField('database', null));
-const modules  = fn.head(t.optionalField('modules', null));
-const dry      = fn.head(t.optionalField('dry', 'false'));
+const t   = require('../../lib/tools.xqy');
+const xqy = require('create.xqy');
 
-if ( lang === 'xqy' ) {
-    throw new Error(`XQuery not supported yet`);
-}
-else if ( lang === 'sjs' ) {
-    // nothing, just continue for now
-}
-else {
+const code   = fn.head(t.mandatoryField('code'));
+const lang   = fn.head(t.mandatoryField('lang'));
+const target = fn.head(t.mandatoryField('target'));
+const dry    = getDry(fn.head(t.optionalField('dry', 'false')));
+
+if ( lang !== 'sjs' && lang !== 'xqy' ) {
     throw new Error(`Unknown language: ${lang}`);
 }
 
-const options = {
-    update: false
-};
-
-if ( database ) {
-    options.database = xdmp.database(database);
+function getDry(d) {
+    if ( d === 'true' ) {
+	return true;
+    }
+    else if ( d === 'false' ) {
+	return false;
+    }
+    else {
+	throw new Error(`The param dry must be either true or false: ${d}`);
+    }
 }
-if ( modules ) {
-    options.modules = xdmp.database(modules);
+
+function getParams() {
+    const uuid = sem.uuidString();
+    const id   = uuid.slice(0, 13) + uuid.slice(14, 18);
+    const coll = `/jobs/${id}`;
+    return {
+	id      : id,
+	coll    : coll,
+	uri     : `${coll}/job.json`,
+	created : new Date().toISOString()
+    }
 }
 
-const uuid = sem.uuidString();
-const jid  = uuid.slice(0, 13) + uuid.slice(14, 18);
-const coll = `/jobs/${jid}`;
-const juri = `${coll}/job.json`;
-const job  = { job: {
-    id:       jid,
-    uri :     juri,
-    coll:     coll,
-    created:  new Date().toISOString(),
-    creation: code,
-    tasks:    []
-}};
-// must be exactly one array
-const chunks = fn.exactlyOne(xdmp.eval(code, options));
-const tasks  = [];
+function sjsJob(params, tasks, code) {
+    const job = { job: {
+	id:       params.id,
+	uri :     params.uri,
+	coll:     params.coll,
+	created:  params.created,
+	creation: code,
+	tasks:    tasks
+    }};
+    return job;
+}
 
-chunks.forEach((chunk, i) => {
-    const str    = (i + 1).toString();
+function sjsTask(params, chunk) {
+    const task = { task: {
+	id:      params.id,
+	uri:     params.uri,
+	order:   params.order,
+	num:     params.num,
+	label:   params.label,
+	created: params.created,
+	chunk:   chunk
+    }};
+    return task;
+}
+
+function xqyJob(params, tasks, code) {
+    return xqy.job(params, tasks, code);
+}
+
+function xqyTask(params, chunk) {
+    return xqy.task(params, chunk);
+}
+
+function taskParams(i, id, coll, chunk) {
+    const str    = i.toString();
     const padded = str.length >= 6
-	? str
+        ? str
 	: new Array(6 - str.length + 1).join('0') + str;
     const num    = padded.slice(0, 3) + '-' + padded.slice(3);
-    const tid    = `${jid}/${num}`;
-    const turi   = `${coll}/task-${num}.json`;
-    job.job.tasks.push({
-	id:  tid,
-	uri: turi
-    });
-    tasks.push({ task: {
-	id:      tid,
-	uri:     turi,
-	order:   i + 1,
+    return {
+	id:      `${id}/${num}`,
+	uri:     `${coll}/task-${num}.json`,
+	order:   i,
 	num:     num,
 	label:   'Number of items in the chunk: ' + (Array.isArray(chunk) ? chunk.length : 1),
-	created: new Date().toISOString(),
-	chunk:   chunk
-    }});
-});
-
-const res = {};
-
-if ( dry === 'true' ) {
-    // TODO: Cherry-pick which info to return (which is used in the UI).  Especially:
-    // 1) do not return chunks, as they can be huge
-    // 2) we need to return the same relevant info from XQuery
-    res.dry   = xdmp.describe(dry);
-    res.job   = job.job;
-    res.tasks = tasks.map(t => t.task);
-    res.time  = xdmp.elapsedTime();
-}
-else {
-    throw new Error(`FIXME: TODO: Non-dry mode not supported yet...`);
+	created: new Date().toISOString()
+    };
 }
 
-res;
+function save(doc, uri, kind, coll) {
+    xdmp.documentInsert(uri, doc, {
+	collections: [ '/kind/' + kind, '/status/to-run', coll ]
+    });
+}
+
+function main(params) {
+    const result = {
+	dry:   dry,
+	job:   params,
+	tasks: []
+    };
+
+    // the chunks
+    const options = xqy.options(target);
+    const chunks  = lang === 'sjs'
+        // must be exactly one array
+        ? fn.exactlyOne(xdmp.eval(code, null, options))
+        : xdmp.xqueryEval(code, null, options);
+
+    // the tasks
+    const tasks = [];
+    let i = 0;
+    for ( const chunk of chunks ) {
+	++ i;
+	const vars = taskParams(i, params.id, params.coll, chunk);
+	tasks.push({
+	    id:  vars.id,
+	    uri: vars.uri
+	});
+	result.tasks.push(vars);
+	const task = lang === 'sjs'
+            ? sjsTask(vars, chunk)
+            : xqyTask(vars, chunk);
+	if ( ! dry ) {
+            save(task, vars.uri, 'task', params.coll);
+	}
+    }
+
+    // the job
+    const job = lang === 'sjs'
+	? sjsJob(params, tasks, code)
+	: xqyJob(params, tasks, code);
+    if ( ! dry ) {
+        save(job, params.uri, 'job', params.coll);
+    }
+
+    result.time = xdmp.elapsedTime();
+    return result;
+}
+
+main(getParams());
