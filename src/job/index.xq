@@ -61,7 +61,7 @@ declare variable $sample-task-xqy :=
 
 xquery version "3.1";
 
-declare namespace c    = "http://expath.org/ml/console";
+declare namespace c    = "http://expath.org/ns/ml/console";
 declare namespace xdmp = "http://marklogic.com/xdmp";
 
 declare variable $task as element(c:task) external;
@@ -353,7 +353,7 @@ v:console-page('../', 'job', 'Jobs', local:page#0,
       }}
 
       function run() {{
-         jobRun('create-code', 'task-code', 'create-detail', 'total-time', 'tasks-count', 'job-uri', 'job-coll');
+         jobStart('task-code', 'job-coll');
       }}
 
       function testTask() {{

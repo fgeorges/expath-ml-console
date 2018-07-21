@@ -54,8 +54,34 @@ declare function bin:is-json-array($arg as item())
    $arg instance of json:array
 };
 
+(: TODO: Difference with bin:is-object-node()? :)
 declare function bin:is-json-object($arg as item())
    as xs:boolean
 {
    $arg instance of json:object
+};
+
+(: TODO: Difference with bin:is-json-object()? :)
+declare function bin:is-object($arg as item())
+   as xs:boolean
+{
+   $arg instance of object-node()
+};
+
+declare function bin:get-arrays($parent as node())
+   as array-node()*
+{
+   $parent/array-node()
+};
+
+declare function bin:object($name as xs:string, $content as node()*)
+   as object-node()
+{
+   object-node { $name: $content }
+};
+
+declare function bin:array($content as item()*)
+   as array-node()
+{
+   array-node { $content }
 };

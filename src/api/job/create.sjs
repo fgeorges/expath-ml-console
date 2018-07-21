@@ -10,6 +10,8 @@ const lang   = fn.head(t.mandatoryField('lang'));
 const target = fn.head(t.mandatoryField('target'));
 const dry    = getDry(fn.head(t.optionalField('dry', 'false')));
 
+const options = xqy.options(target);
+
 if ( lang !== 'sjs' && lang !== 'xqy' ) {
     throw new Error(`Unknown language: ${lang}`);
 }
@@ -26,16 +28,25 @@ function getDry(d) {
     }
 }
 
+// TODO: Resolve the name of database and modules for clarity.
 function getParams() {
     const uuid = sem.uuidString();
     const id   = uuid.slice(0, 13) + uuid.slice(14, 18);
     const coll = `/jobs/${id}`;
-    return {
-	id      : id,
-	coll    : coll,
-	uri     : `${coll}/job.json`,
-	created : new Date().toISOString()
+    const res  = {
+	id       : id,
+	coll     : coll,
+	uri      : `${coll}/job.json`,
+	lang     : lang,
+	target   : target,
+	database : options.database,
+	lang     : lang,
+	created  : new Date().toISOString()
+    };
+    if ( options.modules !== undefined ) {
+	res.modules = options.modules;
     }
+    return res;
 }
 
 function sjsJob(params, tasks, code) {
@@ -44,9 +55,15 @@ function sjsJob(params, tasks, code) {
 	uri :     params.uri,
 	coll:     params.coll,
 	created:  params.created,
+	lang:     params.lang,
+	target:   params.target,
+	database: params.database,
 	creation: code,
 	tasks:    tasks
     }};
+    if ( params.modules ) {
+	job.job.modules = params.modules;
+    }
     return job;
 }
 
@@ -89,7 +106,11 @@ function taskParams(i, id, coll, chunk) {
 
 function save(doc, uri, kind, coll) {
     xdmp.documentInsert(uri, doc, {
-	collections: [ '/kind/' + kind, '/status/to-run', coll ]
+	// TODO: Status should be "created", then "initialised" when the tasks
+	// are created, then "started" right after running, then "success" or
+	// "failure" after stopping.  For now, we do both creation and
+	// initialization at once, here.
+	collections: [ '/kind/' + kind, '/status/initialised', coll ]
     });
 }
 
@@ -101,7 +122,6 @@ function main(params) {
     };
 
     // the chunks
-    const options = xqy.options(target);
     const chunks  = lang === 'sjs'
         // must be exactly one array
         ? fn.exactlyOne(xdmp.eval(code, null, options))

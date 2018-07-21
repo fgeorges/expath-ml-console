@@ -26,13 +26,13 @@ declare function this:options(
       let $mod   := $thing[self::a:appserver]/( a:modules-db/@id, 0[$thing/a:modules-path] )
       return
          map:new((
-		    map:entry('update', 'false'),
-		    if ( $thing[self::a:database] ) then (
-		       map:entry('database', $id)
+            map:entry('update', 'false'),
+            if ( $thing[self::a:database] ) then (
+               map:entry('database', $id)
             )
             else (
-		       map:entry('database', $thing/a:db/xs:unsignedLong(@id)),
-		       map:entry('modules',  ( $thing/a:modules-db/xs:unsignedLong(@id), 0 )[1])
+               map:entry('database', $thing/a:db/xs:unsignedLong(@id)),
+               map:entry('modules',  ( $thing/a:modules-db/xs:unsignedLong(@id), 0 )[1])
             )))
    else
       t:error('invalid-id', 'Invalid DB or AS ID: ' || $target)
@@ -47,13 +47,13 @@ declare function this:task(
 ) as element(c:task)
 {
    <task xmlns="http://expath.org/ns/ml/console">
-	  <id>{       map:get($params, 'id')       }</id>
-	  <uri>{      map:get($params, 'uri')      }</uri>
-	  <order>{    map:get($params, 'order')    }</order>
-	  <num>{      map:get($params, 'num')      }</num>
-	  <label>{    map:get($params, 'label')    }</label>
-	  <created>{  map:get($params, 'created')  }</created>
-	  <chunk>{    $chunk                       }</chunk>
+      <id>{       map:get($params, 'id')       }</id>
+      <uri>{      map:get($params, 'uri')      }</uri>
+      <order>{    map:get($params, 'order')    }</order>
+      <num>{      map:get($params, 'num')      }</num>
+      <label>{    map:get($params, 'label')    }</label>
+      <created>{  map:get($params, 'created')  }</created>
+      <chunk>{    $chunk                       }</chunk>
    </task>
 };
 
@@ -66,20 +66,26 @@ declare function this:job(
    $code   as xs:string
 ) as element(c:job)
 {
-   <job xmlns="http://expath.org/ns/ml/console">
-	  <id>{       map:get($params, 'id')       }</id>
-	  <uri>{      map:get($params, 'uri')      }</uri>
-	  <coll>{     map:get($params, 'coll')     }</coll>
-	  <created>{  map:get($params, 'created')  }</created>
-	  <creation>{ $code                        }</creation>
-	  <tasks> {
-		 for $task in $tasks
-		 return
-			<task>
-			   <id>{  map:get($task, 'id')  }</id>
-			   <uri>{ map:get($task, 'uri') }</uri>
-			</task>
-	  }
-	  </tasks>
-   </job>
+   let $modules := map:get($params, 'modules')
+   return
+      <job xmlns="http://expath.org/ns/ml/console">
+         <id>{       map:get($params, 'id')       }</id>
+         <uri>{      map:get($params, 'uri')      }</uri>
+         <coll>{     map:get($params, 'coll')     }</coll>
+         <lang>{     map:get($params, 'lang')     }</lang>
+         <target>{   map:get($params, 'target')   }</target>
+         <database>{ map:get($params, 'database') }</database>
+         { $modules ! <modules>{ . }</modules> }
+         <created>{  map:get($params, 'created')  }</created>
+         <creation>{ $code                        }</creation>
+         <tasks> {
+            for $task in $tasks
+            return
+               <task>
+                  <id>{  map:get($task, 'id')  }</id>
+                  <uri>{ map:get($task, 'uri') }</uri>
+               </task>
+         }
+         </tasks>
+      </job>
 };

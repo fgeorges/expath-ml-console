@@ -230,6 +230,10 @@
    <match-path matches="^/api/job/create$">
       <dispatch>/api/job/create.sjs</dispatch>
    </match-path>
+   <match-path matches="^/api/job/([-0-9a-f]+)/start$">
+      <add-query-param name="id">$1</add-query-param>
+      <dispatch>/api/job/start.sjs</dispatch>
+   </match-path>
 
    <!--
        Profiler.
