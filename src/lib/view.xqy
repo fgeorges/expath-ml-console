@@ -6,7 +6,8 @@ xquery version "3.0";
 module namespace v = "http://expath.org/ns/ml/console/view";
 
 import module namespace a = "http://expath.org/ns/ml/console/admin"  at "admin.xqy";
-import module namespace t = "http://expath.org/ns/ml/console/tools"  at "../lib/tools.xqy";
+import module namespace b = "http://expath.org/ns/ml/console/binary" at "binary.xqy";
+import module namespace t = "http://expath.org/ns/ml/console/tools"  at "tools.xqy";
 
 declare namespace c    = "http://expath.org/ns/ml/console";
 declare namespace h    = "http://www.w3.org/1999/xhtml";
@@ -412,11 +413,6 @@ declare function v:ensure-triple-index(
  : ACE editor tools
  :)
 
-declare variable $serial-options :=
-   <options xmlns="xdmp:quote">
-      <indent-untyped>yes</indent-untyped>
-   </options>;
-
 (:~
  : Format a `pre` element containing some XML.
  :
@@ -583,10 +579,23 @@ declare function v:ace-editor(
       attribute { 'ace-uri'    } { $uri }[fn:exists($uri)],
       attribute { 'ace-top'    } { $top }[fn:exists($top)],
       attribute { 'style'      } { 'height: ' || $height }[fn:exists($height)],
-      if ( $content instance of node() ) then
-         xdmp:quote($content, $serial-options)
-      else
+      (: TODO: Any better way to detect non-node JS objects? (incl. arrays) :)
+      if ( b:is-map($content) ) then
+         xdmp:javascript-eval(
+	    'JSON.stringify(content, null, 2)',
+            ('content', $content))
+      else if ( fn:not($content instance of node()) ) then
          $content
+      else if ( b:is-json($content) ) then
+         xdmp:javascript-eval(
+	    'JSON.stringify(content.toObject(), null, 2)',
+            ('content', $content))
+      else
+         xdmp:quote(
+	    $content,
+	    <options xmlns="xdmp:quote">
+	       <indent-untyped>yes</indent-untyped>
+	    </options>)
    }
    </pre>
 };
