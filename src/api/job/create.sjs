@@ -32,11 +32,12 @@ function getDry(d) {
 function getParams() {
     const uuid = sem.uuidString();
     const id   = uuid.slice(0, 13) + uuid.slice(14, 18);
-    const coll = `/jobs/${id}`;
+    const coll = '/jobs/' + id;
+    const uri  = coll + '/job.' + (lang === 'sjs' ? 'json' : 'xml');
     const res  = {
 	id       : id,
 	coll     : coll,
-	uri      : `${coll}/job.json`,
+	uri      : uri,
 	lang     : lang,
 	target   : target,
 	database : options.database,
@@ -94,9 +95,10 @@ function taskParams(i, id, coll, chunk) {
         ? str
 	: new Array(6 - str.length + 1).join('0') + str;
     const num    = padded.slice(0, 3) + '-' + padded.slice(3);
+    const uri    = coll + '/task-' + num + '.' + (lang === 'sjs' ? 'json' : 'xml');
     return {
-	id:      `${id}/${num}`,
-	uri:     `${coll}/task-${num}.json`,
+	id:      id + '/' + num,
+	uri:     uri,
 	order:   i,
 	num:     num,
 	label:   'Number of items in the chunk: ' + (Array.isArray(chunk) ? chunk.length : 1),
