@@ -24,6 +24,7 @@ declare variable $v:pages as element(pages) :=
       <page name="browser"  title="Documents and triples browser" label="Browser"/-->
       <page name="db"       title="Database browser"              label="Databases"/>
       <page name="loader"   title="The document manager"          label="Loader"/>
+      <page name="job"      title="Asynchronous jobs and tasks"   label="Jobs" href="job/"/>
       <page name="profiler" title="XQuery Profiler"               label="Profiler"/>
       <page name="project"  title="The project manager"           label="Projects"/>
       <page name="tools"    title="Goodies for MarkLogic"         label="Tools"/>
