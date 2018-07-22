@@ -1045,6 +1045,114 @@ declare function v:input-hidden($id as xs:string, $val as xs:string, $attrs as a
    </input>
 };
 
+declare function v:input-exec-target($name as xs:string, $label as xs:string)
+   as element((: h:input|h:div :))+
+{
+   v:input-exec-target($name, $name, $label)
+};
+
+declare function v:input-exec-target($id as xs:string, $name as xs:string, $label as xs:string)
+   as element((: h:input|h:div :))+
+{
+   <div xmlns="http://www.w3.org/1999/xhtml" class="form-group">
+      <label for="{ $name }" class="col-sm-2 control-label">{ $label }</label>
+      <div class="col-sm-10">
+	 <div class="btn-group" xmlns="http://www.w3.org/1999/xhtml">
+	    <button type="button" class="btn btn-default dropdown-toggle"
+		    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+	       Databases <span class="caret"/>
+	    </button>
+	    <ul class="dropdown-menu" style="min-width: 400pt"> {
+	       for $db in a:get-databases()/a:database
+	       order by $db/a:name
+	       return
+		  v:format-exec-target-db($db, $id)
+	    }
+	    </ul>
+	 </div>
+         {
+            let $all := a:get-appservers()/a:appserver
+            for $srv in (<srv label="HTTP"   type="http"/>,
+                         <srv label="XDBC"   type="xdbc"/>,
+                         <srv label="ODBC"   type="odbc"/>,
+                         <srv label="WebDAV" type="webDAV"/>)
+            return
+	       <div class="btn-group" style="margin-left: 10px;">
+		  <button type="button" class="btn btn-default dropdown-toggle"
+			  data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+		     { xs:string($srv/@label) } servers <span class="caret"/>
+		  </button>
+		  <ul class="dropdown-menu" style="min-width: 400pt"> {
+		     let $asses := $all[@type eq $srv/@type]
+		     return
+			if ( fn:exists($asses) ) then
+			   for $as in $asses
+			   order by $as/a:name
+			   return
+			      v:format-exec-target-as($as, $id, $srv/@label)
+			else
+			   <li><a style="font-style: italic">(none)</a></li>
+		  }
+		  </ul>
+	       </div>
+         }
+      </div>
+   </div>,
+   <div xmlns="http://www.w3.org/1999/xhtml" id="{ $id }" class="form-group emlc-target-field">
+      <label class="col-sm-2 control-label"/>
+      <div class="col-sm-10">
+	 <input type="text" class="form-control" required="required" placeholder="Select a target (database or server)"/>
+	 <input name="{ $name }" type="hidden" value=""/>
+      </div>
+   </div>
+};
+
+declare function v:format-exec-target-db(
+   $db    as element(a:database),
+   $field as xs:string
+) as element(h:li)
+{
+   <li xmlns="http://www.w3.org/1999/xhtml">
+      <a data-field="#{ $field }" data-id="{ $db/@id }" data-label="{ $db/a:name }" class="emlc-target-entry"> {
+         $db/fn:string(a:name)
+      }
+      </a>
+   </li>
+};
+
+declare function v:format-exec-target-as(
+   $as    as element(a:appserver),
+   $field as xs:string,
+   $type  as xs:string
+) as element(h:li)
+{
+   let $name  := xs:string($as/a:name)
+   let $label := $name || ' (' || $type || ')'
+   return
+      <li xmlns="http://www.w3.org/1999/xhtml">
+         <a data-field="#{ $field }" data-id="{ $as/@id }" data-label="{ $label }" class="emlc-target-entry">
+            <span> {
+               $name
+            }
+            </span>
+            <br/>
+            <small> {
+               '          Content: ' || $as/a:db
+            }
+            </small>
+            <br/>
+            <small> {
+               '          Modules: '
+                  || ( $as/a:modules-db, 'file' )[1]
+                  || ' &lt;'
+                  || $as/a:root
+                  || '>'
+            }
+            </small>
+         </a>
+      </li>
+};
+
 (:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  : Link display tools
  :)

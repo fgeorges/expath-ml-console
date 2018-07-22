@@ -2,6 +2,9 @@ xquery version "3.0";
 
 (:~
  : The profiler page.
+ :
+ : TODO: Use the new component v:input-exec-target() instead of the old target
+ : selection mecanism below (as in the job index page.)
  :)
 
 import module namespace a = "http://expath.org/ns/ml/console/admin" at "../lib/admin.xqy";
