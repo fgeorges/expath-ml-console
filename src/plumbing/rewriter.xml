@@ -213,8 +213,10 @@
    <!--
        Jobs.
    -->
-   <match-path matches="^/job$">
-      <dispatch>/job/index.xq</dispatch>
+
+   <!-- FIXME: TODO: -->
+   <match-path matches="^/job/ORIGINAL$">
+      <dispatch>/job/original.xq</dispatch>
    </match-path>
    <match-path matches="^/job/job-json$">
       <dispatch>/job/job-json.xq</dispatch>
@@ -226,6 +228,9 @@
       <dispatch>/job/xml-to-json.xq</dispatch>
    </match-path>
 
+   <match-path matches="^/job/$">
+      <dispatch>/ui/job/index.xq</dispatch>
+   </match-path>
    <!-- job api -->
    <match-path matches="^/api/job/create$">
       <dispatch>/api/job/create.sjs</dispatch>

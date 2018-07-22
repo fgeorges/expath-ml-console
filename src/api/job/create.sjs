@@ -108,11 +108,11 @@ function taskParams(i, id, coll, chunk) {
 
 function save(doc, uri, kind, coll) {
     xdmp.documentInsert(uri, doc, {
-	// TODO: Status should be "created", then "initialised" when the tasks
-	// are created, then "started" right after running, then "success" or
+	// TODO: Status should be "created", then "ready" when the tasks are
+	// created, then "started" right after running, then "success" or
 	// "failure" after stopping.  For now, we do both creation and
 	// initialization at once, here.
-	collections: [ '/kind/' + kind, '/status/initialised', coll ]
+	collections: [ '/kind/' + kind, '/status/ready', coll ]
     });
 }
 

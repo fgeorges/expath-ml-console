@@ -1,13 +1,7 @@
-xquery version "3.0";
+xquery version "3.1";
 
 (:~
  : The job page.
- :
- : TODO: Endpoints to support this page (and beyond):
- :
- : - POST /api/job/create            -- create and save the job and all its tasks
- : - POST /api/job/create?test=true  -- return the job and its first task, no save
- : - POST /api/job/xxx/run           -- run the job xxx
  :)
 
 import module namespace a = "http://expath.org/ns/ml/console/admin" at "../lib/admin.xqy";
@@ -208,13 +202,13 @@ declare function local:page()
 	    return (
 	       <p>
 		  <span>Job URI: </span>
-		  <a data-href="db/{ $db }/doc?uri=">
+		  <a data-href="../db/{ $db }/doc?uri=">
 		     <code class="doc" id="job-uri"/>
 		  </a>
 	       </p>,
 	       <p>
 		  <span>Collection: </span>
-		  <a data-href="db/{ $db }/coll?uri=">
+		  <a data-href="../db/{ $db }/coll?uri=">
 		     <code class="coll" id="job-coll"/>
 		  </a>
 	       </p>
