@@ -790,6 +790,17 @@ declare %private function v:form-impl(
    </form>
 };
 
+declare function v:input-text-area($name as xs:string, $label as xs:string, $placeholder as xs:string)
+   as element(h:div)
+{
+   <div xmlns="http://www.w3.org/1999/xhtml" class="form-group">
+      <label for="{ $name }" class="col-sm-2 control-label">{ $label }</label>
+      <div class="col-sm-10">
+         <textarea class="form-control" name="{ $name }" placeholder="{ $placeholder }"/>
+      </div>
+   </div>
+};
+
 declare function v:input-text($id as xs:string, $label as xs:string, $placeholder as xs:string)
    as element(h:div)
 {
@@ -976,6 +987,47 @@ declare function v:input-radio(
 	 </input>
       </label>
    </div>
+};
+
+declare function v:input-radio-group($label as xs:string, $radios as element(h:label)*)
+   as element(h:div)
+{
+   <div xmlns="http://www.w3.org/1999/xhtml" class="form-group">
+      <label class="col-sm-2 control-label">{ $label }</label>
+      <div class="col-sm-10"> {
+         $radios
+      }
+      </div>
+   </div>
+};
+
+declare function v:input-radio-inline(
+   $name    as xs:string,
+   $id      as xs:string,
+   $value   as xs:string,
+   $label   as xs:string
+) as element(h:label)
+{
+   v:input-radio-inline($name, $id, $value, $label, ())
+};
+
+declare function v:input-radio-inline(
+   $name    as xs:string,
+   $id      as xs:string,
+   $value   as xs:string,
+   $label   as xs:string,
+   $opts    as xs:string*
+) as element(h:label)
+{
+   <label class="radio-inline" xmlns="http://www.w3.org/1999/xhtml">
+      <input type="radio" name="{ $name }" id="{ $id }" value="{ $value }"> {
+         $opts[. eq 'checked']  ! attribute { . } { . },
+         $opts[. eq 'required'] ! attribute { . } { . },
+         ' ',
+         $label
+      }
+      </input>
+   </label>
 };
 
 declare function v:input-hidden($id as xs:string, $val as xs:string)
