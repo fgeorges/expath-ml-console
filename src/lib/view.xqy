@@ -32,6 +32,13 @@ declare variable $v:pages as element(pages) :=
       <!--page name="devel"    title="Devel's evil"                  label="Devel"/-->
    </pages>;
 
+declare variable $v:js-libs :=
+   <libs>
+      <lib code="emlc.target">
+         <path>emlc/emlc-target.js</path>
+      </lib>
+   </libs>/*;
+
 (:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  : Generic view tools
  :)
@@ -96,14 +103,21 @@ declare function v:console-page(
  : @param title   the title of the page (to appear on top of the page)
  : @param root    `''` if a top-level page, or `'../'` if in a sub-directory
  : @param content the actual HTML content, pasted as the content of the page
- : @param scripts extra HTML "script" elements, to be added at the very end
+ : @param scripts extra elements, to be added at the very end
+ :
+ : The elements in `$scripts` can be elements with the name "script" in any
+ : namespace.  For each, an element with the name "script" in the HTML namespace
+ : is added at the end of the page.  Elements with the name "lib", in any
+ : namespace, are resolved to a set of extra JavaSctip files to be added (so
+ : adding more HTML "script" elements at the end of the page, but referencing
+ : existing JavaScript files instead of containing the code themselves.)
  :)
 declare function v:console-page(
    $root    as xs:string,
    $page    as xs:string,
    $title   as xs:string,
    $content as function() as element()+,
-   $scripts as element(h:script)*
+   $scripts as element()*
 ) as element(h:html)
 {
    let $cnt  := v:eval-content($content)
@@ -148,7 +162,7 @@ declare %private function v:console-page-static(
    $page    as xs:string,
    $title   as xs:string,
    $content as element()+,
-   $scripts as element(h:script)*
+   $scripts as element()*
 ) as element(h:html)
 {
    <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
@@ -203,6 +217,8 @@ declare %private function v:console-page-static(
          }
          </div>
          {
+            (: TODO: Refactor this using the new "lib import", so individual pages
+               can cherry-pick libraries to import. :)
             v:import-javascript($root || 'js/', (
                'jquery.js',
                'bootstrap.js',
@@ -226,7 +242,14 @@ declare %private function v:console-page-static(
                'file-upload-9.11.2/jquery.fileupload-ui.js',
                'expath-console.js'
             )),
-            $scripts
+            for $script in $scripts
+            return
+               if ( $script[self::*:script] ) then
+                  <script>{ fn:string($script) }</script>
+               else if ( $script[self::*:lib] ) then
+                  v:import-javascript($root || 'js/', $v:js-libs[@code eq $script]/*)
+               else
+                  t:error('invalid-script', 'Script element(s) are neither script or lib: ' || fn:name($script))
          }
       </body>
    </html>
