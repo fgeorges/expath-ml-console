@@ -67,29 +67,77 @@ declare function this:jobs-ready() as node()*
 
 declare function this:jobs($status as xs:string?) as node()*
 {
-   cts:search(fn:collection(), cts:and-query((
-      cts:collection-query($this:kind.job),
-      $status ! cts:collection-query(.))))/*
+   cts:search(fn:collection($this:kind.job)/*, cts:and-query((
+      $status ! cts:collection-query(.))))
 };
 
-declare function this:job-id($job as node()) as xs:string
+declare function this:by-id($id as xs:string) as node()?
+{
+   cts:search(fn:collection($this:kind.job)/*, cts:or-query((
+      cts:json-property-value-query('id', $id),
+      cts:element-value-query(xs:QName('c:id'), $id))))
+};
+
+declare function this:status($job as node()) as xs:string
+{
+   this:uri($job)
+   ! xdmp:document-get-collections(.)[. = (
+         $this:status.created,
+         $this:status.ready,
+         $this:status.started,
+         $this:status.success,
+         $this:status.failure
+      )]
+};
+
+declare function this:id($job as node()) as xs:string
 {
    $job/(id|c:id)
 };
 
-declare function this:job-uri($job as node()) as xs:string
+declare function this:uri($job as node()) as xs:string
 {
-   $job/fn:document-uri(fn:root(.))
+   $job/(uri|c:uri)
 };
 
-declare function this:job-name($job as node()) as xs:string? (: FIXME: Not optional, add it at creation. :)
+declare function this:collection($job as node()) as xs:string
+{
+   $job/(coll|c:coll)
+};
+
+declare function this:name($job as node()) as xs:string? (: FIXME: Not optional, add it at creation. :)
 {
    $job/(name|c:name)
 };
 
-declare function this:job-created($job as node()) as xs:dateTime
+declare function this:desc($job as node()) as xs:string
 {
-   $job/(created|c:created)
+   $job/(desc|c:desc)
+};
+
+declare function this:lang($job as node()) as xs:string
+{
+   $job/(lang|c:lang)
+};
+
+declare function this:database($job as node()) as xs:string
+{
+   $job/(database|c:database)
+};
+
+declare function this:modules($job as node()) as xs:string?
+{
+   $job/(modules|c:modules)
+};
+
+declare function this:created($job as node()) as xs:dateTime
+{
+   $job/(created|c:created) ! xs:dateTime(.)
+};
+
+declare function this:init-module($job as node()) as xs:string
+{
+   $job/(init|c:init)
 };
 
 (:~
