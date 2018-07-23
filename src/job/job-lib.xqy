@@ -191,23 +191,21 @@ declare function this:make-job(
    $params as map:map
 ) as element(c:job)
 {
-   let $modules := map:get($params, 'modules')
-   return
-      <job xmlns="http://expath.org/ns/ml/console">
-         <id>{       map:get($params, 'id')       }</id>
-         <uri>{      map:get($params, 'uri')      }</uri>
-         <coll>{     map:get($params, 'coll')     }</coll>
-         <name>{     map:get($params, 'name')     }</name>
-         <desc>{     map:get($params, 'desc')     }</desc>
-         <lang>{     map:get($params, 'lang')     }</lang>
-         <target>{   map:get($params, 'target')   }</target>
-         <database>{ map:get($params, 'database') }</database>
-         { $modules ! <modules>{ . }</modules> }
-         <created>{  map:get($params, 'created')  }</created>
-      </job>
+   <job xmlns="http://expath.org/ns/ml/console">
+      <id>{       map:get($params, 'id')       }</id>
+      <uri>{      map:get($params, 'uri')      }</uri>
+      <coll>{     map:get($params, 'coll')     }</coll>
+      <name>{     map:get($params, 'name')     }</name>
+      <desc>{     map:get($params, 'desc')     }</desc>
+      <lang>{     map:get($params, 'lang')     }</lang>
+      <target>{   map:get($params, 'target')   }</target>
+      <database>{ map:get($params, 'database') }</database>
+      { map:get($params, 'modules') ! <modules>{ . }</modules> }
+      <created>{  map:get($params, 'created')  }</created>
+      <init>{     map:get($params, 'init')     }</init>
+   </job>
 (:
 TODO: Old code to be moved from old "create" to new "init".
-         <creation>{ $code }</creation>
          <tasks> {
             for $task in $tasks
             return

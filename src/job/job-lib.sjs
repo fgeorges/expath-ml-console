@@ -149,6 +149,79 @@ module.exports = (() => {
 	return result;
     }
 
+    const sampleCreateXqy = `(: This is a job creation query.
+ : It must select the chunks each task will be executed with.
+ : Replace this code with your own query.
+ :)
+
+xquery version "3.1";
+
+declare namespace cts = "http://marklogic.com/cts";
+
+declare variable $size := 10;
+
+declare function local:uris($uris as xs:string*) as element(uris)* {
+    if ( fn:empty($uris) ) then (
+    )
+    else (
+        <uris> {
+            $uris[position() le $size] ! <uri>{ . }</uri>
+        }
+        </uris>,
+        local:uris($uris[position() gt $size])
+    )
+};
+
+local:uris(cts:uris())
+`;
+
+    const sampleCreateSjs = `// This is a job creation script.
+// It must select the chunks each task will be executed with.
+// Replace this code with your own script.
+
+"use strict";
+
+const size    = 10;
+const chuncks = [];
+
+let current = [];
+let i = 0;
+for ( const uri of cts:uris() ) {
+    current.push(uri);
+    ++i;
+    if ( i === size ) {
+        chuncks.push(current);
+        current = [];
+    }
+}
+
+chuncks;
+`;
+
+    const sampleExecXqy = `(: This is a task execution query.
+ : It receives the task to execute as the global param "$task".
+ : Replace this code with your own query.
+ :)
+
+xquery version "3.1";
+
+declare namespace c    = "http://expath.org/ns/ml/console";
+declare namespace xdmp = "http://marklogic.com/xdmp";
+
+declare variable $task as element(c:task) external;
+
+xdmp:log("TODO: Run job: " || $task/c:id)
+`;
+
+    const sampleExecSjs = `// This is a task execution script.
+// It receives the task to execute as the variable "task".
+// Replace this code with your own query.
+
+"use strict";
+
+cosnole.log('TODO: Run job: ' + task.id)
+`;
+
     function create(name, desc, lang, target) {
 	if ( lang !== 'sjs' && lang !== 'xqy' ) {
 	    throw new Error(`Unknown language: ${lang}`);
@@ -159,36 +232,46 @@ module.exports = (() => {
 	    const uuid    = sem.uuidString();
 	    const id      = uuid.slice(0, 13) + uuid.slice(14, 18);
 	    const coll    = '/jobs/' + id;
-	    const uri     = coll + '/job.' + (lang === 'sjs' ? 'json' : 'xml');
+	    const uri     = coll + '/job.'  + (lang === 'sjs' ? 'json' : 'xml');
+	    const init    = coll + '/init.' + (lang === 'sjs' ? 'sjs'  : 'xqy');
 	    const res     = {
 		id       : id,
-		coll     : coll,
 		uri      : uri,
+		coll     : coll,
 		name     : name,
 		desc     : desc,
 		lang     : lang,
 		target   : target,
 		database : targets.database,
-		lang     : lang,
-		created  : new Date().toISOString()
+		created  : new Date().toISOString(),
+		init     : init
 	    };
 	    if ( targets.modules !== undefined ) {
 		res.modules = targets.modules;
 	    }
 	    return res;
 	}
-	// the job
+
+	// create and save the job
 	const params = getParams();
 	const job    = lang === 'sjs'
 	    ? { job: params }
 	    : xqy.makeJob(params);
-	// TODO: Status should be "created", then "ready" when the tasks are
-	// created, then "started" right after running, then "success" or
-	// "failure" after stopping.  For now, we do both creation and
-	// initialization at once, here.
-	xdmp.documentInsert(params.uri, job, {
-	    collections: [ '/kind/job', '/status/ready', params.coll ]
-	});
+	xdmp.documentInsert(
+	    params.uri,
+	    job,
+	    { collections: [ '/kind/job', '/status/created', params.coll ]});
+
+	// create and save the creation module
+	const builder = new NodeBuilder();
+	builder.startDocument();
+	builder.addText(lang === 'sjs' ? sampleCreateSjs : sampleCreateXqy);
+	builder.endDocument();
+	xdmp.documentInsert(
+	    params.init,
+	    builder.toNode(),
+	    { collections: [ params.coll ]});
+
 	return params;
     }
 
