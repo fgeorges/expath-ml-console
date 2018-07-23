@@ -275,7 +275,14 @@ cosnole.log('TODO: Run job: ' + task.id)
 	return params;
     }
 
+    function init(id) {
+	// TODO: Retrieve all needed info from the job document (lang, init
+	// module, content and modules databases, etc.)
+	throw new Error('TODO: Implement me! (the init task function)');
+    }
+
     return {
-	create: create
+	create: create,
+	init:   init
     };
 })();
