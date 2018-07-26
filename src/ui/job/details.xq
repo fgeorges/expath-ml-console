@@ -12,7 +12,15 @@ declare default element namespace "http://www.w3.org/1999/xhtml";
 
 declare namespace xdmp = "http://marklogic.com/xdmp";
 
-declare variable $emlc-db := xdmp:database-name(xdmp:database());
+declare variable $emlc-db  := xdmp:database-name(xdmp:database());
+declare variable $statuses :=
+   <statuses>
+      <status coll="{ $job:status.created }" label="Created"/>
+      <status coll="{ $job:status.ready   }" label="Ready"/>
+      <status coll="{ $job:status.started }" label="Started"/>
+      <status coll="{ $job:status.success }" label="Success"/>
+      <status coll="{ $job:status.failure }" label="Failure"/>
+   </statuses>/*;
 
 (:~
  : The page for jobs "created".
