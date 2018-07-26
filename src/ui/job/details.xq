@@ -49,7 +49,7 @@ declare function local:other($job as node(), $status as xs:string)
 declare function local:page($id as xs:string)
    as element()+
 {
-   let $job := job:by-id($id)
+   let $job := job:job($id)
    return
       if ( fn:empty($job) ) then
          <wrapper>

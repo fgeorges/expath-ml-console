@@ -71,7 +71,7 @@ declare function this:jobs($status as xs:string?) as node()*
       $status ! cts:collection-query(.))))
 };
 
-declare function this:by-id($id as xs:string) as node()?
+declare function this:job($id as xs:string) as node()?
 {
    cts:search(fn:collection($this:kind.job)/*, cts:or-query((
       cts:json-property-value-query('id', $id),
