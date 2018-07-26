@@ -110,8 +110,12 @@ declare function local:page($id as xs:string)
 		     <td>{ job:modules($job) }</td>
 		  </tr>
 		  <tr>
-		     <td>Init module</td>
+		     <td>Task init module</td>
 		     <td>{ v:doc-link('../db/' || $emlc-db || '/', job:init-module($job)) }</td>
+		  </tr>
+		  <tr>
+		     <td>Task execution module</td>
+		     <td>{ v:doc-link('../db/' || $emlc-db || '/', job:exec-module($job)) }</td>
 		  </tr>
 		  <tr>
 		     <td>Created</td>

@@ -149,7 +149,7 @@ module.exports = (() => {
 	return result;
     }
 
-    const sampleCreateXqy = `(: This is a job creation query.
+    const sampleInitXqy = `(: This is a job creation query.
  : It must select the chunks each task will be executed with.
  : Replace this code with your own query.
  :)
@@ -175,7 +175,7 @@ declare function local:uris($uris as xs:string*) as element(uris)* {
 local:uris(cts:uris())
 `;
 
-    const sampleCreateSjs = `// This is a job creation script.
+    const sampleInitSjs = `// This is a job creation script.
 // It must select the chunks each task will be executed with.
 // Replace this code with your own script.
 
@@ -234,6 +234,7 @@ cosnole.log('TODO: Run job: ' + task.id)
 	    const coll    = '/jobs/' + id;
 	    const uri     = coll + '/job.'  + (lang === 'sjs' ? 'json' : 'xml');
 	    const init    = coll + '/init.' + (lang === 'sjs' ? 'sjs'  : 'xqy');
+	    const exec    = coll + '/exec.' + (lang === 'sjs' ? 'sjs'  : 'xqy');
 	    const res     = {
 		id       : id,
 		uri      : uri,
@@ -244,7 +245,8 @@ cosnole.log('TODO: Run job: ' + task.id)
 		target   : target,
 		database : targets.database,
 		created  : new Date().toISOString(),
-		init     : init
+		init     : init,
+		exec     : exec
 	    };
 	    if ( targets.modules !== undefined ) {
 		res.modules = targets.modules;
@@ -263,13 +265,23 @@ cosnole.log('TODO: Run job: ' + task.id)
 	    { collections: [ '/kind/job', '/status/created', params.coll ]});
 
 	// create and save the creation module
-	const builder = new NodeBuilder();
-	builder.startDocument();
-	builder.addText(lang === 'sjs' ? sampleCreateSjs : sampleCreateXqy);
-	builder.endDocument();
+	const ibuilder = new NodeBuilder();
+	ibuilder.startDocument();
+	ibuilder.addText(lang === 'sjs' ? sampleInitSjs : sampleInitXqy);
+	ibuilder.endDocument();
 	xdmp.documentInsert(
 	    params.init,
-	    builder.toNode(),
+	    ibuilder.toNode(),
+	    { collections: [ params.coll ]});
+
+	// create and save the task execution module
+	const ebuilder = new NodeBuilder();
+	ebuilder.startDocument();
+	ebuilder.addText(lang === 'sjs' ? sampleExecSjs : sampleExecXqy);
+	ebuilder.endDocument();
+	xdmp.documentInsert(
+	    params.exec,
+	    ebuilder.toNode(),
 	    { collections: [ params.coll ]});
 
 	return params;

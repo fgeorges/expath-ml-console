@@ -140,6 +140,11 @@ declare function this:init-module($job as node()) as xs:string
    $job/(init|c:init)
 };
 
+declare function this:exec-module($job as node()) as xs:string
+{
+   $job/(exec|c:exec)
+};
+
 (:~
  : Return the resolved targets (content db, and maybe modules db.)
  :)
@@ -203,6 +208,7 @@ declare function this:make-job(
       { map:get($params, 'modules') ! <modules>{ . }</modules> }
       <created>{  map:get($params, 'created')  }</created>
       <init>{     map:get($params, 'init')     }</init>
+      <exec>{     map:get($params, 'exec')     }</exec>
    </job>
 (:
 TODO: Old code to be moved from old "create" to new "init".
