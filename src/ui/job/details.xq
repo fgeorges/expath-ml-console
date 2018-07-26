@@ -33,14 +33,45 @@ declare function local:created($job as node(), $id as xs:string)
 (:~
  : The page for jobs other than "created".
  :)
-declare function local:other($job as node(), $status as xs:string)
+declare function local:other($job as node(), $id as xs:string, $status as xs:string)
    as element()+
 {
-   if ( $status eq $job:status.ready ) then
-      <p><b>TODO</b>: Job ready, let us edit the execution code and start it!</p>
+   if ( $status eq $job:status.ready ) then (
+      <h3>Start</h3>,
+      <p><b>TODO</b>: Job ready, let us edit the execution code and start it!</p>,
+      v:inline-form('start', (
+	 v:input-hidden('id', $id),
+	 v:submit('Start job'))),
+      <p/>,
+      <p/>
+   )
    else
       (),
-   <p><b>TODO</b>: List the tasks.</p>
+   <h3>Tasks</h3>,
+   <table class="table prof-datatable">
+      <thead>
+	 <tr>
+	    <th>Order</th>
+	    <th>ID</th>
+	    <th>Status</th>
+	    <th>URI</th>
+	 </tr>
+      </thead>
+      <tbody> {
+         for $task  in job:tasks($job)
+         let $order := job:order($task)
+         order by xs:integer($order)
+	 return
+	    <tr>
+	       <td>{ $order }</td>
+	       <td><code>{ job:id($task) }</code></td>
+               <!-- TODO: Display different colors (failure: red, success: green...) and icons -->
+	       <td>{ $statuses[@coll eq job:status($task)]/xs:string(@label) }</td>
+	       <td>{ v:doc-link('../db/' || $emlc-db || '/', job:uri($task)) }</td>
+	    </tr>
+      }
+      </tbody>
+   </table>
 };
 
 (:~
@@ -65,7 +96,6 @@ declare function local:page($id as xs:string)
 	    <p>Details of the job with ID <code>{ $id }</code>.</p>
 	    <p><b>TODO</b>:</p>
 	    <ul>
-	       <li>"created" job: create and edit the init code, as its own doc</li>
 	       <li>"ready" job: create and edit the exec code, as its own doc (and list tasks)</li>
 	       <li>"started", "success" and "failure" job: list tasks and status and messages...</li>
 	       <li>"started" job: add also an "interrupt" mecanism?</li>
@@ -129,7 +159,7 @@ declare function local:page($id as xs:string)
 		  if ( $status eq $job:status.created ) then
 		     local:created($job, $id)
 		  else
-		     local:other($job, $status)
+		     local:other($job, $id, $status)
 	    }
 	 </wrapper>/*
 };

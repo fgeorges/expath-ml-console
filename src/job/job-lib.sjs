@@ -288,9 +288,91 @@ cosnole.log('TODO: Run job: ' + task.id)
     }
 
     function init(id) {
+	function taskParams(i, id, coll, chunk) {
+	    const str    = i.toString();
+	    const padded = str.length >= 6
+		? str
+		: new Array(6 - str.length + 1).join('0') + str;
+	    const num    = padded.slice(0, 3) + '-' + padded.slice(3);
+	    const uri    = coll + '/task-' + num + '.' + (lang === 'sjs' ? 'json' : 'xml');
+	    return {
+		id:      id + '/' + num,
+		uri:     uri,
+		order:   i,
+		num:     num,
+		// TODO: Should rather come from the init code
+		//label:   'Number of items in the chunk: ' + (Array.isArray(chunk) ? chunk.length : 1),
+		created: new Date().toISOString()
+	    };
+	}
+
+	function sjsTask(params, chunk) {
+	    const task = { task: {
+		id:      params.id,
+		uri:     params.uri,
+		order:   params.order,
+		num:     params.num,
+		label:   params.label,
+		created: params.created,
+		chunk:   chunk
+	    }};
+	    return task;
+	}
+
+	function xqyTask(params, chunk) {
+	    return xqy.makeTask(params, chunk);
+	}
+
 	// TODO: Retrieve all needed info from the job document (lang, init
 	// module, content and modules databases, etc.)
-	throw new Error('TODO: Implement me! (the init task function)');
+	// Reuse the code from OLD_XXX_create() above.
+	const job     = xqy.job(id);
+	const lang    = xqy.lang(job);
+	const coll    = xqy.collection(job);
+	// we cannot invoke the init module, as it is stored in the EMLC content
+	// database, so it must be invoked from that database as the modules
+	// database, but we want to be able to evaluate it with the specified
+	// modules database (if any) to resolve the imports (so we read the
+	// content of the module, to evaluate it)
+	const code    = cts.doc(xqy.initModule(job));
+	const content = xqy.database(job);
+	const modules = xqy.modules(job);
+
+	// evaluating the init code to get the chunks
+	const options = {
+	    update:   'false',
+	    database: content
+	};
+	if ( modules === 0 || modules ) {
+	    options.modules = modules;
+	}
+	const chunks  = lang === 'sjs'
+	    // must be exactly one array
+	    ? fn.exactlyOne(xdmp.eval(code, null, options))
+	    : xdmp.xqueryEval(code, null, options);
+
+	// the tasks
+	const result = [];
+	let i = 0;
+	for ( const chunk of chunks ) {
+	    ++ i;
+	    const params = taskParams(i, id, coll, chunk);
+	    result.push(params);
+	    const task   = lang === 'sjs'
+		? sjsTask(params, chunk)
+		: xqyTask(params, chunk);
+	    xdmp.documentInsert(
+		params.uri,
+		task,
+		{ collections: [ '/kind/task', '/status/created', coll ]});
+	}
+
+	// TODO: Add the list of tasks to the job doc... (id + uri, at least)
+
+	// the job is ready now
+	xqy.setStatus(job, xqy['status.ready']);
+
+	return result;
     }
 
     return {
