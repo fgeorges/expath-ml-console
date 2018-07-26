@@ -2,9 +2,11 @@ xquery version "3.1";
 
 module namespace this = "http://expath.org/ns/ml/console/job/lib";
 
-import module namespace a = "http://expath.org/ns/ml/console/admin" at "../lib/admin.xqy";
-import module namespace t = "http://expath.org/ns/ml/console/tools" at "../lib/tools.xqy";
+import module namespace a = "http://expath.org/ns/ml/console/admin"  at "../lib/admin.xqy";
+import module namespace b = "http://expath.org/ns/ml/console/binary" at "../lib/binary.xqy";
+import module namespace t = "http://expath.org/ns/ml/console/tools"  at "../lib/tools.xqy";
 
+declare namespace err  = "http://www.w3.org/2005/xqt-errors";
 declare namespace c    = "http://expath.org/ns/ml/console";
 declare namespace cts  = "http://marklogic.com/cts";
 declare namespace json = "http://marklogic.com/xdmp/json";
@@ -18,8 +20,8 @@ declare variable $this:status.ready   := '/status/ready';
 declare variable $this:status.started := '/status/started';
 declare variable $this:status.success := '/status/success';
 declare variable $this:status.failure := '/status/failure';
-declare variable $this:stop           := 'stop';
-declare variable $this:continue       := 'continue';
+declare variable $this:resp.stop      := 'stop';
+declare variable $this:resp.continue  := 'continue';
 
 declare function this:count-jobs() as xs:integer
 {
@@ -90,14 +92,14 @@ declare function this:status($job as node()) as xs:string
       )]
 };
 
-declare function this:id($job as node()) as xs:string
+declare function this:id($doc as node()) as xs:string
 {
-   $job/(id|c:id)
+   $doc/(id|c:id)
 };
 
-declare function this:uri($job as node()) as xs:string
+declare function this:uri($doc as node()) as xs:string
 {
-   $job/(uri|c:uri)
+   $doc/(uri|c:uri)
 };
 
 declare function this:collection($job as node()) as xs:string
@@ -130,9 +132,9 @@ declare function this:modules($job as node()) as xs:string?
    $job/(modules|c:modules)
 };
 
-declare function this:created($job as node()) as xs:dateTime
+declare function this:created($doc as node()) as xs:dateTime
 {
-   $job/(created|c:created) ! xs:dateTime(.)
+   $doc/(created|c:created) ! xs:dateTime(.)
 };
 
 declare function this:init-module($job as node()) as xs:string
@@ -143,6 +145,46 @@ declare function this:init-module($job as node()) as xs:string
 declare function this:exec-module($job as node()) as xs:string
 {
    $job/(exec|c:exec)
+};
+
+declare function this:tasks($job as node()) as node()*
+{
+   cts:search(fn:collection($this:kind.task)/*,
+      cts:collection-query(this:collection($job)))
+};
+
+declare function this:task($id as xs:string) as node()?
+{
+   cts:search(fn:collection($this:kind.task)/*, cts:or-query((
+      cts:json-property-value-query('id', $id),
+      cts:element-value-query(xs:QName('c:id'), $id))))
+};
+
+declare function this:order($task as node()) as xs:string
+{
+   $task/(order|c:order)
+};
+
+declare function this:num($task as node()) as xs:string
+{
+   $task/(num|c:num)
+};
+
+declare function this:label($task as node()) as xs:string
+{
+   $task/(label|c:label)
+};
+
+declare function this:set-status($job as node(), $coll as xs:string) as empty-sequence()
+{
+   xdmp:document-remove-collections(this:uri($job), (
+      $this:status.created,
+      $this:status.ready,
+      $this:status.started,
+      $this:status.success,
+      $this:status.failure
+   )),
+   xdmp:document-add-collections(this:uri($job), $coll)
 };
 
 (:~
@@ -210,16 +252,175 @@ declare function this:make-job(
       <init>{     map:get($params, 'init')     }</init>
       <exec>{     map:get($params, 'exec')     }</exec>
    </job>
-(:
-TODO: Old code to be moved from old "create" to new "init".
-         <tasks> {
-            for $task in $tasks
+};
+
+(:~
+ : Start a job, given its ID and the code to execute its tasks.
+ :)
+declare function this:start($id as xs:string) as empty-sequence()
+{
+   let $job    := this:job($id)
+   let $status := this:status($job)
+   let $uri    := this:uri($job)
+   let $name   := this:name($job)
+   return
+      if ( fn:not($status eq $this:status.ready) ) then
+	 fn:error((), 'Job ' || $id || ' not in state ready: ' || $status)
+      else (
+	 (: spawn so log msg appears in task server logs :)
+	 xdmp:spawn-function(
+	    function() {
+	       xdmp:log('============================================================'),
+	       xdmp:log('Start job ' || $id || ': ' || $name),
+	       xdmp:document-remove-collections($uri, $this:status.ready),
+	       xdmp:document-add-collections($uri, $this:status.started)
+	    },
+	    <options xmlns="xdmp:eval">
+	       <update>true</update>
+	    </options>),
+         let $coll    := this:collection($job)
+         let $lang    := this:lang($job)
+         let $code    := fn:doc(this:exec-module($job))
+         let $content := this:database($job)
+         let $modules := this:modules($job)
+	 let $options :=
+		<options xmlns="xdmp:eval">
+		   <database>{ $content }</database>
+		   { $modules ! <modules>{ . }</modules> }
+		</options>
+	 return
+	    (: TODO: To start N "threads" in parallel, start N tasks here instead of
+	       one.  Each task, once it has finished, will start the next one. :)
+	    this:enqueue($id, $uri, $coll, function($task) {
+	       if ( $lang eq 'xqy' ) then
+		  xdmp:eval($code, (xs:QName('task'), $task), $options)
+	       else
+		  xdmp:javascript-eval($code, ('task', $task), $options)
+	    })
+      )
+};
+
+declare function this:enqueue(
+   $id   as xs:string,
+   $uri  as xs:string,
+   $coll as xs:string,
+   $impl as function(node()) as item()*
+)
+{
+   xdmp:spawn-function(
+      function() {
+         try {
+            let $res := xdmp:invoke-function(function() { this:exec-next-task($id, $uri, $coll, $impl) })
             return
-               <task>
-                  <id>{  map:get($task, 'id')  }</id>
-                  <uri>{ map:get($task, 'uri') }</uri>
-               </task>
+               if ( $res eq $resp.continue ) then (
+                  this:enqueue($id, $uri, $coll, $impl)
+               )
+               else (
+                  xdmp:log('Stop job: ' || $id),
+                  xdmp:log('------------------------------------------------------------')
+               )
          }
-         </tasks>
-:)
+         catch * {
+            (: TODO: Flip the job tasks still "to-run" to "ignored", or "not-run"?
+               (in addition to "failure"? :)
+            let $job := this:job($id)
+            let $uri := this:uri($job)
+            return (
+               xdmp:log('Job failed: ' || $id),
+               xdmp:log('    ' || $err:description),
+               this:push-error($job, $err:description),
+               xdmp:document-remove-collections($uri, $status.started),
+               xdmp:document-add-collections($uri, $status.failure)
+            )
+         }
+      },
+      <options xmlns="xdmp:eval">
+        <update>true</update>
+      </options>)
+};
+
+declare function this:next-task($coll as xs:string) as xs:string?
+{
+   cts:uris((), (),
+      cts:and-query(
+         ($coll, $kind.task, $status.created) ! cts:collection-query(.)
+      ))[1]
+};
+
+declare function this:exec-next-task(
+   $id   as xs:string,
+   $uri  as xs:string,
+   $coll as xs:string,
+   $impl as function(node()) as item()*
+) as xs:string
+{
+   let $task := this:next-task($coll)
+   return
+      if ( fn:exists($task) ) then (
+         xdmp:log('Execute task: ' || $task),
+         this:exec-task($id, $uri, $coll, $impl, $task)
+      )
+      else (
+         xdmp:document-remove-collections($uri, $status.started),
+         xdmp:document-add-collections($uri, $status.success),
+         $resp.stop
+      )
+};
+
+declare function this:exec-task(
+   $id   as xs:string,
+   $juri as xs:string,
+   $coll as xs:string,
+   $impl as function(node()) as item()*,
+   $turi as xs:string
+)
+{
+   let $task as node() := fn:doc($turi)/*
+   return
+      try {
+         (: TODO: The result of the task should be saved in the task doc. :)
+         let $noout := $impl($task)
+         return (
+            xdmp:document-remove-collections($turi, $status.created),
+            xdmp:document-add-collections($turi, $status.success),
+            $resp.continue
+         )
+      }
+      catch * {
+         (: TODO: Flip the job tasks still "to-run" to "ignored", or "not-run"? :)
+         xdmp:log('Task failed: ' || $turi),
+         xdmp:log('    ' || $err:description),
+         this:push-error($task, $err:description),
+         xdmp:document-remove-collections($turi, $status.created),
+         xdmp:document-add-collections($turi, $status.failure),
+         xdmp:document-remove-collections($juri, $status.started),
+         xdmp:document-add-collections($juri, $status.failure),
+         $resp.stop
+      }
+};
+
+declare function this:push-error(
+   $doc as node((: job or task, JSON or XML (root property object or element) :)),
+   $msg as xs:string
+)
+{
+   (: XML :)
+   if ( $doc instance of element() ) then
+      xdmp:node-insert-child($doc,
+         <error xmlns="http://expath.org/ns/ml/console">{ $msg }</error>)
+   (: JSON :)
+   else if ( b:is-object($doc) ) then
+      let $array as item()? := b:get-arrays($doc)[fn:node-name(.) eq 'error']
+      return
+         if ( fn:exists($array) ) then
+            xdmp:node-insert-child($array, text { $msg })
+         else
+            xdmp:node-insert-child($doc, b:get-arrays(b:object('error', b:array($msg))))
+   (: unexpected :)
+   else
+      let $desc := xdmp:describe($doc)
+      return (
+         xdmp:log('Fatal error when pushing error, node is neither element or object: ' || $desc),
+         xdmp:log('    Original error: ' || $msg)
+      )
 };

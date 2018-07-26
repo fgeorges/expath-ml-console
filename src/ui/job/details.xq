@@ -104,7 +104,6 @@ declare function local:page($id as xs:string)
 	    <p>Details of the job with ID <code>{ $id }</code>.</p>
 	    <p><b>TODO</b>:</p>
 	    <ul>
-	       <li>"ready" job: create and edit the exec code, as its own doc (and list tasks)</li>
 	       <li>"started", "success" and "failure" job: list tasks and status and messages...</li>
 	       <li>"started" job: add also an "interrupt" mecanism?</li>
 	    </ul>

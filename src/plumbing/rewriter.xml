@@ -237,6 +237,9 @@
    <match-path matches="^/job/init$">
       <dispatch>/ui/job/init.sjs</dispatch>
    </match-path>
+   <match-path matches="^/job/start$">
+      <dispatch>/ui/job/start.sjs</dispatch>
+   </match-path>
    <match-path matches="^/job/([-0-9a-f]+)$">
       <add-query-param name="id">$1</add-query-param>
       <dispatch>/ui/job/details.xq</dispatch>
