@@ -62,9 +62,33 @@ declare function this:count-jobs-status($status as xs:string?) as xs:integer
 };
 
 (: TODO: Paginate. :)
+declare function this:jobs-created() as node()*
+{
+   this:jobs($this:status.created)
+};
+
+(: TODO: Paginate. :)
 declare function this:jobs-ready() as node()*
 {
    this:jobs($this:status.ready)
+};
+
+(: TODO: Paginate. :)
+declare function this:jobs-started() as node()*
+{
+   this:jobs($this:status.started)
+};
+
+(: TODO: Paginate. :)
+declare function this:jobs-success() as node()*
+{
+   this:jobs($this:status.success)
+};
+
+(: TODO: Paginate. :)
+declare function this:jobs-failure() as node()*
+{
+   this:jobs($this:status.failure)
 };
 
 declare function this:jobs($status as xs:string?) as node()*

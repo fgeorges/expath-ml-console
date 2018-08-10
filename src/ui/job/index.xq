@@ -25,9 +25,9 @@ declare function local:page()
       <ul>
          <li><a href="created"><code>created</code></a> - <b>{ job:count-jobs-created() }</b></li>
          <li><a href="ready"><code>ready</code></a> - <b>{ job:count-jobs-ready() }</b></li>
-         <li><a href="running"><code>running</code></a> - <b>{ job:count-jobs-started() }</b></li>
-         <li><a href="succeeded"><code>succeeded</code></a> - <b>{ job:count-jobs-success() }</b></li>
-         <li><a href="failed"><code>failed</code></a> - <b>{ job:count-jobs-failure() }</b></li>
+         <li><a href="started"><code>started</code></a> - <b>{ job:count-jobs-started() }</b></li>
+         <li><a href="success"><code>success</code></a> - <b>{ job:count-jobs-success() }</b></li>
+         <li><a href="failure"><code>failure</code></a> - <b>{ job:count-jobs-failure() }</b></li>
       </ul>
       <h3>Create</h3>
       <!-- TODO: Add here the ability to choose between a "for each" or a "while"
