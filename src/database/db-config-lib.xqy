@@ -200,7 +200,7 @@ declare function dbc:config-triple-prefixes($db as item()?)
 };
 
 (:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- : Triple prefixes config
+ : URI schemes config
  :)
 
 declare function dbc:config-uri-schemes($db as item()?)
