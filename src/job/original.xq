@@ -1,13 +1,7 @@
-xquery version "3.0";
+xquery version "3.1";
 
 (:~
  : The job page.
- :
- : TODO: Endpoints to support this page (and beyond):
- :
- : - POST /api/job/create            -- create and save the job and all its tasks
- : - POST /api/job/create?test=true  -- return the job and its first task, no save
- : - POST /api/job/xxx/run           -- run the job xxx
  :)
 
 import module namespace a = "http://expath.org/ns/ml/console/admin" at "../lib/admin.xqy";
@@ -20,19 +14,33 @@ declare namespace xdmp = "http://marklogic.com/xdmp";
 declare variable $appservers := a:get-appservers()/a:appserver;
 
 declare variable $sample-create-xqy :=
-'
-(: This is a job creation query.
+'(: This is a job creation query.
  : Replace this buffer with your own query.
  :)
 
 xquery version "3.1";
 
-(''001'', ''002'', ''003'')
+declare namespace cts = "http://marklogic.com/cts";
+
+declare variable $size := 10;
+
+declare function local:uris($uris as xs:string*) as element(uris)* {
+    if ( fn:empty($uris) ) then (
+    )
+    else (
+        <uris> {
+            $uris[position() le $size] ! <uri>{ . }</uri>
+        }
+        </uris>,
+        local:uris($uris[position() gt $size])
+    )
+};
+
+local:uris(cts:uris())
 ';
 
 declare variable $sample-create-sjs :=
-'
-// This is a job creation script.
+'// This is a job creation script.
 // Replace this buffer with your own script.
 
 "use strict";
@@ -47,9 +55,12 @@ declare variable $sample-task-xqy :=
 
 xquery version "3.1";
 
+declare namespace c    = "http://expath.org/ns/ml/console";
 declare namespace xdmp = "http://marklogic.com/xdmp";
 
-xdmp:log("Bla bla bla")
+declare variable $task as element(c:task) external;
+
+xdmp:log("TODO: Run job: " || $task/c:id)
 ';
 
 declare variable $sample-task-sjs :=
@@ -75,19 +86,25 @@ declare function local:page()
 	 <p id="sample-task-sjs">{ $sample-task-sjs }</p>
       </div>
 
-      <p>Bla bla bla...</p>
-      <p><b>TODO</b>: Allow to switch between XQuery and JavaScript (or at least
-         to send XQuery by changing the hard-coded default.)</p>
-      <p>Then try the creation phase (and runtime?) by chuncking all URIs in, say,
-         "Documents".</p>
-      <p>Bla bla bla...</p>
+      <p><b>TODO</b>: Implement "Run job", based on the URI of the job currently
+         listed.</p>
+      <p>Then redesign the whole job area (index with list/search for jobs/form
+         to create a new job, page to display one job/run it/list its tasks with
+         their status, etc.)</p>
+      <p>Allow for saving the creation code, and task code, maybe reusing the
+         editor in the document view page (in the browser area.)</p>
+      <p>So lifecycle in the UI: create job, link the job to a new module doc,
+         which can be edited online, init tasks, (re)view their list, create/edit
+         the module to exec a task, run job.</p>
+      <p>So lifecycle through API: create job, init tasks providing init code, run
+         job providing task exec code.</p>
 
       <h3>Setup</h3>
       <label class="radio-inline">
-	 <input type="radio" name="lang" id="lang-xqy" value="xqy"/> XQuery
+	 <input type="radio" name="lang" id="lang-xqy" value="xqy" checked="checked"/> XQuery
       </label>
       <label class="radio-inline">
-	 <input type="radio" name="lang" id="lang-sjs" value="sjs" checked="checked"/> JavaScript
+	 <input type="radio" name="lang" id="lang-sjs" value="sjs"/> JavaScript
       </label>
       <p/>
       <div class="row">
@@ -156,13 +173,14 @@ declare function local:page()
       <!-- TODO: How to change dynamically the language of the editor, depending
 	   on the value of the "lang" radio buttons?  And its content to
            $sample-create-xqy? -->
-      { v:edit-text(text { $sample-create-sjs }, 'javascript', 'create-code') }
+      { v:edit-text(text { $sample-create-xqy }, 'xquery', 'create-code') }
 
       <div class="row">
          <div class="col-sm-3">
             <button id="go-profile"
-                    class="btn btn-default"
-                    onclick="jobCreate('create-code', 'create-detail', 'total-time', 'tasks-count', 'job-uri', 'job-coll', 'create-dry');">Create</button>
+                    class="btn btn-default need-target"
+                    disabled="disabled"
+                    onclick="create();">Create</button>
 	    <div class="checkbox">
 	       <label>
 		  <input type="checkbox" value="" checked="checked" id="create-dry"/> Dry mode
@@ -184,13 +202,13 @@ declare function local:page()
 	    return (
 	       <p>
 		  <span>Job URI: </span>
-		  <a data-href="db/{ $db }/doc?uri=">
+		  <a data-href="../db/{ $db }/doc?uri=">
 		     <code class="doc" id="job-uri"/>
 		  </a>
 	       </p>,
 	       <p>
 		  <span>Collection: </span>
-		  <a data-href="db/{ $db }/coll?uri=">
+		  <a data-href="../db/{ $db }/coll?uri=">
 		     <code class="coll" id="job-coll"/>
 		  </a>
 	       </p>
@@ -213,18 +231,20 @@ declare function local:page()
       <!-- TODO: How to change dynamically the language of the editor, depending
 	   on the value of the "lang" radio buttons?  And its content to
            $sample-task-xqy? -->
-      { v:edit-text(text { $sample-task-sjs }, 'javascript', 'task-code') }
+      { v:edit-text(text { $sample-task-xqy }, 'xquery', 'task-code') }
 
       <!-- TODO: Disable the buttons (test create, run job, etc.) until a source has
 	   been selected.  Look at the profiler to see how it is done there. -->
       <div class="row">
          <div class="col-sm-3">
             <button id="run-job"
-                    class="btn btn-default"
-                    onclick="alert('TODO: Still to implement creating and launching the job.') // runJob('create-code', 'task-code', 'create-detail', 'total-time', 'tasks-count', 'job-uri', 'job-coll');">Run job</button>
+                    class="btn btn-default need-job"
+                    disabled="disabled"
+                    onclick="run();">Run job</button>
             <button id="test-task"
-                    class="btn btn-default"
-                    onclick="alert('TODO: Still to implement a way to test a single task, live.');"
+                    class="btn btn-default need-job"
+                    disabled="disabled"
+                    onclick="testTask();"
                     style="margin-left: 10px;">Test task</button>
          </div>
       </div>
@@ -319,5 +339,18 @@ v:console-page('../', 'job', 'Jobs', local:page#0,
 	       ace.createEditSession(
                   $('#sample-' + which + '-' + lang).text(),
                   mode));
+      }}
+
+      function create() {{
+	 jobCreate('create-code', 'create-detail', 'total-time', 'tasks-count', 'job-uri', 'job-coll', 'create-dry');
+         $('.need-job').prop('disabled', false);
+      }}
+
+      function run() {{
+         jobStart('task-code', 'job-coll');
+      }}
+
+      function testTask() {{
+         alert('TODO: Still to implement a way to test a single task, live.');
       }}
    </script>)

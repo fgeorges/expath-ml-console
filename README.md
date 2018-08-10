@@ -249,3 +249,8 @@ the reports themselves in MarkLogic and do some analysis on them.  It
 is then possible to make some computations in XQuery or JavaScript, to
 see the impact of each change, or to help investigating where the time
 is spent.
+
+Or with the downloaded profiling results, you can of course use tools
+like Excel, gnuplot, Power BI, D3, or any tool capable of drawing
+visualization for the changes in profiling results you get over your
+different modifications.

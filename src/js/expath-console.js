@@ -510,9 +510,8 @@ function selectTarget(targetId, id, targetLabel, label)
    if ( btn.hasClass('btn-danger') ) {
       btn.removeClass('btn-danger');
       btn.addClass('btn-primary');
-      // activate the 'profile' and 'as xml' buttons
-      $('#go-profile').prop('disabled', false);
-      $('#go-as-xml').prop('disabled', false);
+      // activate the buttons waiting for a target
+      $('.need-target').prop('disabled', false);
    }
 }
 
@@ -523,11 +522,16 @@ function selectTarget(targetId, id, targetLabel, label)
 function jobCreate(codeId, detailId, timeId, countId, uriId, collId, dryId)
 {
    $('.create-success').hide();
-   var data = new FormData();
-   data.append('code', editorContent(codeId));
-   // TODO: Retrieve the selected language, content db and modules db...
-   data.append('lang', $('input[name=lang]:checked').val());
-   data.append('database', 'Documents');
+   var target = $('#target-id').text();
+   if ( ! target ) {
+      var msg = 'No target database or appserver selected!';
+      alert(msg);
+      throw new Error(msg);
+   }
+   var data   = new FormData();
+   data.append('code',   editorContent(codeId));
+   data.append('lang',   $('input[name=lang]:checked').val());
+   data.append('target', target);
    var url = '/api/job/create';
    if ( $('#' + dryId).is(':checked') ) {
       url += '?dry=true';
@@ -579,5 +583,35 @@ function jobCreate(codeId, detailId, timeId, countId, uriId, collId, dryId)
       // some "width: 0" messes up the table display on Firefox
       $('#create-detail').width('');
       $('.create-success').show();
+   });
+}
+
+// createId and taskId are the IDs of the editors for the code
+function jobStart(codeId, collId)
+{
+   var data = new FormData();
+   data.append('code', editorContent(codeId));
+   var id  = $('#' + collId).text().slice(6);
+   var url = '/api/job/' + id + '/start';
+   fetch(url, {
+      credentials: 'same-origin',
+      method: 'post',
+      body: data
+   })
+   .then(function(resp) {
+      if ( ! resp.ok ) {
+         const msg = 'Job starting service response was not ok: '
+             + resp.status + ' - ' + resp.statusText;
+	 resp.text().then(function(text) {
+            console.log(text);
+	 });
+         alert(msg);
+         throw new Error(msg);
+      }
+      return resp.json();
+   })
+   .then(function(data) {
+      console.dir(data);
+      alert('Job started: #' + id);
    });
 }
