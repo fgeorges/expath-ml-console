@@ -353,9 +353,11 @@ declare function local:display-type($v as xs:anyAtomicType)
    else if ( sem:isBlank($v) ) then
       <span class="glyphicon glyphicon-unchecked" title="Blank node"/>
    else if ( sem:isNumeric($v) ) then
-      <span class="glyphicon glyphicon-usd"  title="Number"/>
+      <span class="glyphicon glyphicon-usd" title="Number"/>
    else if ( sem:lang($v) ) then
       sem:lang($v) ! <span class="glyphicon glyphicon-font" title="String, language: { . }">&#160;{ . }</span>
+   else if ( $v instance of xs:date or $v instance of xs:dateTime ) then
+      <span class="glyphicon glyphicon-hourglass" title="Date"/>
    else
       (: Assuming a string? :)
       <span class="glyphicon glyphicon-font" title="String"/>
