@@ -17,6 +17,24 @@ declare default element namespace "http://www.w3.org/1999/xhtml";
 
 declare namespace xdmp = "http://marklogic.com/xdmp";
 
+declare function local:as-text($file)
+{
+   if ( fn:exists($file/text()) ) then
+      $file
+   else
+      xdmp:binary-decode($file, 'UTF-8')
+};
+
+declare function local:decode($file, $format)
+{
+   let $text := local:as-text($file)
+   return
+      if ( $format = ('triplexml', 'rdfxml') ) then
+         xdmp:unquote($text)
+      else
+         $text
+};
+
 (:~
  : The overall page function.
  :)
@@ -27,12 +45,9 @@ declare function local:page($file, $format as xs:string)
    <ul> {
       sem:rdf-insert(
          sem:rdf-parse(
-            if ( fn:exists($file/text()) ) then
-               $file
-            else
-               xdmp:binary-decode($file, 'UTF-8'),
+            local:decode($file, $format),
             $format))
-         ! <li>{ . }</li>
+      ! <li>{ . }</li>
    }
    </ul>,
    <p>Back to <a href="../loader">document manager</a>.</p>
