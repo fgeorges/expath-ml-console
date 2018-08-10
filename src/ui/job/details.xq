@@ -85,92 +85,93 @@ declare function local:other($job as node(), $id as xs:string, $status as xs:str
 (:~
  : The overall page function.
  :)
-declare function local:page($id as xs:string)
+declare function local:page($job as node(), $id as xs:string, $name as xs:string?)
    as element()+
 {
-   let $job := job:job($id)
-   return
-      if ( fn:empty($job) ) then
-         <wrapper>
-	    <!-- TODO: Return a 404. -->
-	    <div class="alert alert-danger" role="alert">
-	       <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
-	       <span class="sr-only">Error:</span>
-	       There is no job with ID <code>{ $id }</code>.
-	    </div>
-	 </wrapper>/*
-      else
-	 <wrapper>
-	    <p>Details of the job with ID <code>{ $id }</code>.</p>
-	    <p><b>TODO</b>:</p>
-	    <ul>
-	       <li>"started", "success" and "failure" job: list tasks and status and messages...</li>
-	       <li>"started" job: add also an "interrupt" mecanism?</li>
-	    </ul>
-            <h3>Properties</h3>
-	    <table class="table prof-datatable">
-	       <thead>
-		  <tr>
-		     <th>Property</th>
-		     <th>Value</th>
-		  </tr>
-	       </thead>
-	       <tbody>
-		  <tr>
-		     <td>Name</td>
-		     <td>{ job:name($job) }</td>
-		  </tr>
-		  <tr>
-		     <td>Description</td>
-		     <td>{ job:desc($job) }</td>
-		  </tr>
-		  <tr>
-		     <td>URI</td>
-		     <td>{ v:doc-link('../db/' || $emlc-db || '/', job:uri($job)) }</td>
-		  </tr>
-		  <tr>
-		     <td>Collection</td>
-		     <td>{ v:coll-link('../db/' || $emlc-db || '/', job:collection($job)) }</td>
-		  </tr>
-		  <tr>
-		     <td>Language</td>
-		     <td>{ job:lang($job) }</td>
-		  </tr>
-		  <tr>
-		     <!-- TODO: Resolve name. -->
-		     <td>Content database</td>
-		     <td>{ job:database($job) }</td>
-		  </tr>
-		  <tr>
-		     <!-- TODO: Resolve name. -->
-		     <td>Modules database</td>
-		     <td>{ job:modules($job) }</td>
-		  </tr>
-		  <tr>
-		     <td>Task init module</td>
-		     <td>{ v:doc-link('../db/' || $emlc-db || '/', job:init-module($job)) }</td>
-		  </tr>
-		  <tr>
-		     <td>Task execution module</td>
-		     <td>{ v:doc-link('../db/' || $emlc-db || '/', job:exec-module($job)) }</td>
-		  </tr>
-		  <tr>
-		     <td>Created</td>
-		     <td>{ job:created($job) }</td>
-		  </tr>
-	       </tbody>
-	    </table>
-	    {
-	       let $status := job:status($job)
-	       return
-		  if ( $status eq $job:status.created ) then
-		     local:created($job, $id)
-		  else
-		     local:other($job, $id, $status)
-	    }
-	 </wrapper>/*
+   <wrapper>
+      <p>Details of the job with ID <code>{ $id }</code>.</p>
+      <p><b>TODO</b>:</p>
+      <ul>
+	 <li>"started", "success" and "failure" job: list tasks and status and messages...</li>
+	 <li>"started" job: add also an "interrupt" mecanism?</li>
+      </ul>
+      <h3>Properties</h3>
+      <table class="table prof-datatable">
+	 <thead>
+	    <tr>
+	       <th>Property</th>
+	       <th>Value</th>
+	    </tr>
+	 </thead>
+	 <tbody>
+	    <tr>
+	       <td>Name</td>
+	       <td>{ job:name($job) }</td>
+	    </tr>
+	    <tr>
+	       <td>Description</td>
+	       <td>{ job:desc($job) }</td>
+	    </tr>
+	    <tr>
+	       <td>URI</td>
+	       <td>{ v:doc-link('../db/' || $emlc-db || '/', job:uri($job)) }</td>
+	    </tr>
+	    <tr>
+	       <td>Collection</td>
+	       <td>{ v:coll-link('../db/' || $emlc-db || '/', job:collection($job)) }</td>
+	    </tr>
+	    <tr>
+	       <td>Language</td>
+	       <td>{ job:lang($job) }</td>
+	    </tr>
+	    <tr>
+	       <!-- TODO: Resolve name. -->
+	       <td>Content database</td>
+	       <td>{ job:database($job) }</td>
+	    </tr>
+	    <tr>
+	       <!-- TODO: Resolve name. -->
+	       <td>Modules database</td>
+	       <td>{ job:modules($job) }</td>
+	    </tr>
+	    <tr>
+	       <td>Task init module</td>
+	       <td>{ v:doc-link('../db/' || $emlc-db || '/', job:init-module($job)) }</td>
+	    </tr>
+	    <tr>
+	       <td>Task execution module</td>
+	       <td>{ v:doc-link('../db/' || $emlc-db || '/', job:exec-module($job)) }</td>
+	    </tr>
+	    <tr>
+	       <td>Created</td>
+	       <td>{ job:created($job) }</td>
+	    </tr>
+	 </tbody>
+      </table>
+      {
+	 let $status := job:status($job)
+	 return
+	    if ( $status eq $job:status.created ) then
+	       local:created($job, $id)
+	    else
+	       local:other($job, $id, $status)
+      }
+   </wrapper>/*
 };
 
-v:console-page('../', 'job', 'Job', function() {
-   local:page(t:mandatory-field('id'))
-})
+let $id    := t:mandatory-field('id')
+let $job   := job:job($id)
+let $name  := $job ! job:name(.)
+let $title := ($name ! ('Job - ' || .), 'Job')[1]
+return
+   v:console-page('../', 'job', $title, function() {
+      if ( fn:empty($job) ) then
+	 (: TODO: Return a 404. :)
+	 <div class="alert alert-danger" role="alert">
+	    <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+	    <span class="sr-only">Error:</span>
+	    There is no job with ID <code>{ $id }</code>.
+	 </div>
+      else
+         local:page($job, $id, $name)
+   })
