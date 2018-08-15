@@ -7,7 +7,7 @@ const v   = require('../../lib/view.xqy');
 const job = require('../../job/job-lib.sjs');
 
 const name   = fn.head(t.mandatoryField('name'));
-const desc   = fn.head(t.mandatoryField('desc'));
+const desc   = fn.head(t.optionalField('desc', null));
 const lang   = fn.head(t.mandatoryField('lang'));
 const target = fn.head(t.mandatoryField('target'));
 

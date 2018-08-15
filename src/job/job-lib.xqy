@@ -136,7 +136,7 @@ declare function this:name($job as node()) as xs:string? (: FIXME: Not optional,
    $job/(name|c:name)
 };
 
-declare function this:desc($job as node()) as xs:string
+declare function this:desc($job as node()) as xs:string?
 {
    $job/(desc|c:desc)
 };

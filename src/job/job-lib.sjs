@@ -97,7 +97,6 @@ console.log('TODO: Run job: ' + task.id)
 		uri      : uri,
 		coll     : coll,
 		name     : name,
-		desc     : desc,
 		lang     : lang,
 		target   : target,
 		database : targets.database,
@@ -105,6 +104,9 @@ console.log('TODO: Run job: ' + task.id)
 		init     : init,
 		exec     : exec
 	    };
+	    if ( desc ) {
+		res.desc = desc;
+	    }
 	    if ( targets.modules !== undefined ) {
 		res.modules = targets.modules;
 	    }
