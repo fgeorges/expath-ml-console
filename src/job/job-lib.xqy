@@ -171,6 +171,11 @@ declare function this:exec-module($job as node()) as xs:string
    $job/(exec|c:exec)
 };
 
+declare function this:error($job as node()) as xs:string?
+{
+   $job/(error|c:error)
+};
+
 declare function this:tasks($job as node()) as node()*
 {
    cts:search(fn:collection($this:kind.task)/*,
@@ -184,9 +189,9 @@ declare function this:task($id as xs:string) as node()?
       cts:element-value-query(xs:QName('c:id'), $id))))
 };
 
-declare function this:order($task as node()) as xs:string
+declare function this:order($task as node()) as xs:integer
 {
-   $task/(order|c:order)
+   $task/(order|c:order) ! xs:integer(.)
 };
 
 declare function this:num($task as node()) as xs:string

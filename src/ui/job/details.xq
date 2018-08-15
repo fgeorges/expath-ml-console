@@ -18,9 +18,19 @@ declare variable $statuses :=
       <status coll="{ $job:status.created }" label="Created"/>
       <status coll="{ $job:status.ready   }" label="Ready"/>
       <status coll="{ $job:status.started }" label="Started"/>
-      <status coll="{ $job:status.success }" label="Success"/>
-      <status coll="{ $job:status.failure }" label="Failure"/>
+      <status coll="{ $job:status.success }" label="Success" style="color: green;"/>
+      <status coll="{ $job:status.failure }" label="Failure" style="color: red;"/>
    </statuses>/*;
+
+(:~
+ : Resolve a database ID.
+ :)
+declare function local:db-link($db)
+   as element()
+{
+   xdmp:database-name(xs:unsignedLong($db))
+   ! v:db-link('../' || ., .)
+};
 
 (:~
  : The page for jobs "created".
@@ -46,12 +56,11 @@ declare function local:other($job as node(), $id as xs:string, $status as xs:str
 {
    if ( $status eq $job:status.ready ) then (
       <h3>Start</h3>,
-      <p><b>TODO</b>: Job ready, let us edit the execution code and start it!</p>,
+      <p>Job ready, make sure you edited the execution code, and start it!</p>,
       v:inline-form('start', (
 	 v:input-hidden('id', $id),
 	 v:submit('Start job'))),
-      <p/>,
-      <p/>
+      <p style="margin-bottom: 3em"/>
    )
    else
       (),
@@ -73,8 +82,7 @@ declare function local:other($job as node(), $id as xs:string, $status as xs:str
 	    <tr>
 	       <td>{ $order }</td>
 	       <td><code>{ job:id($task) }</code></td>
-               <!-- TODO: Display different colors (failure: red, success: green...) and icons -->
-	       <td>{ $statuses[@coll eq job:status($task)]/xs:string(@label) }</td>
+	       <td>{ $statuses[@coll eq $status]!xs:string(@label) }</td>
 	       <td>{ v:doc-link('../db/' || $emlc-db || '/', job:uri($task)) }</td>
 	    </tr>
       }
@@ -88,75 +96,83 @@ declare function local:other($job as node(), $id as xs:string, $status as xs:str
 declare function local:page($job as node(), $id as xs:string, $name as xs:string?)
    as element()+
 {
-   <wrapper>
-      <p>Details of the job with ID <code>{ $id }</code>.</p>
-      <p><b>TODO</b>:</p>
-      <ul>
-	 <li>"started", "success" and "failure" job: list tasks and status and messages...</li>
-	 <li>"started" job: add also an "interrupt" mecanism?</li>
-      </ul>
-      <h3>Properties</h3>
-      <table class="table prof-datatable">
-	 <thead>
-	    <tr>
-	       <th>Property</th>
-	       <th>Value</th>
-	    </tr>
-	 </thead>
-	 <tbody>
-	    <tr>
-	       <td>Name</td>
-	       <td>{ job:name($job) }</td>
-	    </tr>
-	    <tr>
-	       <td>Description</td>
-	       <td>{ job:desc($job) }</td>
-	    </tr>
-	    <tr>
-	       <td>URI</td>
-	       <td>{ v:doc-link('../db/' || $emlc-db || '/', job:uri($job)) }</td>
-	    </tr>
-	    <tr>
-	       <td>Collection</td>
-	       <td>{ v:coll-link('../db/' || $emlc-db || '/', job:collection($job)) }</td>
-	    </tr>
-	    <tr>
-	       <td>Language</td>
-	       <td>{ job:lang($job) }</td>
-	    </tr>
-	    <tr>
-	       <!-- TODO: Resolve name. -->
-	       <td>Content database</td>
-	       <td>{ job:database($job) }</td>
-	    </tr>
-	    <tr>
-	       <!-- TODO: Resolve name. -->
-	       <td>Modules database</td>
-	       <td>{ job:modules($job) }</td>
-	    </tr>
-	    <tr>
-	       <td>Task init module</td>
-	       <td>{ v:doc-link('../db/' || $emlc-db || '/', job:init-module($job)) }</td>
-	    </tr>
-	    <tr>
-	       <td>Task execution module</td>
-	       <td>{ v:doc-link('../db/' || $emlc-db || '/', job:exec-module($job)) }</td>
-	    </tr>
-	    <tr>
-	       <td>Created</td>
-	       <td>{ job:created($job) }</td>
-	    </tr>
-	 </tbody>
-      </table>
-      {
-	 let $status := job:status($job)
-	 return
+   let $status := job:status($job)
+   return
+      <wrapper>
+	 <p>Details of the job with ID <code>{ $id }</code>.</p>
+	 <table class="table prof-datatable">
+	    <thead>
+	       <tr>
+		  <th>Property</th>
+		  <th>Value</th>
+	       </tr>
+	    </thead>
+	    <tbody>
+	       <tr>
+		  <td>Name</td>
+		  <td>{ job:name($job) }</td>
+	       </tr>
+	       <tr>
+		  <td>Description</td>
+		  <td>{ job:desc($job) }</td>
+	       </tr>
+	       <tr>
+		  <td>URI</td>
+		  <td>{ v:doc-link('../db/' || $emlc-db || '/', job:uri($job)) }</td>
+	       </tr>
+	       <tr>
+		  <td>Collection</td>
+		  <td>{ v:coll-link('../db/' || $emlc-db || '/', job:collection($job)) }</td>
+	       </tr>
+	       <tr>
+		  <td>Language</td>
+		  <td>{ if ( job:lang($job) eq 'sjs' ) then 'JavaScript' else 'XQuery' }</td>
+	       </tr>
+	       <tr>
+		  <td>Content database</td>
+		  <td>{ job:database($job) ! local:db-link(.) }</td>
+	       </tr>
+	       <tr>
+		  <td>Modules database</td>
+		  <td>{ job:modules($job) ! local:db-link(.) }</td>
+	       </tr>
+	       <tr>
+		  <td>Task init module</td>
+		  <td>{ v:doc-link('../db/' || $emlc-db || '/', job:init-module($job)) }</td>
+	       </tr>
+	       <tr>
+		  <td>Task execution module</td>
+		  <td>{ v:doc-link('../db/' || $emlc-db || '/', job:exec-module($job)) }</td>
+	       </tr>
+	       <tr>
+		  <td>Created</td>
+		  <td> {
+		     let $c := job:created($job) ! xs:string(.)
+		     return
+			fn:substring($c, 1, 10)
+			|| ', at '
+			|| fn:substring($c, 12, 8)
+		  }
+		  </td>
+	       </tr>
+	       <tr>
+		  <td>Status</td>
+	          <td>{ $statuses[@coll eq $status]!string(@label) }</td>
+	       </tr>
+	    </tbody>
+	 </table>
+	 {
+	    job:error($job) ! <div class="alert alert-danger" role="alert">
+	       <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+	       <span class="sr-only">Error:</span>
+	       <span>{ . }</span>
+	    </div>,
 	    if ( $status eq $job:status.created ) then
 	       local:created($job, $id)
 	    else
 	       local:other($job, $id, $status)
-      }
-   </wrapper>/*
+	 }
+      </wrapper>/*
 };
 
 let $id    := t:mandatory-field('id')
@@ -166,7 +182,6 @@ let $title := ($name ! ('Job - ' || .), 'Job')[1]
 return
    v:console-page('../', 'job', $title, function() {
       if ( fn:empty($job) ) then
-	 (: TODO: Return a 404. :)
 	 <div class="alert alert-danger" role="alert">
 	    <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
 	    <span class="sr-only">Error:</span>

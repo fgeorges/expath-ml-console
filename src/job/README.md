@@ -53,3 +53,5 @@ at me, I got intersting messages, but I am not an error per se)
 
 TODO: Also impose a specific format for the return value? (not impose, see
 above, but yeah, allow).
+
+TODO: Add an "interrupt" mechanism?
