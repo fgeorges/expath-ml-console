@@ -40,13 +40,16 @@ const chuncks = [];
 
 let current = [];
 let i = 0;
-for ( const uri of cts:uris() ) {
+for ( const uri of cts.uris() ) {
     current.push(uri);
     ++i;
-    if ( i === size ) {
+    if ( ! (i % size) ) {
         chuncks.push(current);
         current = [];
     }
+}
+if ( current.length ) {
+    chuncks.push(current);
 }
 
 chuncks;
@@ -73,7 +76,7 @@ xdmp:log("TODO: Run job: " || $task/c:id)
 
 "use strict";
 
-cosnole.log('TODO: Run job: ' + task.id)
+console.log('TODO: Run job: ' + task.id)
 `;
 
     function create(name, desc, lang, target) {
