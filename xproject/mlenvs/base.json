@@ -5,12 +5,12 @@
             "port": "8010"
         },
         "sources": [{
-            "name":    "src",
+            "name":    "light",
             "dir":     "src",
 	    "include": [ "*.xq", "*.xqy", "*.xml", "*.sjs", "*.xsl" ]
         }, {
-            "name": "full",
-            "dir":  "full"
+            "name": "src",
+            "dir":  "src"
         }],
         "databases": [{
 	    "id": "content",
