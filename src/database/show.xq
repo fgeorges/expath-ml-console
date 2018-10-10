@@ -240,6 +240,12 @@ declare function local:insert-config-doc($path as element(), $db as xs:string)
    <uri-schemes>
       <scheme sep="/">
          <root>
+            <fixed>/</fixed>
+         </root>
+         <regex>/.*</regex>
+      </scheme>
+      <scheme sep="/">
+         <root>
             <start>.</start>
          </root>
          <regex match="1">(\.[^/]+/).*</regex>
