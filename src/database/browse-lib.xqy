@@ -87,7 +87,7 @@ declare function b:scheme-match($uri as xs:string, $iscoll as xs:boolean, $schem
 {
    let $match := fn:analyze-string($uri, '^' || $scheme/c:regex || '$')
    let $nr    := $scheme/c:regex/@match/xs:integer(.)
-   let $root  := ( $scheme/c:root/c:fix, $match/fn:match//fn:group[@nr eq $nr] )[1]
+   let $root  := ( $scheme/c:root/c:fixed, $match/fn:match//fn:group[@nr eq $nr] )[1]
    return
       t:exists($match/fn:match,
          <path root="{ $root }" sep="{ $scheme/@sep }">{ $uri }</path>)
@@ -110,8 +110,8 @@ declare function b:resolve-root($uri as element(c:scheme), $uris as function(xs:
 {
    let $root := $uri/c:root
    return
-      if ( fn:exists($root/c:fix) ) then
-         <path sep="{ $uri/@sep }">{ fn:string($root/c:fix) }</path>[fn:exists($uris($root/c:fix, $uri/@sep))]
+      if ( fn:exists($root/c:fixed) ) then
+         <path sep="{ $uri/@sep }">{ fn:string($root/c:fixed) }</path>[fn:exists($uris($root/c:fixed, $uri/@sep))]
       else if ( fn:exists($root/c:start) ) then
          $uris($root/c:start, $uri/@sep)
       else

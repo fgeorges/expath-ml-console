@@ -68,7 +68,7 @@ declare variable $dbc:default-config :=
       <uri-schemes>
          <scheme sep="/">
             <root>
-               <fix>/</fix>
+               <fixed>/</fixed>
             </root>
             <regex>/.*</regex>
          </scheme>
@@ -86,7 +86,7 @@ declare variable $dbc:default-config :=
          </scheme>
          <scheme sep="">
             <root>
-               <fix>latest</fix>
+               <fixed>latest</fixed>
             </root>
             <regex>latest</regex>
          </scheme>
@@ -161,10 +161,10 @@ declare function dbc:config-component($db as item()?, $name as xs:QName)
 };
 
 (:~
- : Helper for `dbc:config-component`, to reduce several prefix documents.
+ : Helper for `dbc:config-component`, to reduce several config documents.
  :)
 declare function dbc:config-component-1($name as xs:QName, $docs as element(c:config)*)
-   as element()*
+   as element((: $name :))*
 {
    let $head := fn:head($docs)
    let $tail := fn:tail($docs)
@@ -221,7 +221,7 @@ declare function dbc:is-absolute($uri as xs:string, $schemes as element(c:scheme
 {
    if ( fn:empty($schemes) ) then
       fn:false()
-   else if ( fn:starts-with($uri, fn:head($schemes)/c:root/(c:fix|c:start)) ) then
+   else if ( fn:starts-with($uri, fn:head($schemes)/c:root/(c:fixed|c:start)) ) then
       fn:true()
    else
       dbc:is-absolute($uri, fn:tail($schemes))
