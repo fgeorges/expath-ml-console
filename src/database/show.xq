@@ -174,7 +174,7 @@ declare function local:config-area($db as element(a:database), $name as xs:strin
    let $defaults-available := fn:doc-available($dbc:defaults-doc)
    return (
       <p>You can configure the browser behaviour on this database with the following config
-         documents:</p>,
+         documents (in order of precedence):</p>,
       <ul>
          <li> {
             if ( $config-available ) then
@@ -183,52 +183,39 @@ declare function local:config-area($db as element(a:database), $name as xs:strin
                <code>{ xs:string($dbc:config-doc) }</code>
          }
          </li>
-         <li>
-            {
-               if ( $sys-available ) then
-                  v:doc-link($sys-db/a:name || '/', $sys-path)
-               else
-                  <code>{ xs:string($sys-path) }</code>
-            }
-            { ' (on the system DB: ' }
-            { $sys-db/a:name ! v:db-link(., .) }
-            { ')' }
+         <li> {
+            if ( $sys-available ) then
+               v:doc-link($sys-db/a:name || '/', $sys-path)
+            else
+               <code>{ xs:string($sys-path) }</code>
+         }
          </li>
-         <li>
-            {
-               if ( $defaults-available ) then
-                  v:doc-link($sys-db/a:name || '/', $dbc:defaults-doc)
-               else
-                  <code>{ xs:string($dbc:defaults-doc) }</code>
-            }
-            { ' (on the system DB: ' }
-            { $sys-db/a:name ! v:db-link(., .) }
-            { ')' }
+         <li> {
+            if ( $defaults-available ) then
+               v:doc-link($sys-db/a:name || '/', $dbc:defaults-doc)
+            else
+               <code>{ xs:string($dbc:defaults-doc) }</code>
+         }
          </li>
       </ul>,
       let $filename := fn:tokenize($dbc:config-doc, $dbc:config-doc/@sep)[fn:last()]
       return (
-         <p>The former, <code>{ $filename }</code>, contains the configuration specific to this
-            database: { $db/a:name ! v:db-link(., .) }. It must be in the same database it configures.
-            It can define specific prefixes for triples, as well as URI schemes for brwosing documents,
-            directories amd collections.</p>,
+         <p>The former, <code>{ $filename }</code> on { $db/a:name ! v:db-link(., .) }, contains the
+            configuration specific to this database.</p>,
          t:unless($config-available,
             local:insert-config-doc($dbc:config-doc, $db/a:name))
       ),
       let $filename := fn:tokenize($sys-path, $sys-path/@sep)[fn:last()]
       return (
-         <p>The second one, <code>{ $filename }</code>, has the same format, but must be on the
-            content database attached to the EXPath Console app server.  It provides values specific
-            for this database, but stored on the Console database (so it does not interfere with your
-            application, and is not deleted if you clear your database during development).</p>,
+         <p>The second one, <code>{ $filename }</code> on { $sys-db/a:name ! v:db-link(., .) }, is
+            the same but is stored in the ML Console database.</p>,
          t:unless($sys-available,
             local:insert-config-doc($sys-path, $sys-db/a:name))
       ),
       let $filename := fn:tokenize($dbc:defaults-doc, $dbc:defaults-doc/@sep)[fn:last()]
       return (
-         <p>The latter, <code>{ $filename }</code>, has the same format, but must be on the content
-            database attached to the EXPath Console app server.  It provides then default values to be
-            applied to all databases.</p>,
+         <p>The latter, <code>{ $filename }</code> on { $sys-db/a:name ! v:db-link(., .) }, contains
+            default values applied to all databases.</p>,
          t:unless($defaults-available,
             local:insert-config-doc($dbc:defaults-doc, $sys-db/a:name))
       )
@@ -251,6 +238,12 @@ declare function local:insert-config-doc($path as element(), $db as xs:string)
 '<config xmlns="http://expath.org/ns/ml/console">
 <!--
    <uri-schemes>
+      <scheme sep="/">
+         <root>
+            <fixed>/</fixed>
+         </root>
+         <regex>/.*</regex>
+      </scheme>
       <scheme sep="/">
          <root>
             <start>.</start>

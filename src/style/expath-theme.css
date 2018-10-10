@@ -222,6 +222,10 @@ code.proj::after {
   font-weight: bold;
 }
 
+#tasks-count {
+  font-weight: bold;
+}
+
 /* DataTables rules.
  */
 

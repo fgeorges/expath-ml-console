@@ -2,9 +2,6 @@
     "mlproj": {
         "format": "0.1",
         "import": "base.json",
-        "params": {
-            "port": "8011"
-        },
         "connect": {
             "host": "localhost",
             "user": "admin",

@@ -6,7 +6,8 @@ xquery version "3.0";
 module namespace v = "http://expath.org/ns/ml/console/view";
 
 import module namespace a = "http://expath.org/ns/ml/console/admin"  at "admin.xqy";
-import module namespace t = "http://expath.org/ns/ml/console/tools"  at "../lib/tools.xqy";
+import module namespace b = "http://expath.org/ns/ml/console/binary" at "binary.xqy";
+import module namespace t = "http://expath.org/ns/ml/console/tools"  at "tools.xqy";
 
 declare namespace c    = "http://expath.org/ns/ml/console";
 declare namespace h    = "http://www.w3.org/1999/xhtml";
@@ -23,12 +24,20 @@ declare variable $v:pages as element(pages) :=
       <page name="browser"  title="Documents and triples browser" label="Browser"/-->
       <page name="db"       title="Database browser"              label="Databases"/>
       <page name="loader"   title="The document manager"          label="Loader"/>
+      <page name="job"      title="Asynchronous jobs and tasks"   label="Jobs" href="job/"/>
       <page name="profiler" title="XQuery Profiler"               label="Profiler"/>
       <page name="project"  title="The project manager"           label="Projects"/>
       <page name="tools"    title="Goodies for MarkLogic"         label="Tools"/>
       <!--page name="help"     title="Console Help"                  label="Help"/-->
       <!--page name="devel"    title="Devel's evil"                  label="Devel"/-->
    </pages>;
+
+declare variable $v:js-libs :=
+   <libs>
+      <lib code="emlc.target">
+         <path>emlc/emlc-target.js</path>
+      </lib>
+   </libs>/*;
 
 (:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  : Generic view tools
@@ -94,14 +103,21 @@ declare function v:console-page(
  : @param title   the title of the page (to appear on top of the page)
  : @param root    `''` if a top-level page, or `'../'` if in a sub-directory
  : @param content the actual HTML content, pasted as the content of the page
- : @param scripts extra HTML "script" elements, to be added at the very end
+ : @param scripts extra elements, to be added at the very end
+ :
+ : The elements in `$scripts` can be elements with the name "script" in any
+ : namespace.  For each, an element with the name "script" in the HTML namespace
+ : is added at the end of the page.  Elements with the name "lib", in any
+ : namespace, are resolved to a set of extra JavaSctip files to be added (so
+ : adding more HTML "script" elements at the end of the page, but referencing
+ : existing JavaScript files instead of containing the code themselves.)
  :)
 declare function v:console-page(
    $root    as xs:string,
    $page    as xs:string,
    $title   as xs:string,
    $content as function() as element()+,
-   $scripts as element(h:script)*
+   $scripts as element()*
 ) as element(h:html)
 {
    let $cnt  := v:eval-content($content)
@@ -146,7 +162,7 @@ declare %private function v:console-page-static(
    $page    as xs:string,
    $title   as xs:string,
    $content as element()+,
-   $scripts as element(h:script)*
+   $scripts as element()*
 ) as element(h:html)
 {
    <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
@@ -201,6 +217,8 @@ declare %private function v:console-page-static(
          }
          </div>
          {
+            (: TODO: Refactor this using the new "lib import", so individual pages
+               can cherry-pick libraries to import. :)
             v:import-javascript($root || 'js/', (
                'jquery.js',
                'bootstrap.js',
@@ -224,7 +242,14 @@ declare %private function v:console-page-static(
                'file-upload-9.11.2/jquery.fileupload-ui.js',
                'expath-console.js'
             )),
-            $scripts
+            for $script in $scripts
+            return
+               if ( $script[self::*:script] ) then
+                  <script>{ fn:string($script) }</script>
+               else if ( $script[self::*:lib] ) then
+                  v:import-javascript($root || 'js/', $v:js-libs[@code eq $script]/*)
+               else
+                  t:error('invalid-script', 'Script element(s) are neither script or lib: ' || fn:name($script))
          }
       </body>
    </html>
@@ -412,11 +437,6 @@ declare function v:ensure-triple-index(
  : ACE editor tools
  :)
 
-declare variable $serial-options :=
-   <options xmlns="xdmp:quote">
-      <indent-untyped>yes</indent-untyped>
-   </options>;
-
 (:~
  : Format a `pre` element containing some XML.
  :
@@ -583,10 +603,23 @@ declare function v:ace-editor(
       attribute { 'ace-uri'    } { $uri }[fn:exists($uri)],
       attribute { 'ace-top'    } { $top }[fn:exists($top)],
       attribute { 'style'      } { 'height: ' || $height }[fn:exists($height)],
-      if ( $content instance of node() ) then
-         xdmp:quote($content, $serial-options)
-      else
+      (: TODO: Any better way to detect non-node JS objects? (incl. arrays) :)
+      if ( b:is-map($content) ) then
+         xdmp:javascript-eval(
+	    'JSON.stringify(content, null, 2)',
+            ('content', $content))
+      else if ( fn:not($content instance of node()) ) then
          $content
+      else if ( b:is-json($content) ) then
+         xdmp:javascript-eval(
+	    'JSON.stringify(content.toObject(), null, 2)',
+            ('content', $content))
+      else
+         xdmp:quote(
+	    $content,
+	    <options xmlns="xdmp:quote">
+	       <indent-untyped>yes</indent-untyped>
+	    </options>)
    }
    </pre>
 };
@@ -755,6 +788,17 @@ declare %private function v:form-impl(
       $content
    }
    </form>
+};
+
+declare function v:input-text-area($name as xs:string, $label as xs:string, $placeholder as xs:string)
+   as element(h:div)
+{
+   <div xmlns="http://www.w3.org/1999/xhtml" class="form-group">
+      <label for="{ $name }" class="col-sm-2 control-label">{ $label }</label>
+      <div class="col-sm-10">
+         <textarea class="form-control" name="{ $name }" placeholder="{ $placeholder }"/>
+      </div>
+   </div>
 };
 
 declare function v:input-text($id as xs:string, $label as xs:string, $placeholder as xs:string)
@@ -945,6 +989,47 @@ declare function v:input-radio(
    </div>
 };
 
+declare function v:input-radio-group($label as xs:string, $radios as element(h:label)*)
+   as element(h:div)
+{
+   <div xmlns="http://www.w3.org/1999/xhtml" class="form-group">
+      <label class="col-sm-2 control-label">{ $label }</label>
+      <div class="col-sm-10"> {
+         $radios
+      }
+      </div>
+   </div>
+};
+
+declare function v:input-radio-inline(
+   $name    as xs:string,
+   $id      as xs:string,
+   $value   as xs:string,
+   $label   as xs:string
+) as element(h:label)
+{
+   v:input-radio-inline($name, $id, $value, $label, ())
+};
+
+declare function v:input-radio-inline(
+   $name    as xs:string,
+   $id      as xs:string,
+   $value   as xs:string,
+   $label   as xs:string,
+   $opts    as xs:string*
+) as element(h:label)
+{
+   <label class="radio-inline" xmlns="http://www.w3.org/1999/xhtml">
+      <input type="radio" name="{ $name }" id="{ $id }" value="{ $value }"> {
+         $opts[. eq 'checked']  ! attribute { . } { . },
+         $opts[. eq 'required'] ! attribute { . } { . },
+         ' ',
+         $label
+      }
+      </input>
+   </label>
+};
+
 declare function v:input-hidden($id as xs:string, $val as xs:string)
    as element(h:input)
 {
@@ -958,6 +1043,114 @@ declare function v:input-hidden($id as xs:string, $val as xs:string, $attrs as a
       $attrs
    }
    </input>
+};
+
+declare function v:input-exec-target($name as xs:string, $label as xs:string)
+   as element((: h:input|h:div :))+
+{
+   v:input-exec-target($name, $name, $label)
+};
+
+declare function v:input-exec-target($id as xs:string, $name as xs:string, $label as xs:string)
+   as element((: h:input|h:div :))+
+{
+   <div xmlns="http://www.w3.org/1999/xhtml" class="form-group">
+      <label for="{ $name }" class="col-sm-2 control-label">{ $label }</label>
+      <div class="col-sm-10">
+	 <div class="btn-group" xmlns="http://www.w3.org/1999/xhtml">
+	    <button type="button" class="btn btn-default dropdown-toggle"
+		    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+	       Databases <span class="caret"/>
+	    </button>
+	    <ul class="dropdown-menu" style="min-width: 400pt"> {
+	       for $db in a:get-databases()/a:database
+	       order by $db/a:name
+	       return
+		  v:format-exec-target-db($db, $id)
+	    }
+	    </ul>
+	 </div>
+         {
+            let $all := a:get-appservers()/a:appserver
+            for $srv in (<srv label="HTTP"   type="http"/>,
+                         <srv label="XDBC"   type="xdbc"/>,
+                         <srv label="ODBC"   type="odbc"/>,
+                         <srv label="WebDAV" type="webDAV"/>)
+            return
+	       <div class="btn-group" style="margin-left: 10px;">
+		  <button type="button" class="btn btn-default dropdown-toggle"
+			  data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+		     { xs:string($srv/@label) } servers <span class="caret"/>
+		  </button>
+		  <ul class="dropdown-menu" style="min-width: 400pt"> {
+		     let $asses := $all[@type eq $srv/@type]
+		     return
+			if ( fn:exists($asses) ) then
+			   for $as in $asses
+			   order by $as/a:name
+			   return
+			      v:format-exec-target-as($as, $id, $srv/@label)
+			else
+			   <li><a style="font-style: italic">(none)</a></li>
+		  }
+		  </ul>
+	       </div>
+         }
+      </div>
+   </div>,
+   <div xmlns="http://www.w3.org/1999/xhtml" id="{ $id }" class="form-group emlc-target-field">
+      <label class="col-sm-2 control-label"/>
+      <div class="col-sm-10">
+	 <input type="text" class="form-control" required="required" placeholder="Select a target (database or server)"/>
+	 <input name="{ $name }" type="hidden" value=""/>
+      </div>
+   </div>
+};
+
+declare function v:format-exec-target-db(
+   $db    as element(a:database),
+   $field as xs:string
+) as element(h:li)
+{
+   <li xmlns="http://www.w3.org/1999/xhtml">
+      <a data-field="#{ $field }" data-id="{ $db/@id }" data-label="{ $db/a:name }" class="emlc-target-entry"> {
+         $db/fn:string(a:name)
+      }
+      </a>
+   </li>
+};
+
+declare function v:format-exec-target-as(
+   $as    as element(a:appserver),
+   $field as xs:string,
+   $type  as xs:string
+) as element(h:li)
+{
+   let $name  := xs:string($as/a:name)
+   let $label := $name || ' (' || $type || ')'
+   return
+      <li xmlns="http://www.w3.org/1999/xhtml">
+         <a data-field="#{ $field }" data-id="{ $as/@id }" data-label="{ $label }" class="emlc-target-entry">
+            <span> {
+               $name
+            }
+            </span>
+            <br/>
+            <small> {
+               '          Content: ' || $as/a:db
+            }
+            </small>
+            <br/>
+            <small> {
+               '          Modules: '
+                  || ( $as/a:modules-db, 'file' )[1]
+                  || ' &lt;'
+                  || $as/a:root
+                  || '>'
+            }
+            </small>
+         </a>
+      </li>
 };
 
 (:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

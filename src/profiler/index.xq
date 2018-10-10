@@ -2,6 +2,9 @@ xquery version "3.0";
 
 (:~
  : The profiler page.
+ :
+ : TODO: Use the new component v:input-exec-target() instead of the old target
+ : selection mecanism below (as in the job index page.)
  :)
 
 import module namespace a = "http://expath.org/ns/ml/console/admin" at "../lib/admin.xqy";
@@ -150,11 +153,11 @@ declare function local:page()
       <div class="row">
          <div class="col-sm-3">
             <button id="go-profile"
-                    class="btn btn-default"
+                    class="btn btn-default need-target"
                     disabled="disabled"
                     onclick='profile("prof-query", "prof-json");'>Profile</button>
             <button id="go-as-xml"
-                    class="btn btn-default"
+                    class="btn btn-default need-target"
                     disabled="disabled"
                     onclick='profileXml("prof-query");'
                     style="margin-left: 10px;">As XML</button>
@@ -165,7 +168,7 @@ declare function local:page()
       <p class="prof-success">
          Total time: <span id="total-time"/>
       </p>
-      <table class="table table-bordered prof-datatable prof-success" id="prof-detail">
+      <table class="table table-bordered prof-datatable prof-success" id="prof-detail" data-order-on="-3">
          <thead>
             <th>Location</th>
             <th class="col-num">Count</th>
