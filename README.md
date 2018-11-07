@@ -40,10 +40,11 @@ report it to the EXPath [mailing list](http://expath.org/lists).
 
 ## Install
 
-Use `mlproj`.  To install it, just use the following:
+Use `mlproj`.  To install it, just use the following (or read the
+full [install notes](http://mlproj.org/doc/install)):
 
 ```
-sudo npm install mlproj -g
+npm install mlproj -g
 ```
 
 Get the latest stable version from the
@@ -65,7 +66,7 @@ mlproj -e prod -h newhost deploy
 ```
 
 If you want to use the modules straight from the file system, use the
-following instead (MarkLogic must be installed on `localhost` then)::
+following instead (MarkLogic must be installed on `localhost` then):
 
 ```
 mlproj -e dev setup
