@@ -55,9 +55,7 @@ return
       'project',
       $toks[fn:last()],
       function() { local:page($id, $src, $root) },
-      (v:import-javascript($root || '../../js/', (
-          'marked.min.js',
-          'highlight/highlight.pack.js')),
+      (<lib>marked</lib>,
        <script type="text/javascript" xmlns="http://www.w3.org/1999/xhtml">
           marked.setOptions({{
              highlight: function (code) {{

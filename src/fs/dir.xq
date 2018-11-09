@@ -155,7 +155,7 @@ return
          local:page($uri, $start)
       },
       (b:create-doc-javascript(),
-       v:import-javascript('../js/', ('marked.min.js', 'highlight/highlight.pack.js')),
+       <lib>marked</lib>,
        <script type="text/javascript">
           var renderer = new marked.Renderer();
           renderer.image = function(href, title, text) {{

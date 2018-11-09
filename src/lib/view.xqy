@@ -37,6 +37,13 @@ declare variable $v:js-libs :=
       <lib code="emlc.target">
          <path>emlc/emlc-target.js</path>
       </lib>
+      <lib code="marked">
+         <path>marked.min.js</path>
+         <path>highlight/highlight.pack.js</path>
+      </lib>
+      <lib code="typeahead">
+         <path>typeahead.bundle.js</path>
+      </lib>
    </libs>/*;
 
 (:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -246,6 +253,8 @@ declare %private function v:console-page-static(
             return
                if ( $script[self::*:script] ) then
                   <script>{ fn:string($script) }</script>
+               else if ( $script[self::*:lib/@src] ) then
+                  v:import-javascript($root || 'js/', $script/@src)
                else if ( $script[self::*:lib] ) then
                   v:import-javascript($root || 'js/', $v:js-libs[@code eq $script]/*)
                else

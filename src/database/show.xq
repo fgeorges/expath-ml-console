@@ -274,7 +274,7 @@ return
       function() {
          v:ensure-db($name, local:page#1)
       },
-      (v:import-javascript('../../js/', 'typeahead.bundle.js'),
+      (<lib>typeahead</lib>,
        <script xmlns="http://www.w3.org/1999/xhtml" type="text/javascript">
           // initiate the completion engines
           var amp = String.fromCharCode(38);

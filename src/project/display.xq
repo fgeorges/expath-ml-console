@@ -77,7 +77,7 @@ return
             local:page($id, $proj, $read)
       },
       if ( fn:exists($proj) ) then (
-         v:import-javascript('../js/', ('marked.min.js', 'highlight/highlight.pack.js')),
+         <lib>marked</lib>,
          <script type="text/javascript">
             var renderer = new marked.Renderer();
             renderer.image = function(href, title, text) {{
