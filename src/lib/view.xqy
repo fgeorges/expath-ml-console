@@ -14,37 +14,37 @@ declare namespace h    = "http://www.w3.org/1999/xhtml";
 declare namespace err  = "http://www.w3.org/2005/xqt-errors";
 declare namespace xdmp = "http://marklogic.com/xdmp";
 
-declare variable $v:pages as element(pages) :=
-   <pages>
-      <page name="pkg"      title="Packages"                      label="Packages"/>
-      <!--page name="web"      title="Web Applications Containers"   label="Web"/>
-      <page name="cxan"     title="CXAN Config"                   label="CXAN"/>
-      <page name="xproject" title="XProject Tools"                label="XProject"/>
-      <page name="xspec"    title="XSpec Tools"                   label="XSpec"/>
-      <page name="browser"  title="Documents and triples browser" label="Browser"/-->
-      <page name="db"       title="Database browser"              label="Databases"/>
-      <page name="loader"   title="The document manager"          label="Loader"/>
-      <page name="job"      title="Asynchronous jobs and tasks"   label="Jobs" href="job/"/>
-      <page name="profiler" title="XQuery Profiler"               label="Profiler"/>
-      <page name="project"  title="The project manager"           label="Projects"/>
-      <page name="tools"    title="Goodies for MarkLogic"         label="Tools"/>
-      <!--page name="help"     title="Console Help"                  label="Help"/-->
-      <!--page name="devel"    title="Devel's evil"                  label="Devel"/-->
-   </pages>;
+declare variable $v:pages as element(c:pages) :=
+   <c:pages>
+      <c:page name="pkg"      title="Packages"                      label="Packages"/>
+      <!--c:page name="web"      title="Web Applications Containers"   label="Web"/>
+      <c:page name="cxan"     title="CXAN Config"                   label="CXAN"/>
+      <c:page name="xproject" title="XProject Tools"                label="XProject"/>
+      <c:page name="xspec"    title="XSpec Tools"                   label="XSpec"/>
+      <c:page name="browser"  title="Documents and triples browser" label="Browser"/-->
+      <c:page name="db"       title="Database browser"              label="Databases"/>
+      <c:page name="loader"   title="The document manager"          label="Loader"/>
+      <c:page name="job"      title="Asynchronous jobs and tasks"   label="Jobs" href="job/"/>
+      <c:page name="profiler" title="XQuery Profiler"               label="Profiler"/>
+      <c:page name="project"  title="The project manager"           label="Projects"/>
+      <c:page name="tools"    title="Goodies for MarkLogic"         label="Tools"/>
+      <!--c:page name="help"     title="Console Help"                  label="Help"/-->
+      <!--c:page name="devel"    title="Devel's evil"                  label="Devel"/-->
+   </c:pages>;
 
 declare variable $v:js-libs :=
-   <libs>
-      <lib code="emlc.target">
-         <path>emlc/emlc-target.js</path>
-      </lib>
-      <lib code="marked">
-         <path>marked.min.js</path>
-         <path>highlight/highlight.pack.js</path>
-      </lib>
-      <lib code="typeahead">
-         <path>typeahead.bundle.js</path>
-      </lib>
-   </libs>/*;
+   <c:libs>
+      <c:lib code="emlc.target">
+         <c:path>emlc/emlc-target.js</c:path>
+      </c:lib>
+      <c:lib code="marked">
+         <c:path>marked.min.js</c:path>
+         <c:path>highlight/highlight.pack.js</c:path>
+      </c:lib>
+      <c:lib code="typeahead">
+         <c:path>typeahead.bundle.js</c:path>
+      </c:lib>
+   </c:libs>/*;
 
 (:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  : Generic view tools
@@ -73,16 +73,28 @@ declare function v:redirect($url as xs:string)
 declare function v:console-page-menu($page as xs:string, $root as xs:string)
    as element(h:li)+
 {
-   for $p in $v:pages/page
-   return
-      <li xmlns="http://www.w3.org/1999/xhtml"> {
-         attribute { 'class' } { 'active' }[$p/@name eq $page],
-         <a href="{ $root }{ $p/(@href, @name)[1] }" title="{ $p/@title }"> {
-            $p/fn:string(@label)
-         }
-         </a>
-      }
-      </li>
+   <wrapper xmlns="http://www.w3.org/1999/xhtml"> {
+      for $p in $v:pages/c:page
+      let $h := $root || $p/(@href, @name)[1]
+      return
+         if ( $p/@name eq $page ) then (: the active page :)
+            <li class="nav-item active">
+               <a class="nav-link" href="{ $h }" title="{ $p/@title }"> {
+                  $p/fn:string(@label),
+                  ' ',
+                  <span class="sr-only">(current)</span>
+               }
+               </a>
+            </li>
+         else
+            <li class="nav-item">
+               <a class="nav-link" href="{ $h }" title="{ $p/@title }"> {
+                  $p/fn:string(@label)
+               }
+               </a>
+            </li>
+   }
+   </wrapper>/*
 };
 
 (:~
@@ -180,13 +192,13 @@ declare %private function v:console-page-static(
          <title>{ $title }</title>
          {
             v:import-css($root || 'style/', (
-               'bootstrap.css',
-               'bootstrap-select.css',
+               'bootstrap.min.css',
+               'bootstrap-select.min.css',
+	       'datatables.min.css',
                'typeahead.css',
                'expath-theme.css'
             )),
             v:import-css($root || 'js/', (
-               'datatables-1.10.10/css/dataTables.bootstrap.css',
                'file-upload-9.11.2/jquery.fileupload.css',
                'file-upload-9.11.2/jquery.fileupload-ui.css',
                'gallery-2.16.0/blueimp-gallery.min.css',
@@ -196,44 +208,54 @@ declare %private function v:console-page-static(
          <link href="{ $root }images/expath-icon.png" rel="shortcut icon" type="image/png"/>
       </head>
       <body>
-         <nav class="navbar navbar-inverse navbar-fixed-top">
-            <div class="container">
-               <div class="navbar-header">
-                  <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
-                          data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-                     <span class="sr-only">Toggle navigation</span>
-                     <span class="icon-bar"/>
-                     <span class="icon-bar"/>
-                     <span class="icon-bar"/>
-                  </button>
-                  <a class="navbar-brand" href="{ $root }./">EXPath Console</a>
-               </div>
-               <div id="navbar" class="navbar-collapse collapse">
-                  <ul class="nav navbar-nav"> {
+         <header>
+            <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+               <a class="navbar-brand" href="{ $root }./">EXPath Console</a>
+               <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo02" aria-controls="navbarTogglerDemo02" aria-expanded="false" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon"></span>
+               </button>
+               <div class="collapse navbar-collapse" id="navbarTogglerDemo02">
+                  <ul class="navbar-nav mr-auto mt-2 mt-lg-0"> {
                      v:console-page-menu($page, $root)
                   }
                   </ul>
-                  <p class="navbar-text navbar-right">User: { xdmp:get-current-user() }</p>
+                  <div class="navbar-collapse collapse w-100 order-3 dual-collapse2">
+                     <ul class="navbar-nav ml-auto">
+                        <li class="nav-item nav-link">User: { xdmp:get-current-user() }</li>
+                     </ul>
+                  </div>
                </div>
-            </div>
-         </nav>
-         <div class="container theme-showcase" role="main">
-         {
-            <h1>{ $title }</h1>[fn:empty($content[@class = 'jumbotron'])],
-            $content
+            </nav>
+         </header>
+         <main role="main"> {
+            if ( $content[@class = 'jumbotron'] ) then (
+               <div class="container"> {
+                  $content[@class = 'jumbotron']
+               }
+               </div>,
+               <div class="container">
+                  { $content[fn:not(@class = 'jumbotron')] }
+               </div>
+            )
+            else (
+               <div class="container">
+                  <h1>{ $title }</h1>
+                  { $content }
+               </div>
+            )
          }
-         </div>
+         </main>
          {
             (: TODO: Refactor this using the new "lib import", so individual pages
-               can cherry-pick libraries to import. :)
+               can cherry-pick libraries to import. For instance, File Upload is
+	       only used on the database directory browser. :)
             v:import-javascript($root || 'js/', (
-               'jquery.js',
-               'bootstrap.js',
-               'bootstrap-select.js',
+               'jquery.min.js',
+               'bootstrap.bundle.min.js',
+               'bootstrap-select.min.js',
                'ace/ace.js',
                'ace/ext-static_highlight.js',
-               'datatables-1.10.10/js/jquery.dataTables.js',
-               'datatables-1.10.10/js/dataTables.bootstrap.js',
+	       'datatables.min.js',
                'file-upload-9.11.2/vendor/jquery.ui.widget.js',
                'templates-2.5.5/tmpl.min.js',
                'load-image-1.14.0/load-image.all.min.js',
