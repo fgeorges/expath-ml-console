@@ -144,7 +144,6 @@ declare function local:triples-area($db as element(a:database), $name as xs:stri
    v:one-liner-form($name || '/triples', 'Go', 'get', (
       v:input-hidden('rulesets', '', attribute { 'class' } { 'expathRulesets' }),
       v:input-text('init-curie', 'Resource CURIE', 'The CURIE of a resource'))),
-   <p>Rulesets to apply:</p>,
    <div class="form-horizontal"> {
       v:input-select-rulesets('rulesets', 'Rulesets',
          dbc:config-default-rulesets($db),

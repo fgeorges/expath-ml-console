@@ -85,6 +85,9 @@ declare function local:page()
          need to <b>select a source</b> first.</p>
 
       <h3>Source</h3>
+
+      { ((: TODO: Use `v:input-exec-target()' instead of reimplementing the same here... :)) }
+
       <div class="row">
          <div class="col-sm-12">
             <div class="btn-group">
@@ -140,29 +143,33 @@ declare function local:page()
                }
                </ul>
             </div>
-            <div class="btn-group pull-right active" role="group">
+            <div class="btn-group float-right active" role="group">
                <button id="target-label" type="button" class="btn btn-danger" disabled="disabled">select a source</button>
             </div>
             <div id="target-id" style="display: none"/>
          </div>
       </div>
+      <p/>
 
       <h3>Query</h3>
       { v:edit-text(text { $fibonacci }, 'xquery', 'prof-query', 'profile') }
 
       <div class="row">
-         <div class="col-sm-3">
-            <button id="go-profile"
-                    class="btn btn-default need-target"
-                    disabled="disabled"
-                    onclick='profile("prof-query", "prof-json");'>Profile</button>
-            <button id="go-as-xml"
-                    class="btn btn-default need-target"
-                    disabled="disabled"
-                    onclick='profileXml("prof-query");'
-                    style="margin-left: 10px;">As XML</button>
+         <div class="col">
+            <div class="float-right">
+               <button id="go-profile"
+                       class="btn btn-outline-secondary need-target"
+                       disabled="disabled"
+                       onclick='profile("prof-query", "prof-json");'>Profile</button>
+               <button id="go-as-xml"
+                       class="btn btn-outline-secondary need-target"
+                       disabled="disabled"
+                       onclick='profileXml("prof-query");'
+                       style="margin-left: 10px;">As XML</button>
+            </div>
          </div>
       </div>
+      <p/>
 
       <h3 class="prof-success">Profiling result</h3>
       <p class="prof-success">
@@ -181,21 +188,25 @@ declare function local:page()
          <tbody/>
       </table>
       <div class="row">
-         <div class="col-sm-3">
-            <button class="btn btn-default"
-                    onclick='$("#jsonFile").click();'>Load JSON</button>
-            <button class="btn btn-default"
-                    onclick='$("#xmlFile").click();'
-                    style="margin-left: 10px;">Load XML</button>
+         <div class="col">
+            <div class="float-right">
+               <button class="btn btn-outline-secondary"
+                       onclick='$("#jsonFile").click();'>Load JSON</button>
+               <button class="btn btn-outline-secondary"
+                       onclick='$("#xmlFile").click();'
+                       style="margin-left: 10px;">Load XML</button>
+            </div>
          </div>
       </div>
+      <p/>
 
       <h3 class="prof-failure" style="display: none">Stacktrace</h3>
       <div id="stacktrace" class="prof-failure" style="display: none"/>
 
       <h3>JSON report</h3>
       { v:edit-text(text { '' }, 'json', 'prof-json', 'profile') }
-      <button class="btn btn-default" onclick='saveJson("prof-json");'>Save JSON</button>
+      <button class="btn btn-outline-secondary float-right" style="margin-bottom: 20pt"
+              onclick='saveJson("prof-json");'>Save JSON</button>
       <!-- hidden fields -->
       <input type="file" id="xmlFile"  style="display: none" onchange='loadXml(this.files[0],  "prof-json")'/>
       <input type="file" id="jsonFile" style="display: none" onchange='loadJson(this.files[0], "prof-json")'/>

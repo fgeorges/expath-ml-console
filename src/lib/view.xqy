@@ -603,7 +603,7 @@ declare function v:edit-node(
    return (
       v:ace-editor($node, 'editor', $mode, $id, $uri, $top, '250pt'),
       <dummy xmlns="http://www.w3.org/1999/xhtml">
-         <button class="btn btn-default" onclick='saveDoc("{ $id }", "{ $type }");'>Save</button>
+         <button class="btn btn-outline-secondary" onclick='saveDoc("{ $id }", "{ $type }");'>Save</button>
          <button class="btn btn-danger pull-right" onclick='deleteDoc("{ $id }");'>Delete</button>
          <form method="POST" action="{ $top }delete" style="display: none" id="{ $id }-delete">
             <input type="hidden" name="doc"        value="{ $uri }"/>
@@ -663,38 +663,33 @@ declare function v:ace-editor(
  :)
 
 declare function v:inject-attr(
-   $name  as xs:string,
-   $value as xs:string,
-   $sep   as xs:string,
-   $attrs as attribute()*
+   $name   as xs:string,
+   $values as xs:string+,
+   $sep    as xs:string,
+   $attrs  as attribute()*
 ) as attribute()+
 {
-   let $a := $attrs[fn:name(.) eq $name]
-   return
-      if ( fn:exists($a) ) then (
-         attribute { $name } { $value || $sep || $a },
-         $attrs except $a
-      )
-      else (
-         attribute { $name } { $value },
-         $attrs
-      )
+   let $a := $attrs[fn:node-name(.) eq xs:QName($name)]
+   return (
+      attribute { $name } { fn:string-join(($values, $a), $sep) },
+      $attrs except $a
+   )
 };
 
 declare function v:inject-class(
-   $value as xs:string,
-   $attrs as attribute()*
+   $values as xs:string+,
+   $attrs  as attribute()*
 ) as attribute()+
 {
-   v:inject-attr('class', $value, ' ', $attrs)
+   v:inject-attr('class', $values, ' ', $attrs)
 };
 
 declare function v:inject-style(
-   $value as xs:string,
-   $attrs as attribute()*
+   $values as xs:string+,
+   $attrs  as attribute()*
 ) as attribute()+
 {
-   v:inject-attr('style', $value, '; ', $attrs)
+   v:inject-attr('style', $values, '; ', $attrs)
 };
 
 declare function v:form($action as xs:string, $content as element()+)
@@ -757,13 +752,13 @@ declare function v:one-liner-form(
 ) as element(h:form)
 {
    v:form($action, $attrs,
-      <div xmlns="http://www.w3.org/1999/xhtml" class="form-group">
+      <div xmlns="http://www.w3.org/1999/xhtml" class="form-group row">
          { $content/label }
          <div class="col-sm-9">
             { $content/descendant-or-self::input }
          </div>
          <div class="col-sm-1">
-            <button type="submit" class="btn btn-default">{ $submit }</button>
+            <button type="submit" class="btn btn-outline-secondary float-right">{ $submit }</button>
          </div>
       </div>,
       $method)
@@ -797,11 +792,11 @@ declare function v:one-liner-link(
       t:error('invalid-form', 'Non-hidden input fieldd')
    else
       v:form($action, (),
-         <div xmlns="http://www.w3.org/1999/xhtml" class="form-group">
-            <label class="col-sm-2 control-label">{ $label }</label>
+         <div xmlns="http://www.w3.org/1999/xhtml" class="form-group row">
+            <label class="col-sm-2 col-form-label">{ $label }</label>
             <div class="col-sm-10">
                { $hidden }
-               <button class="btn btn-default">{ $submit }</button>
+               <button class="btn btn-outline-secondary">{ $submit }</button>
             </div>
          </div>,
          $method)
@@ -827,8 +822,8 @@ declare %private function v:form-impl(
 declare function v:input-text-area($name as xs:string, $label as xs:string, $placeholder as xs:string)
    as element(h:div)
 {
-   <div xmlns="http://www.w3.org/1999/xhtml" class="form-group">
-      <label for="{ $name }" class="col-sm-2 control-label">{ $label }</label>
+   <div xmlns="http://www.w3.org/1999/xhtml" class="form-group row">
+      <label for="{ $name }" class="col-sm-2 col-form-label">{ $label }</label>
       <div class="col-sm-10">
          <textarea class="form-control" name="{ $name }" placeholder="{ $placeholder }"/>
       </div>
@@ -860,8 +855,8 @@ declare function v:input-text(
 ) as element(h:div)
 {
    <div xmlns="http://www.w3.org/1999/xhtml">
-      { v:inject-class('form-group', $div-attrs) }
-      <label for="{ $id }" class="col-sm-2 control-label">{ $label }</label>
+      { v:inject-class(('form-group', 'row'), $div-attrs) }
+      <label for="{ $id }" class="col-sm-2 col-form-label">{ $label }</label>
       <div class="col-sm-10">
          <input type="text" name="{ $id }" placeholder="{ $placeholder }"> {
             v:inject-class('form-control', $input-attrs)
@@ -874,9 +869,9 @@ declare function v:input-text(
 declare function v:submit($label as xs:string)
    as element(h:div)
 {
-   <div xmlns="http://www.w3.org/1999/xhtml" class="form-group">
-      <div class="col-sm-offset-2 col-sm-10">
-         <button type="submit" class="btn btn-default">{ $label }</button>
+   <div xmlns="http://www.w3.org/1999/xhtml" class="form-group row">
+      <div class="col">
+         <button type="submit" class="btn btn-outline-secondary float-right">{ $label }</button>
       </div>
    </div>
 };
@@ -899,8 +894,8 @@ declare function v:input-select(
 ) as element(h:div)
 {
    <div xmlns="http://www.w3.org/1999/xhtml">
-      { v:inject-class('form-group', $div-attrs) }
-      <label for="{ $id }" class="col-sm-2 control-label">{ $label }</label>
+      { v:inject-class(('form-group', 'row'), $div-attrs) }
+      <label for="{ $id }" class="col-sm-2 col-form-label">{ $label }</label>
       <div class="col-sm-10">
          <select name="{ $id }"> {
             v:inject-class('form-control', $select-attrs),
@@ -987,8 +982,8 @@ declare function v:input-select-rulesets(
 declare function v:input-file($id as xs:string, $label as xs:string)
    as element(h:div)
 {
-   <div xmlns="http://www.w3.org/1999/xhtml" class="form-group">
-      <label for="{ $id }" class="col-sm-2 control-label">{ $label }</label>
+   <div xmlns="http://www.w3.org/1999/xhtml" class="form-group row">
+      <label for="{ $id }" class="col-sm-2 col-form-label">{ $label }</label>
       <div class="col-sm-10">
          <input type="file" name="{ $id }"/>
       </div>
@@ -998,10 +993,13 @@ declare function v:input-file($id as xs:string, $label as xs:string)
 declare function v:input-checkbox($id as xs:string, $label as xs:string, $checked as xs:string)
    as element(h:div)
 {
-   <div xmlns="http://www.w3.org/1999/xhtml" class="form-group">
-      <label for="{ $id }" class="col-sm-2 control-label">{ $label }</label>
+   <div xmlns="http://www.w3.org/1999/xhtml" class="form-group row">
+      <div class="col-sm-2 col-form-label pt-0">{ $label }</div>
       <div class="col-sm-10">
-         <input type="checkbox" name="{ $id }" checked="{ $checked }"/>
+         <div class="form-check">
+            <input type="checkbox" name="{ $id }" checked="{ $checked }"
+                   class="form-check-input"/>
+         </div>
       </div>
    </div>
 };
@@ -1023,16 +1021,18 @@ declare function v:input-radio(
    </div>
 };
 
-declare function v:input-radio-group($label as xs:string, $radios as element(h:label)*)
-   as element(h:div)
+declare function v:input-radio-group($label as xs:string, $radios as element(h:div)*)
+   as element(h:fieldset)
 {
-   <div xmlns="http://www.w3.org/1999/xhtml" class="form-group">
-      <label class="col-sm-2 control-label">{ $label }</label>
-      <div class="col-sm-10"> {
-         $radios
-      }
+   <fieldset class="form-group" xmlns="http://www.w3.org/1999/xhtml">
+      <div class="row">
+         <legend class="col-form-label col-sm-2 pt-0">{ $label }</legend>
+         <div class="col-sm-10"> {
+            $radios
+         }
+         </div>
       </div>
-   </div>
+   </fieldset>
 };
 
 declare function v:input-radio-inline(
@@ -1040,7 +1040,7 @@ declare function v:input-radio-inline(
    $id      as xs:string,
    $value   as xs:string,
    $label   as xs:string
-) as element(h:label)
+) as element(h:div)
 {
    v:input-radio-inline($name, $id, $value, $label, ())
 };
@@ -1051,17 +1051,16 @@ declare function v:input-radio-inline(
    $value   as xs:string,
    $label   as xs:string,
    $opts    as xs:string*
-) as element(h:label)
+) as element(h:div)
 {
-   <label class="radio-inline" xmlns="http://www.w3.org/1999/xhtml">
-      <input type="radio" name="{ $name }" id="{ $id }" value="{ $value }"> {
+   <div class="form-check" xmlns="http://www.w3.org/1999/xhtml">
+      <input class="form-check-input" type="radio" name="{ $name }" id="{ $id }" value="{ $value }"> {
          $opts[. eq 'checked']  ! attribute { . } { . },
-         $opts[. eq 'required'] ! attribute { . } { . },
-         ' ',
-         $label
+         $opts[. eq 'required'] ! attribute { . } { . }
       }
       </input>
-   </label>
+      <label class="form-check-label" for="{ $id }">{ $label }</label>
+   </div>
 };
 
 declare function v:input-hidden($id as xs:string, $val as xs:string)
@@ -1088,11 +1087,11 @@ declare function v:input-exec-target($name as xs:string, $label as xs:string)
 declare function v:input-exec-target($id as xs:string, $name as xs:string, $label as xs:string)
    as element((: h:input|h:div :))+
 {
-   <div xmlns="http://www.w3.org/1999/xhtml" class="form-group">
-      <label for="{ $name }" class="col-sm-2 control-label">{ $label }</label>
+   <div xmlns="http://www.w3.org/1999/xhtml" class="form-group row">
+      <label for="{ $name }" class="col-sm-2 col-form-label">{ $label }</label>
       <div class="col-sm-10">
 	 <div class="btn-group" xmlns="http://www.w3.org/1999/xhtml">
-	    <button type="button" class="btn btn-default dropdown-toggle"
+	    <button type="button" class="btn dropdown-toggle"
 		    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 	       Databases <span class="caret"/>
 	    </button>
@@ -1112,7 +1111,7 @@ declare function v:input-exec-target($id as xs:string, $name as xs:string, $labe
                          <srv label="WebDAV" type="webDAV"/>)
             return
 	       <div class="btn-group" style="margin-left: 10px;">
-		  <button type="button" class="btn btn-default dropdown-toggle"
+		  <button type="button" class="btn dropdown-toggle"
 			  data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 		     { xs:string($srv/@label) } servers <span class="caret"/>
 		  </button>
@@ -1132,8 +1131,8 @@ declare function v:input-exec-target($id as xs:string, $name as xs:string, $labe
          }
       </div>
    </div>,
-   <div xmlns="http://www.w3.org/1999/xhtml" id="{ $id }" class="form-group emlc-target-field">
-      <label class="col-sm-2 control-label"/>
+   <div xmlns="http://www.w3.org/1999/xhtml" id="{ $id }" class="form-group row emlc-target-field">
+      <label class="col-sm-2 col-form-label"/>
       <div class="col-sm-10">
 	 <input type="text" class="form-control" required="required" placeholder="Select a target (database or server)"/>
 	 <input name="{ $name }" type="hidden" value=""/>

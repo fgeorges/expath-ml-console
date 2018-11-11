@@ -10,6 +10,11 @@ main {
   padding-top: 70px;
 }
 
+.col-form-label {
+  font-weight: bold;
+  text-align: right;
+}
+
 table {
   font-size: 13px;
   font-family: "Lucida Grande", Verdana, Arial, Helvetica, sans-serif;
