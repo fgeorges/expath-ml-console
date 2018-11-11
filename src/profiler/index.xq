@@ -269,4 +269,4 @@ declare function local:format-as(
       </li>
 };
 
-v:console-page('../', 'profiler', 'Profiler', local:page#0)
+v:console-page('../', 'profiler', 'Profiler', local:page#0, <lib>filesaver</lib>)

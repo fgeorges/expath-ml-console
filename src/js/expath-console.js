@@ -382,11 +382,8 @@ function saveJson(jsonId)
 
 function download(text, name, type)
 {
-   var a = document.createElement('a');
-   var b = new Blob([ text ], { type: type });
-   a.href = URL.createObjectURL(b);
-   a.download = name;
-   a.click();
+   var blob = new Blob([ text ], { type: type });
+   saveAs(blob, name);
 }
 
 function profileImpl(queryId, endpoint, success)

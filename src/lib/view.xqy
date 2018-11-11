@@ -44,6 +44,9 @@ declare variable $v:js-libs :=
       <c:lib code="typeahead">
          <c:path>typeahead.bundle.js</c:path>
       </c:lib>
+      <c:lib code="filesaver">
+         <c:path>FileSaver.min.js</c:path>
+      </c:lib>
    </c:libs>/*;
 
 (:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
