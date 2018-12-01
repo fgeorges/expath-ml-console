@@ -14,8 +14,11 @@ $(document).ready(function () {
 	var field = a.data('field');
 	var label = a.data('label');
 	var id    = a.data('id');
+	// set the ID and label fields
 	$(field + ' input:text'  ).val(label);
 	$(field + ' input:hidden').val(id);
+	// activate the components waiting for a target to be selected
+	$('.need-target').prop('disabled', false);
     });
 
 });

@@ -82,7 +82,7 @@ declare function local:page()
          need to <b>select a source</b> first.</p>
 
       <h3>Source</h3>
-      { v:input-db-widget('source') }
+      { v:input-db-widget('target') }
 
       <h3>Query</h3>
       { v:edit-text(text { $fibonacci }, 'xquery', 'prof-query', 'profile') }
