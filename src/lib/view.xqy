@@ -1162,7 +1162,7 @@ declare function v:input-db-widget($id as xs:string, $name as xs:string, $label 
          <div xmlns="http://www.w3.org/1999/xhtml" class="row" style="margin-bottom: 20px;">
             <div class="col-sm-12">{ $buttons }</div>
          </div>,
-         <div xmlns="http://www.w3.org/1999/xhtml" id="{ $id }" class="row" style="margin-bottom: 20px;">
+         <div xmlns="http://www.w3.org/1999/xhtml" id="{ $id }" class="row emlc-target-field" style="margin-bottom: 20px;">
             <div class="col-sm-12">
                <input type="text" class="form-control" required="required" placeholder="Select a target (database or server)"/>
                <input name="{ $name }" type="hidden" value=""/>
