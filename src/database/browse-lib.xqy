@@ -396,13 +396,14 @@ declare function b:create-doc-form(
 ) as element()+
 {
    <p xmlns="http://www.w3.org/1999/xhtml">
-      <button class="btn btn-default" id="show-jump-area"
+      <button class="btn btn-outline-secondary" id="show-jump-area"
               title="Display the upload area, to upload files or create empty documents"
               onclick="$('#jump-area').slideToggle(); $('#show-jump-area span').toggle();">
          <span>Jump to...</span>
          <span style="display: none">Hide jump area</span>
       </button>
-      <button class="btn btn-default" id="show-files-area"
+      <span> </span>
+      <button class="btn btn-outline-secondary" id="show-files-area"
               title="Display the upload area, to upload files or create empty documents"
               onclick="$('#files-area').slideToggle(); $('#show-files-area span').toggle();">
          <span>Add files...</span>
@@ -432,18 +433,18 @@ declare function b:create-doc-form(
          <div class="row fileupload-buttonbar">
             <div class="col-lg-7">
                <!-- The fileinput-button span is used to style the file input field as button -->
-               <span class="btn btn-default fileinput-button">
+               <span class="btn btn-outline-secondary fileinput-button">
                   <i class="glyphicon glyphicon-plus"/>
                   <span> Add files...</span>
                   <input type="file" name="files[]" multiple="true"/>
                </span>
                <span> </span>
-               <button type="submit" class="btn btn-default start">
+               <button type="submit" class="btn btn-outline-secondary start">
                   <i class="glyphicon glyphicon-upload"/>
                   <span> Start upload</span>
                </button>
                <span> </span>
-               <button type="reset" class="btn btn-default cancel">
+               <button type="reset" class="btn btn-outline-secondary cancel">
                   <i class="glyphicon glyphicon-ban-circle"></i>
                   <span> Cancel upload</span>
                </button>
@@ -651,11 +652,11 @@ declare function b:create-doc-javascript() as element(h:script)
          }}
          // set the form data from the input elements
          data.formData = inputs.serializeArray();
-          // set the content type based on format
+         // set the content type based on format
          var format = inputs.filter('[name="format"]').val();
 
 // **********
-// TODO: Set the file content type from the input selection (xml/text/binary)
+// TODO: Set the file content type from the input selection (xml/text/binary/json)
 //    - xml    -> application/xml
 //    - text   -> text/plain
 //    - binary -> application/octet-stream

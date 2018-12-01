@@ -212,8 +212,8 @@ declare %private function v:console-page-static(
                'expath-theme.css'
             )),
             v:import-css($root || 'js/', (
-               'file-upload-9.11.2/jquery.fileupload.css',
-               'file-upload-9.11.2/jquery.fileupload-ui.css',
+               'file-upload-9.28.0/css/jquery.fileupload.css',
+               'file-upload-9.28.0/css/jquery.fileupload-ui.css',
                'gallery-2.16.0/blueimp-gallery.min.css',
                'highlight/styles/default.css'
             ))
@@ -269,19 +269,19 @@ declare %private function v:console-page-static(
                'ace/ace.js',
                'ace/ext-static_highlight.js',
                'datatables.min.js',
-               'file-upload-9.11.2/vendor/jquery.ui.widget.js',
+               'file-upload-9.28.0/js/vendor/jquery.ui.widget.js',
                'templates-2.5.5/tmpl.min.js',
                'load-image-1.14.0/load-image.all.min.js',
                'canvas-to-blob-2.2.0/canvas-to-blob.min.js',
                'gallery-2.16.0/jquery.blueimp-gallery.min.js',
-               'file-upload-9.11.2/jquery.iframe-transport.js',
-               'file-upload-9.11.2/jquery.fileupload.js',
-               'file-upload-9.11.2/jquery.fileupload-process.js',
-               'file-upload-9.11.2/jquery.fileupload-image.js',
-               'file-upload-9.11.2/jquery.fileupload-audio.js',
-               'file-upload-9.11.2/jquery.fileupload-video.js',
-               'file-upload-9.11.2/jquery.fileupload-validate.js',
-               'file-upload-9.11.2/jquery.fileupload-ui.js',
+               'file-upload-9.28.0/js/jquery.iframe-transport.js',
+               'file-upload-9.28.0/js/jquery.fileupload.js',
+               'file-upload-9.28.0/js/jquery.fileupload-process.js',
+               'file-upload-9.28.0/js/jquery.fileupload-image.js',
+               'file-upload-9.28.0/js/jquery.fileupload-audio.js',
+               'file-upload-9.28.0/js/jquery.fileupload-video.js',
+               'file-upload-9.28.0/js/jquery.fileupload-validate.js',
+               'file-upload-9.28.0/js/jquery.fileupload-ui.js',
                'expath-console.js'
             )),
             for $script in $scripts
