@@ -114,7 +114,7 @@ declare function local:content($uri as xs:string, $dir as xs:string?, $root as x
    as element()+
 {
    <h3>Content</h3>,
-   <p>You can <a href="bin?uri={ $uri }">download</a> the document.</p>,
+   <p>You can <a href="bin?uri={ fn:encode-for-uri($uri) }">download</a> the document.</p>,
    let $doc := fn:doc($uri)
    let $id  := fn:generate-id($doc)
    return

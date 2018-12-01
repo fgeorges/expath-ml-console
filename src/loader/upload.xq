@@ -1,4 +1,6 @@
-(: object-node { } and array-node { } constructors are not available in 3.0 :)
+(: object-node { } and array-node { } constructors are not available in 3.0
+ : TODO: But map:* functions are, aren't they?
+ :)
 xquery version "1.0-ml";
 
 import module namespace i = "http://expath.org/ns/ml/console/insert" at "insert-lib.xqy";
@@ -12,13 +14,12 @@ import module namespace t = "http://expath.org/ns/ml/console/tools"  at "../lib/
  : TODO: Implement the fields `deleteUrl` and `deleteType`, in the JSON response.
  :)
 
-
 let $db     := t:mandatory-field('database')
 (: there is no prefix when called from a database page (displaying the roots) :)
 let $prefix := t:optional-field('prefix', ())
 let $format := t:mandatory-field('format')
 let $file   := t:mandatory-field('files[]')
-let $name   := t:mandatory-field-filename('files[]')
+let $name   := t:mandatory-field-filename('files[]') ! fn:encode-for-uri(.)
 let $res    := i:handle-file($db, $file, $format, $name, $prefix, fn:false())
 let $size   := 666 (: TODO: How to find the size?  Is is possible?  Is it required? :)
 return
