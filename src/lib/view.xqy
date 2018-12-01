@@ -986,7 +986,8 @@ declare function v:input-select-rulesets(
          v:input-option($r, $r, $selected[$r = $checked]),
       $div-attrs,
       v:inject-class('selectpicker',
-         v:inject-attr('multiple', 'multiple', ' ', $select-attrs)))
+         v:inject-attr('data-style', 'btn-outline-secondary', ' ',
+            v:inject-attr('multiple', 'multiple', ' ', $select-attrs))))
 };
 
 declare function v:input-file($id as xs:string, $label as xs:string)
@@ -1088,112 +1089,138 @@ declare function v:input-hidden($id as xs:string, $val as xs:string, $attrs as a
    </input>
 };
 
-declare function v:input-exec-target($name as xs:string, $label as xs:string)
+declare function v:input-db-widget($name as xs:string)
    as element((: h:input|h:div :))+
 {
-   v:input-exec-target($name, $name, $label)
+   v:input-db-widget($name, ())
 };
 
-declare function v:input-exec-target($id as xs:string, $name as xs:string, $label as xs:string)
+declare function v:input-db-widget($name as xs:string, $label as xs:string?)
    as element((: h:input|h:div :))+
 {
-   <div xmlns="http://www.w3.org/1999/xhtml" class="form-group row">
-      <label for="{ $name }" class="col-sm-2 col-form-label">{ $label }</label>
-      <div class="col-sm-10">
-	 <div class="btn-group" xmlns="http://www.w3.org/1999/xhtml">
-	    <button type="button" class="btn dropdown-toggle"
-		    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-	       Databases <span class="caret"/>
-	    </button>
-	    <ul class="dropdown-menu" style="min-width: 400pt"> {
-	       for $db in a:get-databases()/a:database
-	       order by $db/a:name
-	       return
-		  v:format-exec-target-db($db, $id)
-	    }
-	    </ul>
-	 </div>
-         {
-            let $all := a:get-appservers()/a:appserver
-            for $srv in (<srv label="HTTP"   type="http"/>,
-                         <srv label="XDBC"   type="xdbc"/>,
-                         <srv label="ODBC"   type="odbc"/>,
-                         <srv label="WebDAV" type="webDAV"/>)
-            return
-	       <div class="btn-group" style="margin-left: 10px;">
-		  <button type="button" class="btn dropdown-toggle"
-			  data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-		     { xs:string($srv/@label) } servers <span class="caret"/>
-		  </button>
-		  <ul class="dropdown-menu" style="min-width: 400pt"> {
-		     let $asses := $all[@type eq $srv/@type]
-		     return
-			if ( fn:exists($asses) ) then
-			   for $as in $asses
-			   order by $as/a:name
-			   return
-			      v:format-exec-target-as($as, $id, $srv/@label)
-			else
-			   <li><a style="font-style: italic">(none)</a></li>
-		  }
-		  </ul>
-	       </div>
-         }
-      </div>
-   </div>,
-   <div xmlns="http://www.w3.org/1999/xhtml" id="{ $id }" class="form-group row emlc-target-field">
-      <label class="col-sm-2 col-form-label"/>
-      <div class="col-sm-10">
-	 <input type="text" class="form-control" required="required" placeholder="Select a target (database or server)"/>
-	 <input name="{ $name }" type="hidden" value=""/>
-      </div>
-   </div>
+   v:input-db-widget($name, $name, $label)
 };
 
-declare function v:format-exec-target-db(
+declare function v:input-db-widget($id as xs:string, $name as xs:string, $label as xs:string?)
+   as element((: h:input|h:div :))+
+{
+   let $buttons := (
+         <div class="btn-group">
+            <button type="button" class="btn btn-outline-secondary dropdown-toggle"
+                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+               Databases
+            </button>
+            <div class="dropdown-menu" style="min-width: 400pt"> {
+               for $db in a:get-databases()/a:database
+               order by $db/a:name
+               return
+                  v:format-db-widget-db($db, $id)
+            }
+            </div>
+         </div>,
+         let $all := a:get-appservers()/a:appserver
+         for $srv in (<srv label="HTTP"   type="http"/>,
+                      <srv label="XDBC"   type="xdbc"/>,
+                      <srv label="ODBC"   type="odbc"/>,
+                      <srv label="WebDAV" type="webDAV"/>)
+         return (
+            ' ',
+            <div class="btn-group" style="margin-left: 10px;">
+               <button type="button" class="btn btn-outline-secondary dropdown-toggle"
+                       data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  { xs:string($srv/@label) } servers
+               </button>
+               <div class="dropdown-menu" style="min-width: 400pt"> {
+                  let $asses := $all[@type eq $srv/@type]
+                  return
+                     if ( fn:exists($asses) ) then
+                        for $as in $asses
+                        order by $as/a:name
+                        return
+                           v:format-db-widget-as($as, $id, $srv/@label)
+                     else
+                        <a class="dropdown-item" style="font-style: italic" href="#">(none)</a>
+               }
+               </div>
+            </div>
+         ))
+   return
+      if ( fn:exists($label) ) then (
+         <div xmlns="http://www.w3.org/1999/xhtml" class="form-group row">
+            <label for="{ $name }" class="col-sm-2 col-form-label">{ $label }</label>
+            <div class="col-sm-10">{ $buttons }</div>
+         </div>,
+         <div xmlns="http://www.w3.org/1999/xhtml" id="{ $id }" class="form-group row emlc-target-field">
+            <label class="col-sm-2 col-form-label"/>
+            <div class="col-sm-10">
+               <input type="text" class="form-control" required="required" placeholder="Select a target (database or server)"/>
+               <input name="{ $name }" type="hidden" value=""/>
+            </div>
+         </div>
+      )
+      else (
+         <div xmlns="http://www.w3.org/1999/xhtml" class="row" style="margin-bottom: 20px;">
+            <div class="col-sm-12">{ $buttons }</div>
+         </div>,
+         <div xmlns="http://www.w3.org/1999/xhtml" id="{ $id }" class="row" style="margin-bottom: 20px;">
+            <div class="col-sm-12">
+               <input type="text" class="form-control" required="required" placeholder="Select a target (database or server)"/>
+               <input name="{ $name }" type="hidden" value=""/>
+            </div>
+         </div>
+      )
+};
+
+declare function v:format-db-widget-db(
    $db    as element(a:database),
    $field as xs:string
-) as element(h:li)
+) as element(h:a)
 {
-   <li xmlns="http://www.w3.org/1999/xhtml">
-      <a data-field="#{ $field }" data-id="{ $db/@id }" data-label="{ $db/a:name }" class="emlc-target-entry"> {
-         $db/fn:string(a:name)
-      }
-      </a>
-   </li>
+   <a xmlns="http://www.w3.org/1999/xhtml"
+      class="emlc-target-entry dropdown-item"
+      href="#"
+      data-field="#{ $field }"
+      data-id="{ $db/@id }"
+      data-label="{ $db/a:name }"> {
+      $db/fn:string(a:name)
+   }
+   </a>
 };
 
-declare function v:format-exec-target-as(
+declare function v:format-db-widget-as(
    $as    as element(a:appserver),
    $field as xs:string,
    $type  as xs:string
-) as element(h:li)
+) as element(h:a)
 {
    let $name  := xs:string($as/a:name)
    let $label := $name || ' (' || $type || ')'
    return
-      <li xmlns="http://www.w3.org/1999/xhtml">
-         <a data-field="#{ $field }" data-id="{ $as/@id }" data-label="{ $label }" class="emlc-target-entry">
-            <span> {
-               $name
-            }
-            </span>
-            <br/>
-            <small> {
-               '          Content: ' || $as/a:db
-            }
-            </small>
-            <br/>
-            <small> {
-               '          Modules: '
-                  || ( $as/a:modules-db, 'file' )[1]
-                  || ' &lt;'
-                  || $as/a:root
-                  || '>'
-            }
-            </small>
-         </a>
-      </li>
+      <a xmlns="http://www.w3.org/1999/xhtml"
+         class="emlc-target-entry dropdown-item"
+         href="#"
+         data-field="#{ $field }"
+         data-id="{ $as/@id }"
+         data-label="{ $label }">
+         <span> {
+            $name
+         }
+         </span>
+         <br/>
+         <small> {
+            '          Content: ' || $as/a:db
+         }
+         </small>
+         <br/>
+         <small> {
+            '          Modules: '
+               || ( $as/a:modules-db, 'file' )[1]
+               || ' &lt;'
+               || $as/a:root
+               || '>'
+         }
+         </small>
+      </a>
 };
 
 (:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

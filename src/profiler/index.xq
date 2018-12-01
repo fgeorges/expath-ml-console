@@ -2,9 +2,6 @@ xquery version "3.0";
 
 (:~
  : The profiler page.
- :
- : TODO: Use the new component v:input-exec-target() instead of the old target
- : selection mecanism below (as in the job index page.)
  :)
 
 import module namespace a = "http://expath.org/ns/ml/console/admin" at "../lib/admin.xqy";
@@ -85,71 +82,7 @@ declare function local:page()
          need to <b>select a source</b> first.</p>
 
       <h3>Source</h3>
-
-      { ((: TODO: Use `v:input-exec-target()' instead of reimplementing the same here... :)) }
-
-      <div class="row">
-         <div class="col-sm-12">
-            <div class="btn-group">
-               <button type="button" class="btn btn-default dropdown-toggle"
-                       data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                  Databases <span class="caret"/>
-               </button>
-               <ul class="dropdown-menu" style="min-width: 400pt"> {
-                  for $db in a:get-databases()/a:database
-                  order by $db/a:name
-                  return
-                     local:format-db($db, 'target-id', 'target-label')
-               }
-               </ul>
-            </div>
-            <div class="btn-group" style="margin-left: 10px;">
-               <button type="button" class="btn btn-default dropdown-toggle"
-                       data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                  HTTP servers <span class="caret"/>
-               </button>
-               <ul class="dropdown-menu" style="min-width: 400pt"> {
-                  local:format-asses('http')
-               }
-               </ul>
-            </div>
-            <div class="btn-group" style="margin-left: 10px;">
-               <button type="button" class="btn btn-default dropdown-toggle"
-                       data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                  XDBC servers <span class="caret"/>
-               </button>
-               <ul class="dropdown-menu" style="min-width: 400pt"> {
-                  local:format-asses('xdbc')
-               }
-               </ul>
-            </div>
-            <div class="btn-group" style="margin-left: 10px;">
-               <button type="button" class="btn btn-default dropdown-toggle"
-                       data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                  ODBC servers <span class="caret"/>
-               </button>
-               <ul class="dropdown-menu" style="min-width: 400pt"> {
-                  local:format-asses('odbc')
-               }
-               </ul>
-            </div>
-            <div class="btn-group" style="margin-left: 10px;">
-               <button type="button" class="btn btn-default dropdown-toggle"
-                       data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                  WebDAV servers <span class="caret"/>
-               </button>
-               <ul class="dropdown-menu" style="min-width: 400pt"> {
-                  local:format-asses('webDAV')
-               }
-               </ul>
-            </div>
-            <div class="btn-group float-right active" role="group">
-               <button id="target-label" type="button" class="btn btn-danger" disabled="disabled">select a source</button>
-            </div>
-            <div id="target-id" style="display: none"/>
-         </div>
-      </div>
-      <p/>
+      { v:input-db-widget('source') }
 
       <h3>Query</h3>
       { v:edit-text(text { $fibonacci }, 'xquery', 'prof-query', 'profile') }
@@ -213,71 +146,6 @@ declare function local:page()
    </wrapper>/*
 };
 
-declare function local:format-db(
-   $db           as element(a:database),
-   $target-id    as xs:string,
-   $target-label as xs:string
-) as element(li)
-{
-   <li>
-      <a onclick='selectTarget("{ $target-id }", "{ $db/@id }", "{ $target-label }", "{ $db/a:name }");'> {
-         $db/fn:string(a:name)
-      }
-      </a>
-   </li>
-};
-
-declare function local:format-asses($type as xs:string)
-{
-   let $asses := $appservers[@type eq $type]
-   return
-      if ( fn:exists($asses) ) then
-         for $as in $asses
-         order by $as/a:name
-         return
-            local:format-as($as, 'target-id', 'target-label')
-      else
-         <li><a style="font-style: italic">(none)</a></li>
-};
-
-declare function local:format-as(
-   $as           as element(a:appserver),
-   $target-id    as xs:string,
-   $target-label as xs:string
-) as element(li)
-{
-   let $types :=
-         <types>
-            <type code="http"   label="HTTP"/>
-            <type code="xdbc"   label="XDBC"/>
-            <type code="odbc"   label="ODBC"/>
-            <type code="webDAV" label="WebDAV"/>
-         </types>/*
-   let $name  := xs:string($as/a:name)
-   let $label := $name || ' (' || $types[@code eq $as/@type]/@label || ')'
-   return
-      <li>
-         <a onclick='selectTarget("{ $target-id }", "{ $as/@id }", "{ $target-label }", "{ $label }");'>
-            <span> {
-               $name
-            }
-            </span>
-            <br/>
-            <small> {
-               '          Content: ' || $as/a:db
-            }
-            </small>
-            <br/>
-            <small> {
-               '          Modules: '
-                  || ( $as/a:modules-db, 'file' )[1]
-                  || ' &lt;'
-                  || $as/a:root
-                  || '>'
-            }
-            </small>
-         </a>
-      </li>
-};
-
-v:console-page('../', 'profiler', 'Profiler', local:page#0, <lib>filesaver</lib>)
+v:console-page('../', 'profiler', 'Profiler', local:page#0, (
+   <lib>filesaver</lib>,
+   <lib>emlc.target</lib>))

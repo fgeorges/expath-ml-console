@@ -12,8 +12,10 @@ $(document).ready(function () {
         e.preventDefault();
 	var a     = $(this);
 	var field = a.data('field');
-	$(field + ' input:text'  ).val(a.data('label'));
-	$(field + ' input:hidden').val(a.data('id'));
+	var label = a.data('label');
+	var id    = a.data('id');
+	$(field + ' input:text'  ).val(label);
+	$(field + ' input:hidden').val(id);
     });
 
 });
