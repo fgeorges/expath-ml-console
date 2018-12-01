@@ -174,57 +174,60 @@ declare function local:config-area($db as element(a:database), $name as xs:strin
    return (
       <p>You can configure the browser behaviour on this database with the following config
          documents (in order of precedence):</p>,
-      <ul>
-         <li> {
-            if ( $config-available ) then
-               v:doc-link($db/a:name || '/', $dbc:config-doc)
-            else
-               <code>{ xs:string($dbc:config-doc) }</code>
-         }
-         </li>
-         <li> {
-            if ( $sys-available ) then
-               v:doc-link($sys-db/a:name || '/', $sys-path)
-            else
-               <code>{ xs:string($sys-path) }</code>
-         }
-         </li>
-         <li> {
-            if ( $defaults-available ) then
-               v:doc-link($sys-db/a:name || '/', $dbc:defaults-doc)
-            else
-               <code>{ xs:string($dbc:defaults-doc) }</code>
-         }
-         </li>
+      <ul> {
+         local:config-link($dbc:config-doc,   $db,     $config-available),
+         local:config-link($sys-path,         $sys-db, $sys-available),
+         local:config-link($dbc:defaults-doc, $sys-db, $defaults-available)
+      }
       </ul>,
-      let $filename := fn:tokenize($dbc:config-doc, $dbc:config-doc/@sep)[fn:last()]
-      return (
-         <p>The former, <code>{ $filename }</code> on { $db/a:name ! v:db-link(., .) }, contains the
-            configuration specific to this database.</p>,
-         t:unless($config-available,
-            local:insert-config-doc($dbc:config-doc, $db/a:name))
-      ),
-      let $filename := fn:tokenize($sys-path, $sys-path/@sep)[fn:last()]
-      return (
-         <p>The second one, <code>{ $filename }</code> on { $sys-db/a:name ! v:db-link(., .) }, is
-            the same but is stored in the ML Console database.</p>,
-         t:unless($sys-available,
-            local:insert-config-doc($sys-path, $sys-db/a:name))
-      ),
-      let $filename := fn:tokenize($dbc:defaults-doc, $dbc:defaults-doc/@sep)[fn:last()]
-      return (
-         <p>The latter, <code>{ $filename }</code> on { $sys-db/a:name ! v:db-link(., .) }, contains
-            default values applied to all databases.</p>,
-         t:unless($defaults-available,
-            local:insert-config-doc($dbc:defaults-doc, $sys-db/a:name))
-      )
+      local:config-describe($dbc:config-doc,   $db,     $config-available,
+         'contains the configuration specific to this database'),
+      local:config-describe($sys-path,         $sys-db, $sys-available,
+         'is the same but is stored in the ML Console database'),
+      local:config-describe($dbc:defaults-doc, $sys-db, $defaults-available,
+         'contains default values applied to all databases')
    )
 };
 
-declare function local:insert-config-doc($path as element(), $db as xs:string)
-   as element(h:form)?
+declare function local:config-link(
+   $path  as element(),
+   $db    as element(a:database),
+   $avail as xs:boolean
+) as element(h:li)
 {
-   v:one-liner-link('Create it!', '../loader/insert', 'Create', (
+   <li> {
+      if ( $avail ) then
+	 v:doc-link($db/a:name || '/', $path)
+      else
+	 <code>{ xs:string($path) }</code>
+   }
+   </li>
+};
+
+declare function local:config-describe(
+   $path  as element(),
+   $db    as element(a:database),
+   $avail as xs:boolean,
+   $desc  as xs:string
+) as element(h:div)
+{
+   <div class="row">
+      <div class="col-sm-10">
+	 <p><code>{ fn:tokenize($path, $path/@sep)[fn:last()] }</code> on
+	    { $db/a:name ! v:db-link(., .) } - { $desc }{ t:unless($avail, ': ') }</p>
+      </div>
+      <div class="col-sm-2" style="margin-top: -0.5em"> {
+	 t:unless($avail,
+	    local:insert-config-doc($path, $db/a:name))
+      }
+      </div>
+   </div>
+};
+
+declare function local:insert-config-doc($path as element(), $db as xs:string)
+   as element(h:form)
+{
+   v:one-button-form('../loader/insert', 'Create', (
       v:input-hidden('uri',      $path),
       (: TODO: Will need to remove root and sep from here too... :)
       v:input-hidden('root',     $path/@root),

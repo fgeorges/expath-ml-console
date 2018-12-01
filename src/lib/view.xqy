@@ -812,6 +812,35 @@ declare function v:one-liner-link(
          $method)
 };
 
+declare function v:one-button-form(
+   $action as xs:string,
+   $submit as xs:string,
+   $hidden as element(h:input)*
+) as element(h:form)
+{
+   v:one-button-form($action, $submit, 'post', $hidden)
+};
+
+declare function v:one-button-form(
+   $action as xs:string,
+   $submit as xs:string,
+   $method as xs:string,
+   $hidden as element(h:input)*
+) as element(h:form)
+{
+   if ( fn:exists($hidden[fn:not(@type eq 'hidden')]) ) then
+      t:error('invalid-form', 'Non-hidden input fieldd')
+   else
+      v:form($action, (), (
+            $hidden,
+            <button xmlns="http://www.w3.org/1999/xhtml" class="btn btn-outline-secondary"> {
+               $submit
+            }
+            </button>
+         ),
+         $method)
+};
+
 declare %private function v:form-impl(
    $action  as xs:string,
    $attrs   as attribute()*,
