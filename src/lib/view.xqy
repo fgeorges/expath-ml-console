@@ -113,7 +113,7 @@ declare function v:console-page(
    $page    as xs:string,
    $title   as xs:string,
    $content as function() as element()+
-) as element(h:html)
+) as document-node()
 {
    v:console-page($root, $page, $title, $content, ())
 };
@@ -140,12 +140,22 @@ declare function v:console-page(
    $title   as xs:string,
    $content as function() as element()+,
    $scripts as element()*
-) as element(h:html)
+) as document-node()
 {
-   let $cnt  := v:eval-content($content)
-   let $pres := $cnt/descendant-or-self::h:pre
-   return
-      v:console-page-static($root, $page, $title, $cnt, $scripts)
+   xdmp:set-response-content-type("text/html"),
+   document {
+      '<!doctype html>&#10;' ||
+      xdmp:quote(
+         let $cnt  := v:eval-content($content)
+         let $pres := $cnt/descendant-or-self::h:pre
+         return
+            v:console-page-static($root, $page, $title, $cnt, $scripts),
+         <options xmlns="xdmp:quote">
+            <method>html</method>
+            <media-type>text/html</media-type>
+            <doctype-public>html</doctype-public>
+         </options>)
+   }
 };
 
 (:~
@@ -197,7 +207,7 @@ declare %private function v:console-page-static(
             v:import-css($root || 'style/', (
                'bootstrap.min.css',
                'bootstrap-select.min.css',
-	       'datatables.min.css',
+               'datatables.min.css',
                'typeahead.css',
                'expath-theme.css'
             )),
@@ -251,14 +261,14 @@ declare %private function v:console-page-static(
          {
             (: TODO: Refactor this using the new "lib import", so individual pages
                can cherry-pick libraries to import. For instance, File Upload is
-	       only used on the database directory browser. :)
+               only used on the database directory browser. :)
             v:import-javascript($root || 'js/', (
                'jquery.min.js',
                'bootstrap.bundle.min.js',
                'bootstrap-select.min.js',
                'ace/ace.js',
                'ace/ext-static_highlight.js',
-	       'datatables.min.js',
+               'datatables.min.js',
                'file-upload-9.11.2/vendor/jquery.ui.widget.js',
                'templates-2.5.5/tmpl.min.js',
                'load-image-1.14.0/load-image.all.min.js',
@@ -640,20 +650,20 @@ declare function v:ace-editor(
       (: TODO: Any better way to detect non-node JS objects? (incl. arrays) :)
       if ( b:is-map($content) ) then
          xdmp:javascript-eval(
-	    'JSON.stringify(content, null, 2)',
+            'JSON.stringify(content, null, 2)',
             ('content', $content))
       else if ( fn:not($content instance of node()) ) then
          $content
       else if ( b:is-json($content) ) then
          xdmp:javascript-eval(
-	    'JSON.stringify(content.toObject(), null, 2)',
+            'JSON.stringify(content.toObject(), null, 2)',
             ('content', $content))
       else
          xdmp:quote(
-	    $content,
-	    <options xmlns="xdmp:quote">
-	       <indent-untyped>yes</indent-untyped>
-	    </options>)
+            $content,
+            <options xmlns="xdmp:quote">
+               <indent-untyped>yes</indent-untyped>
+            </options>)
    }
    </pre>
 };
@@ -1013,10 +1023,10 @@ declare function v:input-radio(
 {
    <div xmlns="http://www.w3.org/1999/xhtml" class="radio">
       <label>
-	 <input type="radio" name="{ $name }" id="{ $id }" value="{ $value }"> {
+         <input type="radio" name="{ $name }" id="{ $id }" value="{ $value }"> {
             $label
-	 }
-	 </input>
+         }
+         </input>
       </label>
    </div>
 };
