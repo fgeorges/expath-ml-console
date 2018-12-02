@@ -203,6 +203,7 @@ declare %private function v:console-page-static(
          <meta name="viewport" content="width=device-width, initial-scale=1"/>
          <meta name="ml.time"  content="{ xdmp:elapsed-time() }"/>
          <title>{ $title }</title>
+         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css"/>
          {
             v:import-css($root || 'style/', (
                'bootstrap.min.css',

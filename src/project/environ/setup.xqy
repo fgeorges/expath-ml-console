@@ -54,13 +54,13 @@ declare variable $this:action-props :=
 
 declare variable $this:actions :=
    <actions xmlns="">
-      <action type="ForestCreate"   icon="tree-conifer"/>
-      <action type="ForesAttach"    icon="tree-conifer"/>
-      <action type="ForestDetach"   icon="tree-conifer"/>
-      <action type="DatabaseCreate" icon="floppy-disk"/>
-      <action type="DatabaseUpdate" icon="floppy-disk"/>
-      <action type="ServerCreate"   icon="hdd"/>
-      <action type="ServerUpdate"   icon="hdd"/>
+      <action type="ForestCreate"   icon="tree"/>
+      <action type="ForesAttach"    icon="tree"/>
+      <action type="ForestDetach"   icon="tree"/>
+      <action type="DatabaseCreate" icon="database"/>
+      <action type="DatabaseUpdate" icon="database"/>
+      <action type="ServerCreate"   icon="server"/>
+      <action type="ServerUpdate"   icon="server"/>
    </actions>;
 
 declare function this:action($action as item((: map:map :))) as element()
@@ -74,7 +74,7 @@ declare function this:action($action as item((: map:map :))) as element()
       else
          <p class="mlproj-todo"> {
             $this:action-props ! attribute { 'data-' || . } { map:get($action, .) },
-            <span class="glyphicon glyphicon-{ $def/@icon }" aria-hidden="true"/>,
+            <span class="fa fa-{ $def/@icon }" aria-hidden="true"/>,
             ' ',
             $msg
          }

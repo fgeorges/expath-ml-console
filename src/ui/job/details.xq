@@ -163,7 +163,7 @@ declare function local:page($job as node(), $id as xs:string, $name as xs:string
 	 </table>
 	 {
 	    job:error($job) ! <div class="alert alert-danger" role="alert">
-	       <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+	       <span class="fa fa-exclamation-circle" aria-hidden="true"></span>
 	       <span class="sr-only">Error:</span>
 	       <span>{ . }</span>
 	    </div>,
@@ -183,7 +183,7 @@ return
    v:console-page('../', 'job', $title, function() {
       if ( fn:empty($job) ) then
 	 <div class="alert alert-danger" role="alert">
-	    <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+	    <span class="fa fa-exclamation-circle" aria-hidden="true"></span>
 	    <span class="sr-only">Error:</span>
 	    There is no job with ID <code>{ $id }</code>.
 	 </div>

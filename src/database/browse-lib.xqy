@@ -434,18 +434,18 @@ declare function b:create-doc-form(
             <div class="col-lg-7">
                <!-- The fileinput-button span is used to style the file input field as button -->
                <span class="btn btn-outline-secondary fileinput-button">
-                  <i class="glyphicon glyphicon-plus"/>
+                  <i class="fa fa-plus"/>
                   <span> Add files...</span>
                   <input type="file" name="files[]" multiple="true"/>
                </span>
                <span> </span>
                <button type="submit" class="btn btn-outline-secondary start">
-                  <i class="glyphicon glyphicon-upload"/>
+                  <i class="fa fa-upload"/>
                   <span> Start upload</span>
                </button>
                <span> </span>
                <button type="reset" class="btn btn-outline-secondary cancel">
-                  <i class="glyphicon glyphicon-ban-circle"></i>
+                  <i class="fa fa-ban-circle"></i>
                   <span> Cancel upload</span>
                </button>
                <!-- The global file processing state -->
@@ -533,13 +533,13 @@ declare function b:create-doc-form(
                <td>
                   {{% if (! (i || o.options.autoUpload) ) {{ %}}
                      <button class="btn btn-default start" disabled="true">
-                        <i class="glyphicon glyphicon-upload"></i>
+                        <i class="fa fa-upload"></i>
                         <span> Start</span>
                      </button>
                   {{% }} %}}
                   {{% if (!i) {{ %}}
                      <button class="btn btn-default cancel">
-                        <i class="glyphicon glyphicon-ban-circle"></i>
+                        <i class="fa fa-ban-circle"></i>
                         <span> Cancel</span>
                      </button>
                   {{% }} %}}
@@ -584,13 +584,13 @@ declare function b:create-doc-form(
                   {{% if (file.deleteUrl) {{ %}}
                      <!-- {{% if (file.deleteWithCredentials) {{ %}} data-xhr-fields='{{"withCredentials":true}}'{{% }} %}} -->
                      <button class="btn btn-default delete" data-type="{{%=file.deleteType%}}" data-url="{{%=file.deleteUrl%}}">
-                        <i class="glyphicon glyphicon-trash"></i>
+                        <i class="fa fa-trash"></i>
                         <span> Delete</span>
                      </button>
                      <input type="checkbox" name="delete" value="1" class="toggle"/>
                   {{% }} else {{ %}}
                      <button class="btn btn-default cancel">
-                        <i class="glyphicon glyphicon-ban-circle"></i>
+                        <i class="fa fa-ban"/>
                         <span> Hide</span>
                      </button>
                   {{% }} %}}

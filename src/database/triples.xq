@@ -132,11 +132,11 @@ declare function local:page--rsrc(
                return (
                   <tr>
                      <td>
-                        <span class="glyphicon glyphicon-collapse-down" id="expand{ $unik }"
+                        <span class="fa fa-collapse-down" id="expand{ $unik }"
                               title="Expand the blank node"
                               onclick="$('#table{ $unik }').slideToggle();
                                        $('#expand{ $unik }').toggle(); $('#collapse{ $unik }').toggle();"/>
-                        <span class="glyphicon glyphicon-collapse-up"   id="collapse{ $unik }"
+                        <span class="fa fa-collapse-up"   id="collapse{ $unik }"
                               title="Collapse the blank node" style="display: none"
                               onclick="$('#table{ $unik }').slideToggle();
                                        $('#collapse{ $unik }').toggle(); $('#expand{ $unik }').toggle();"/>
@@ -250,11 +250,11 @@ declare function local:subject-table(
                   <tr>
                      <td rowspan="2">{ local:display-value($p, 'prop', $root, $decls) }</td>
                      <td>
-                        <span class="glyphicon glyphicon-collapse-down" id="expand{ $unik }"
+                        <span class="fa fa-collapse-down" id="expand{ $unik }"
                               title="Expand the blank node"
                               onclick="$('#table{ $unik }').slideToggle();
                                        $('#expand{ $unik }').toggle(); $('#collapse{ $unik }').toggle();"/>
-                        <span class="glyphicon glyphicon-collapse-up"   id="collapse{ $unik }"
+                        <span class="fa fa-collapse-up"   id="collapse{ $unik }"
                               title="Collapse the blank node" style="display: none"
                               onclick="$('#table{ $unik }').slideToggle();
                                        $('#collapse{ $unik }').toggle(); $('#expand{ $unik }').toggle();"/>
@@ -349,18 +349,18 @@ declare function local:display-type($v as xs:anyAtomicType)
    (: TODO: Return a different class instead per case, and display it graphically
       rather than using a string. :)
    if ( sem:isIRI($v) ) then
-      <span class="glyphicon glyphicon-link" title="Resource"/>
+      <span class="fa fa-link" title="Resource"/>
    else if ( sem:isBlank($v) ) then
-      <span class="glyphicon glyphicon-unchecked" title="Blank node"/>
+      <span class="fa fa-unchecked" title="Blank node"/>
    else if ( sem:isNumeric($v) ) then
-      <span class="glyphicon glyphicon-usd" title="Number"/>
+      <span class="fa fa-usd" title="Number"/>
    else if ( sem:lang($v) ) then
-      sem:lang($v) ! <span class="glyphicon glyphicon-font" title="String, language: { . }">&#160;{ . }</span>
+      sem:lang($v) ! <span class="fa fa-font" title="String, language: { . }">&#160;{ . }</span>
    else if ( $v instance of xs:date or $v instance of xs:dateTime ) then
-      <span class="glyphicon glyphicon-hourglass" title="Date"/>
+      <span class="fa fa-hourglass" title="Date"/>
    else
       (: Assuming a string? :)
-      <span class="glyphicon glyphicon-font" title="String"/>
+      <span class="fa fa-font" title="String"/>
 };
 
 let $name  := t:mandatory-field('name')
