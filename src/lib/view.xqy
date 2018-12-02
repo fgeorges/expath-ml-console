@@ -615,6 +615,7 @@ declare function v:edit-node(
       v:ace-editor($node, 'editor', $mode, $id, $uri, $top, '250pt'),
       <dummy xmlns="http://www.w3.org/1999/xhtml">
          <button class="btn btn-outline-secondary" onclick='saveDoc("{ $id }", "{ $type }");'>Save</button>
+         <span>  </span>
          <button class="btn btn-danger pull-right" onclick='deleteDoc("{ $id }");'>Delete</button>
          <form method="POST" action="{ $top }delete" style="display: none" id="{ $id }-delete">
             <input type="hidden" name="doc"        value="{ $uri }"/>

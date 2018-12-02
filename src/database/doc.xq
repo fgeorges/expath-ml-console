@@ -342,7 +342,8 @@ declare function local:permissions(
       <input type="hidden" name="uri"      value="{ $uri }"/>
       <input type="hidden" name="database" value="{ $db/@id }"/>
       <input type="hidden" name="redirect" value="true"/>
-      <button type="submit" class="btn btn-default">Add</button>
+      <span>  </span>
+      <button type="submit" class="btn btn-outline-secondary">Add</button>
    </form>
 };
 
