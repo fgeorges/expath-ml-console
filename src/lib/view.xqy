@@ -288,7 +288,7 @@ declare %private function v:console-page-static(
             for $script in $scripts
             return
                if ( $script[self::*:script] ) then
-                  <script>{ fn:string($script) }</script>
+                  <script>{ $script/(@*, node()) }</script>
                else if ( $script[self::*:lib/@src] ) then
                   v:import-javascript($root || 'js/', $script/@src)
                else if ( $script[self::*:lib] ) then
