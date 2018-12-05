@@ -25,6 +25,18 @@ table {
   font-family: "Lucida Grande", Verdana, Arial, Helvetica, sans-serif;
 }
 
+pre {
+  font-family: "Source Code Pro", Consolas, Menlo, Monaco, "Courier New", monospace;
+  padding: 10px 20px;
+  /* font-size: 0.8em; */
+  color: #444;
+  background-color: #f6f6f6;
+  border: 1px solid #e0e0e0;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+}
+
  a code ,
  p code ,
 td code ,
@@ -33,7 +45,7 @@ li code {
   padding: 2px 4px;
   /* font-size: 0.8em; */
   color: #444;
-  background-color: #fcfcfc;
+  background-color: #fafafa;
   border: 1px solid #e0e0e0;
   -webkit-border-radius: 3px;
   -moz-border-radius: 3px;
