@@ -23,7 +23,9 @@
          <a href="https://github.com/jpcs/xqueryparser.xq/issues/6">Yet</a>...</p>
       <p>Error returned by the parser:</p>
       <pre>
-         <xsl:value-of select="xdmp:quote(error/*)"/>
+	 <code>
+            <xsl:value-of select="xdmp:quote(error/*)"/>
+	 </code>
       </pre>
    </xsl:template>
 
@@ -94,7 +96,9 @@
          <xsl:value-of select="comment/head"/>
       </div>
       <pre>
-         <xsl:apply-templates select="signature"/>
+	 <code>
+            <xsl:apply-templates select="signature"/>
+	 </code>
       </pre>
       <!--
           TODO: Do something more elaborate with the signature/param elements
@@ -126,7 +130,9 @@
    <!-- TODO: Once they're all supported, turn it into a white list (error for all unknown...) -->
    <xsl:template match="comment/*" priority="-1">
       <pre>
-         <xsl:value-of select="xdmp:quote(.)"/>
+	 <code>
+            <xsl:value-of select="xdmp:quote(.)"/>
+	 </code>
       </pre>
    </xsl:template>
 
