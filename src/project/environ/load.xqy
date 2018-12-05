@@ -17,7 +17,7 @@ declare function this:error(
    $environ as xs:string,
    $project as xs:string,
    $err     as item((: map:map :))
-)
+) as document-node()
 {
    v:console-page('../../../../', 'project', 'Environ ' || $environ, function() {
       let $code  := map:get($err, 'name')
@@ -110,7 +110,7 @@ declare function this:page(
    $type     as xs:string,
    $cmd-args as item((: json:array :)),
    $actions  as item((: json:array :))
-)
+) as document-node()
 {
    v:console-page('../../../../', 'project', 'Environ ' || $environ, function() {
       this:intro($environ, $project, $type, $cmd-args),

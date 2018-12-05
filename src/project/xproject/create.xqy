@@ -17,7 +17,7 @@ declare function this:page(
    $error   as map:map?,
    $todo    as map:map*,
    $verbose as xs:boolean?
-) as element(h:html)
+) as document-node()
 {
    v:console-page('../../../', 'project', 'Create', function() {
       if ( fn:exists($done) ) then (

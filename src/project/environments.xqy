@@ -58,7 +58,7 @@ declare function env:page(
    $project as xs:string,
    $envs    as item((: json:array :)),
    $details as xs:string
-)
+) as document-node()
 {
    v:console-page('../../', 'project', 'Environments', function() {
       <p>The project { v:proj-link('../' || $project, $project) } get the following
