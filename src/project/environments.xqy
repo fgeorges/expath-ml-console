@@ -21,22 +21,24 @@ declare function env:input-select-text(
 ) as element(h:div)+
 {
    <div class="exclusive">
-      <div class="form-group">
-         <label for="{ $id }-path" class="col-sm-2 control-label">{ $label }</label>
+      <div class="form-group row">
+         <label for="{ $id }-path" class="col-sm-2 col-form-label">{ $label }</label>
          <div class="col-sm-10">
             <div class="input-group">
                <!-- TODO: When source sets supported, only one of both is required... -->
                <input type="text" name="{ $id }-path" class="form-control excl-first"
                       placeholder="{ $placeholder-1 }" required="required" value="{ $default }"/>
-               <span class="input-group-addon">
-                  <input type="radio" name="{ $id }-path-check" class="excl-first-check" checked="checked"/>
-               </span>
+               <div class="input-group-append">
+                  <div class="input-group-text">
+                     <input type="radio" name="{ $id }-path-check" class="excl-first-check" checked="checked"/>
+                  </div>
+               </div>
             </div>
          </div>
       </div>
-      <div class="form-group">
-         { if ( fn:empty($options) ) then attribute { 'hidden' } { 'hidden' } else () }
-         <label for="{ $id }-srcset" class="col-sm-2 control-label"/>
+      <div class="form-group row">
+         { ((: if ( fn:empty($options) ) then attribute { 'hidden' } { 'hidden' } else () :)) }
+         <label for="{ $id }-srcset" class="col-sm-2 col-form-label"/>
          <div class="col-sm-10">
             <div class="input-group">
                <select id="{ $id }-srcset" name="{ $id }-srcset" class="form-control excl-second">
@@ -45,9 +47,11 @@ declare function env:input-select-text(
                   </option>
                   { $options }
                </select>
-               <span class="input-group-addon">
-                  <input type="radio" name="{ $id }-srcset-check" class="excl-second-check"/>
-               </span>
+               <div class="input-group-append">
+                  <div class="input-group-text">
+                     <input type="radio" name="{ $id }-srcset-check" class="excl-second-check"/>
+                  </div>
+               </div>
             </div>
          </div>
       </div>
@@ -195,13 +199,16 @@ declare function env:page(
                         opt.prop('selected', true);
                      }}
                   }});
-                  var group = $(this).find('div[class="exclusive"]')
-                      .find('div[class="form-group"]').eq(1);
+                  var group = $(this).find('div.exclusive').find('div.form-group').eq(1);
                   if ( detail.sources.length ) {{
                      group.show();
+		     $(this).find('.excl-first-check' ).prop('checked', false);
+		     $(this).find('.excl-second-check').prop('checked', true);
                   }}
                   else {{
                      group.hide();
+		     $(this).find('.excl-first-check' ).prop('checked', true);
+		     $(this).find('.excl-second-check').prop('checked', false);
                   }}
 
                   // set the target dropdown lists...
