@@ -128,7 +128,7 @@ declare function this:page(
                Click on "Execute" to start loading.
             </div>,
             <pre id="error" style="display: none"/>,
-            <button id="doit" type="button" class="btn btn-default">Execute</button>
+            <button id="doit" type="button" class="btn btn-outline-secondary">Execute</button>
          )
    },
    (<script>

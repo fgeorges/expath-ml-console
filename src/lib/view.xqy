@@ -70,8 +70,8 @@ declare function v:redirect($url as xs:string)
 (:~
  : Format the top-level menu of a console page.
  :
- : $page: the current page (must be the key of one menu)
- : $root: '' if a top-level page, or '../' if in a sub-directory
+ : @param page the current page (must be the key of one menu)
+ : @param root '' if a top-level page, or '../' if in a sub-directory
  :)
 declare function v:console-page-menu($page as xs:string, $root as xs:string)
    as element(h:li)+
@@ -616,7 +616,7 @@ declare function v:edit-node(
       <dummy xmlns="http://www.w3.org/1999/xhtml">
          <button class="btn btn-outline-secondary" onclick='saveDoc("{ $id }", "{ $type }");'>Save</button>
          <span>  </span>
-         <button class="btn btn-danger pull-right" onclick='deleteDoc("{ $id }");'>Delete</button>
+         <button class="btn btn-outline-danger pull-right" onclick='deleteDoc("{ $id }");'>Delete</button>
          <form method="POST" action="{ $top }delete" style="display: none" id="{ $id }-delete">
             <input type="hidden" name="doc"        value="{ $uri }"/>
             <input type="hidden" name="back-label" value="the directory"/>
