@@ -54,10 +54,10 @@ const details = {
 
 envs.sort((a, b) => {
     return a.name < b.name
-	? -1
-	: a.name > b.name
-	? 1
-	: 0;
+        ? -1
+        : a.name > b.name
+        ? 1
+        : 0;
 });
 envs.forEach(env => {
     let d = {
@@ -69,29 +69,29 @@ envs.forEach(env => {
     // reset, having one global environ not needed in this case
     ctxt.platform.environ = null;
     try {
-	const environ = project.environ(env.name, params, force);
-	environ.compile(params, force);
-	environ.databases().forEach(db => {
+        const environ = project.environ(env.name, params, force);
+        environ.compile(params, force);
+        environ.databases().forEach(db => {
             d.databases.push({
-		name : db.name
+                name : db.name
             });
-	});
-	environ.servers().forEach(srv => {
+        });
+        environ.servers().forEach(srv => {
             d.servers.push({
-		name    : srv.name,
-		content : srv.content && srv.content.name,
-		modules : srv.modules && srv.modules.name
+                name    : srv.name,
+                content : srv.content && srv.content.name,
+                modules : srv.modules && srv.modules.name
             });
-	});
-	environ.sources().forEach(src => {
+        });
+        environ.sources().forEach(src => {
             d.sources.push({
-		name : src.name
+                name : src.name
             });
-	});
+        });
     }
     catch (err) {
-	// TODO: Display an error message...
-	d.err = err;
+        // TODO: Display an error message...
+        d.err = err;
     }
 });
 
