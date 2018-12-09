@@ -81,6 +81,8 @@ declare function env:page(
       }
       </form>,
       <p>Select above the environment to act upon, in the action forms below.</p>,
+      <h3 class="lfam-error" style="display: none">Error</h3>,
+      <pre class="lfam-error" style="display: none" id="lfam-error-msg"></pre>,
       <h3>Show</h3>,
       <p>Show the details of an environment, with all imports resolved.</p>,
       v:form('to/be/set', attribute { 'data-action-template' } { 'environ/{env}/show' }, (
@@ -135,7 +137,7 @@ declare function env:page(
          v:submit('Deploy')))
    },
    (<script>
-      var details = JSON.parse('{ $details }');
+      var details = JSON.parse('{ fn:replace($details, '\\n', '\\\\n') }');
 
       function defaultContentDb(detail) {{
          // if exactly 1 server, it is its content db
@@ -176,8 +178,18 @@ declare function env:page(
 
                var type = $(this).data('load-type');
                if ( type ) {{
+                  $('.lfam-error').hide();
                   // the current environ detail
                   var detail = details[env];
+		  // any error to display?
+		  if ( detail.err ) {{
+		    let msg = detail.err;
+		    if ( detail.err.stack ) {{
+		      msg = detail.err.stack.replace(/\\\\n/g, '\n');
+		    }}
+		    $('#lfam-error-msg').text(msg);
+		    $('.lfam-error').show();
+		  }}
                   // the default source set to select
                   var defaultSrc = type === 'load' ? 'data' : 'src';
                   // the default database to select
