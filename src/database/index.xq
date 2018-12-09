@@ -34,10 +34,12 @@ declare function local:page()
                <td>{ $triggers ! v:db-link('db/' || ., .) } </td>
                <td> {
                   if ( $db/xs:boolean(a:triple-index) ) then (
-                     attribute { 'style' } { 'color: green' }, (:'&#x2611;':) '&#x2713;'
+                     attribute { 'style' } { 'color: green' },
+                     <span class="far fa-check-circle" aria-hidden="true"/>
                   )
                   else (
-                     attribute { 'style' } { 'color: red' }, (:'&#x2610;':) '&#x2717;'
+                     attribute { 'style' } { 'color: red' },
+                     <span class="far fa-times-circle" aria-hidden="true"/>
                   )
                }
                </td>

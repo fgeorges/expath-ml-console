@@ -61,15 +61,17 @@ declare function local:appservers-table($grp as element(a:group))
                   if ( fn:exists($as/a:modules-db) ) then
                      v:db-link('db/' || $as/a:modules-db, $as/a:modules-db)
                   else
-                     fn:string($as/a:modules-path)
+                     <code>{ fn:string($as/a:modules-path) }</code>
                }
                </td>
                <td> {
                   if ( fn:exists(a:appserver-get-packages($as)) ) then (
-                     attribute { 'style' } { 'color: green' }, (:'&#x2611;':) '&#x2713;'
+                     attribute { 'style' } { 'color: green' },
+                     <span class="far fa-check-circle" aria-hidden="true"/>
                   )
                   else (
-                     attribute { 'style' } { 'color: red' }, (:'&#x2610;':) '&#x2717;'
+                     attribute { 'style' } { 'color: red' },
+                     <span class="far fa-times-circle" aria-hidden="true"/>
                   )
                }
                </td>
