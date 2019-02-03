@@ -14,37 +14,40 @@ declare namespace h    = "http://www.w3.org/1999/xhtml";
 declare namespace err  = "http://www.w3.org/2005/xqt-errors";
 declare namespace xdmp = "http://marklogic.com/xdmp";
 
-declare variable $v:pages as element(pages) :=
-   <pages>
-      <page name="pkg"      title="Packages"                      label="Packages"/>
-      <!--page name="web"      title="Web Applications Containers"   label="Web"/>
-      <page name="cxan"     title="CXAN Config"                   label="CXAN"/>
-      <page name="xproject" title="XProject Tools"                label="XProject"/>
-      <page name="xspec"    title="XSpec Tools"                   label="XSpec"/>
-      <page name="browser"  title="Documents and triples browser" label="Browser"/-->
-      <page name="db"       title="Database browser"              label="Databases"/>
-      <page name="loader"   title="The document manager"          label="Loader"/>
-      <page name="job"      title="Asynchronous jobs and tasks"   label="Jobs" href="job/"/>
-      <page name="profiler" title="XQuery Profiler"               label="Profiler"/>
-      <page name="project"  title="The project manager"           label="Projects"/>
-      <page name="tools"    title="Goodies for MarkLogic"         label="Tools"/>
-      <!--page name="help"     title="Console Help"                  label="Help"/-->
-      <!--page name="devel"    title="Devel's evil"                  label="Devel"/-->
-   </pages>;
+declare variable $v:pages as element(c:pages) :=
+   <c:pages>
+      <c:page name="pkg"      title="Packages"                      label="Packages"/>
+      <!--c:page name="web"      title="Web Applications Containers"   label="Web"/>
+      <c:page name="cxan"     title="CXAN Config"                   label="CXAN"/>
+      <c:page name="xproject" title="XProject Tools"                label="XProject"/>
+      <c:page name="xspec"    title="XSpec Tools"                   label="XSpec"/>
+      <c:page name="browser"  title="Documents and triples browser" label="Browser"/-->
+      <c:page name="db"       title="Database browser"              label="Databases"/>
+      <c:page name="loader"   title="The document manager"          label="Loader"/>
+      <c:page name="job"      title="Asynchronous jobs and tasks"   label="Jobs" href="job/"/>
+      <c:page name="profiler" title="XQuery Profiler"               label="Profiler"/>
+      <c:page name="project"  title="The project manager"           label="Projects"/>
+      <c:page name="tools"    title="Goodies for MarkLogic"         label="Tools"/>
+      <!--c:page name="help"     title="Console Help"                  label="Help"/-->
+      <!--c:page name="devel"    title="Devel's evil"                  label="Devel"/-->
+   </c:pages>;
 
 declare variable $v:js-libs :=
-   <libs>
-      <lib code="emlc.target">
-         <path>emlc/emlc-target.js</path>
-      </lib>
-      <lib code="marked">
-         <path>marked.min.js</path>
-         <path>highlight/highlight.pack.js</path>
-      </lib>
-      <lib code="typeahead">
-         <path>typeahead.bundle.js</path>
-      </lib>
-   </libs>/*;
+   <c:libs>
+      <c:lib code="emlc.target">
+         <c:path>emlc/emlc-target.js</c:path>
+      </c:lib>
+      <c:lib code="marked">
+         <c:path>marked.min.js</c:path>
+         <c:path>highlight/highlight.pack.js</c:path>
+      </c:lib>
+      <c:lib code="typeahead">
+         <c:path>typeahead.bundle.js</c:path>
+      </c:lib>
+      <c:lib code="filesaver">
+         <c:path>FileSaver.min.js</c:path>
+      </c:lib>
+   </c:libs>/*;
 
 (:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  : Generic view tools
@@ -67,22 +70,34 @@ declare function v:redirect($url as xs:string)
 (:~
  : Format the top-level menu of a console page.
  :
- : $page: the current page (must be the key of one menu)
- : $root: '' if a top-level page, or '../' if in a sub-directory
+ : @param page the current page (must be the key of one menu)
+ : @param root '' if a top-level page, or '../' if in a sub-directory
  :)
 declare function v:console-page-menu($page as xs:string, $root as xs:string)
    as element(h:li)+
 {
-   for $p in $v:pages/page
-   return
-      <li xmlns="http://www.w3.org/1999/xhtml"> {
-         attribute { 'class' } { 'active' }[$p/@name eq $page],
-         <a href="{ $root }{ $p/(@href, @name)[1] }" title="{ $p/@title }"> {
-            $p/fn:string(@label)
-         }
-         </a>
-      }
-      </li>
+   <wrapper xmlns="http://www.w3.org/1999/xhtml"> {
+      for $p in $v:pages/c:page
+      let $h := $root || $p/(@href, @name)[1]
+      return
+         if ( $p/@name eq $page ) then (: the active page :)
+            <li class="nav-item active">
+               <a class="nav-link" href="{ $h }" title="{ $p/@title }"> {
+                  $p/fn:string(@label),
+                  ' ',
+                  <span class="sr-only">(current)</span>
+               }
+               </a>
+            </li>
+         else
+            <li class="nav-item">
+               <a class="nav-link" href="{ $h }" title="{ $p/@title }"> {
+                  $p/fn:string(@label)
+               }
+               </a>
+            </li>
+   }
+   </wrapper>/*
 };
 
 (:~
@@ -98,7 +113,7 @@ declare function v:console-page(
    $page    as xs:string,
    $title   as xs:string,
    $content as function() as element()+
-) as element(h:html)
+) as document-node()
 {
    v:console-page($root, $page, $title, $content, ())
 };
@@ -125,12 +140,22 @@ declare function v:console-page(
    $title   as xs:string,
    $content as function() as element()+,
    $scripts as element()*
-) as element(h:html)
+) as document-node()
 {
-   let $cnt  := v:eval-content($content)
-   let $pres := $cnt/descendant-or-self::h:pre
-   return
-      v:console-page-static($root, $page, $title, $cnt, $scripts)
+   xdmp:set-response-content-type("text/html"),
+   document {
+      '<!doctype html>&#10;' ||
+      xdmp:quote(
+         let $cnt  := v:eval-content($content)
+         let $pres := $cnt/descendant-or-self::h:pre
+         return
+            v:console-page-static($root, $page, $title, $cnt, $scripts),
+         <options xmlns="xdmp:quote">
+            <method>html</method>
+            <media-type>text/html</media-type>
+            <doctype-public>html</doctype-public>
+         </options>)
+   }
 };
 
 (:~
@@ -178,17 +203,18 @@ declare %private function v:console-page-static(
          <meta name="viewport" content="width=device-width, initial-scale=1"/>
          <meta name="ml.time"  content="{ xdmp:elapsed-time() }"/>
          <title>{ $title }</title>
+         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css"/>
          {
             v:import-css($root || 'style/', (
-               'bootstrap.css',
-               'bootstrap-select.css',
+               'bootstrap.min.css',
+               'bootstrap-select.min.css',
+               'datatables.min.css',
                'typeahead.css',
                'expath-theme.css'
             )),
             v:import-css($root || 'js/', (
-               'datatables-1.10.10/css/dataTables.bootstrap.css',
-               'file-upload-9.11.2/jquery.fileupload.css',
-               'file-upload-9.11.2/jquery.fileupload-ui.css',
+               'file-upload-9.28.0/css/jquery.fileupload.css',
+               'file-upload-9.28.0/css/jquery.fileupload-ui.css',
                'gallery-2.16.0/blueimp-gallery.min.css',
                'highlight/styles/default.css'
             ))
@@ -196,63 +222,73 @@ declare %private function v:console-page-static(
          <link href="{ $root }images/expath-icon.png" rel="shortcut icon" type="image/png"/>
       </head>
       <body>
-         <nav class="navbar navbar-inverse navbar-fixed-top">
-            <div class="container">
-               <div class="navbar-header">
-                  <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
-                          data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-                     <span class="sr-only">Toggle navigation</span>
-                     <span class="icon-bar"/>
-                     <span class="icon-bar"/>
-                     <span class="icon-bar"/>
-                  </button>
-                  <a class="navbar-brand" href="{ $root }./">EXPath Console</a>
-               </div>
-               <div id="navbar" class="navbar-collapse collapse">
-                  <ul class="nav navbar-nav"> {
+         <header>
+            <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+               <a class="navbar-brand" href="{ $root }./">EXPath Console</a>
+               <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo02" aria-controls="navbarTogglerDemo02" aria-expanded="false" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon"></span>
+               </button>
+               <div class="collapse navbar-collapse" id="navbarTogglerDemo02">
+                  <ul class="navbar-nav mr-auto mt-2 mt-lg-0"> {
                      v:console-page-menu($page, $root)
                   }
                   </ul>
-                  <p class="navbar-text navbar-right">User: { xdmp:get-current-user() }</p>
+                  <div class="navbar-collapse collapse w-100 order-3 dual-collapse2">
+                     <ul class="navbar-nav ml-auto">
+                        <li class="nav-item nav-link">User: { xdmp:get-current-user() }</li>
+                     </ul>
+                  </div>
                </div>
-            </div>
-         </nav>
-         <div class="container theme-showcase" role="main">
-         {
-            <h1>{ $title }</h1>[fn:empty($content[@class = 'jumbotron'])],
-            $content
+            </nav>
+         </header>
+         <main role="main"> {
+            if ( $content[@class = 'jumbotron'] ) then (
+               <div class="container"> {
+                  $content[@class = 'jumbotron']
+               }
+               </div>,
+               <div class="container">
+                  { $content[fn:not(@class = 'jumbotron')] }
+               </div>
+            )
+            else (
+               <div class="container">
+                  <h1>{ $title }</h1>
+                  { $content }
+               </div>
+            )
          }
-         </div>
+         </main>
          {
             (: TODO: Refactor this using the new "lib import", so individual pages
-               can cherry-pick libraries to import. :)
+               can cherry-pick libraries to import. For instance, File Upload is
+               only used on the database directory browser. :)
             v:import-javascript($root || 'js/', (
-               'jquery.js',
-               'bootstrap.js',
-               'bootstrap-select.js',
+               'jquery.min.js',
+               'bootstrap.bundle.min.js',
+               'bootstrap-select.min.js',
                'ace/ace.js',
                'ace/ext-static_highlight.js',
-               'datatables-1.10.10/js/jquery.dataTables.js',
-               'datatables-1.10.10/js/dataTables.bootstrap.js',
-               'file-upload-9.11.2/vendor/jquery.ui.widget.js',
+               'datatables.min.js',
+               'file-upload-9.28.0/js/vendor/jquery.ui.widget.js',
                'templates-2.5.5/tmpl.min.js',
                'load-image-1.14.0/load-image.all.min.js',
                'canvas-to-blob-2.2.0/canvas-to-blob.min.js',
                'gallery-2.16.0/jquery.blueimp-gallery.min.js',
-               'file-upload-9.11.2/jquery.iframe-transport.js',
-               'file-upload-9.11.2/jquery.fileupload.js',
-               'file-upload-9.11.2/jquery.fileupload-process.js',
-               'file-upload-9.11.2/jquery.fileupload-image.js',
-               'file-upload-9.11.2/jquery.fileupload-audio.js',
-               'file-upload-9.11.2/jquery.fileupload-video.js',
-               'file-upload-9.11.2/jquery.fileupload-validate.js',
-               'file-upload-9.11.2/jquery.fileupload-ui.js',
+               'file-upload-9.28.0/js/jquery.iframe-transport.js',
+               'file-upload-9.28.0/js/jquery.fileupload.js',
+               'file-upload-9.28.0/js/jquery.fileupload-process.js',
+               'file-upload-9.28.0/js/jquery.fileupload-image.js',
+               'file-upload-9.28.0/js/jquery.fileupload-audio.js',
+               'file-upload-9.28.0/js/jquery.fileupload-video.js',
+               'file-upload-9.28.0/js/jquery.fileupload-validate.js',
+               'file-upload-9.28.0/js/jquery.fileupload-ui.js',
                'expath-console.js'
             )),
             for $script in $scripts
             return
                if ( $script[self::*:script] ) then
-                  <script>{ fn:string($script) }</script>
+                  <script>{ $script/(@*, node()) }</script>
                else if ( $script[self::*:lib/@src] ) then
                   v:import-javascript($root || 'js/', $script/@src)
                else if ( $script[self::*:lib] ) then
@@ -578,8 +614,16 @@ declare function v:edit-node(
    return (
       v:ace-editor($node, 'editor', $mode, $id, $uri, $top, '250pt'),
       <dummy xmlns="http://www.w3.org/1999/xhtml">
-         <button class="btn btn-default" onclick='saveDoc("{ $id }", "{ $type }");'>Save</button>
-         <button class="btn btn-danger pull-right" onclick='deleteDoc("{ $id }");'>Delete</button>
+         <button class="btn btn-outline-secondary" onclick='saveDoc("{ $id }", "{ $type }");'>Save</button>
+         <span>  </span>
+         <button class="btn btn-outline-danger float-right" onclick='deleteDoc("{ $id }");'>Delete</button>
+         <p/>
+         <div id="{ $id }-message" style="display: none" class="alert alert-dismissible fade" role="alert">
+            <strong/> <span/>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+               <span aria-hidden="true">&#215;</span>
+            </button>
+         </div>
          <form method="POST" action="{ $top }delete" style="display: none" id="{ $id }-delete">
             <input type="hidden" name="doc"        value="{ $uri }"/>
             <input type="hidden" name="back-label" value="the directory"/>
@@ -608,27 +652,27 @@ declare function v:ace-editor(
         ace-theme="ace/theme/pastel_on_dark"
         ace-gutter="true">
    {
-      attribute { 'id'         } { $id }[fn:exists($id)],
-      attribute { 'ace-uri'    } { $uri }[fn:exists($uri)],
-      attribute { 'ace-top'    } { $top }[fn:exists($top)],
-      attribute { 'style'      } { 'height: ' || $height }[fn:exists($height)],
+      attribute { 'id'      } { $id }[fn:exists($id)],
+      attribute { 'ace-uri' } { $uri }[fn:exists($uri)],
+      attribute { 'ace-top' } { $top }[fn:exists($top)],
+      attribute { 'style'   } { 'height: ' || $height }[fn:exists($height)],
       (: TODO: Any better way to detect non-node JS objects? (incl. arrays) :)
       if ( b:is-map($content) ) then
          xdmp:javascript-eval(
-	    'JSON.stringify(content, null, 2)',
+            'JSON.stringify(content, null, 2)',
             ('content', $content))
       else if ( fn:not($content instance of node()) ) then
          $content
       else if ( b:is-json($content) ) then
          xdmp:javascript-eval(
-	    'JSON.stringify(content.toObject(), null, 2)',
+            'JSON.stringify(content.toObject(), null, 2)',
             ('content', $content))
       else
          xdmp:quote(
-	    $content,
-	    <options xmlns="xdmp:quote">
-	       <indent-untyped>yes</indent-untyped>
-	    </options>)
+            $content,
+            <options xmlns="xdmp:quote">
+               <indent-untyped>yes</indent-untyped>
+            </options>)
    }
    </pre>
 };
@@ -638,38 +682,33 @@ declare function v:ace-editor(
  :)
 
 declare function v:inject-attr(
-   $name  as xs:string,
-   $value as xs:string,
-   $sep   as xs:string,
-   $attrs as attribute()*
+   $name   as xs:string,
+   $values as xs:string+,
+   $sep    as xs:string,
+   $attrs  as attribute()*
 ) as attribute()+
 {
-   let $a := $attrs[fn:name(.) eq $name]
-   return
-      if ( fn:exists($a) ) then (
-         attribute { $name } { $value || $sep || $a },
-         $attrs except $a
-      )
-      else (
-         attribute { $name } { $value },
-         $attrs
-      )
+   let $a := $attrs[fn:node-name(.) eq xs:QName($name)]
+   return (
+      attribute { $name } { fn:string-join(($values, $a), $sep) },
+      $attrs except $a
+   )
 };
 
 declare function v:inject-class(
-   $value as xs:string,
-   $attrs as attribute()*
+   $values as xs:string+,
+   $attrs  as attribute()*
 ) as attribute()+
 {
-   v:inject-attr('class', $value, ' ', $attrs)
+   v:inject-attr('class', $values, ' ', $attrs)
 };
 
 declare function v:inject-style(
-   $value as xs:string,
-   $attrs as attribute()*
+   $values as xs:string+,
+   $attrs  as attribute()*
 ) as attribute()+
 {
-   v:inject-attr('style', $value, '; ', $attrs)
+   v:inject-attr('style', $values, '; ', $attrs)
 };
 
 declare function v:form($action as xs:string, $content as element()+)
@@ -732,13 +771,13 @@ declare function v:one-liner-form(
 ) as element(h:form)
 {
    v:form($action, $attrs,
-      <div xmlns="http://www.w3.org/1999/xhtml" class="form-group">
+      <div xmlns="http://www.w3.org/1999/xhtml" class="form-group row">
          { $content/label }
          <div class="col-sm-9">
             { $content/descendant-or-self::input }
          </div>
          <div class="col-sm-1">
-            <button type="submit" class="btn btn-default">{ $submit }</button>
+            <button type="submit" class="btn btn-outline-secondary float-right">{ $submit }</button>
          </div>
       </div>,
       $method)
@@ -769,16 +808,45 @@ declare function v:one-liner-link(
 ) as element(h:form)
 {
    if ( fn:exists($hidden[fn:not(@type eq 'hidden')]) ) then
-      t:error('invalid-form', 'Non-hidden input fieldd')
+      t:error('invalid-form', 'Non-hidden input field')
    else
       v:form($action, (),
-         <div xmlns="http://www.w3.org/1999/xhtml" class="form-group">
-            <label class="col-sm-2 control-label">{ $label }</label>
+         <div xmlns="http://www.w3.org/1999/xhtml" class="form-group row">
+            <label class="col-sm-2 col-form-label">{ $label }</label>
             <div class="col-sm-10">
                { $hidden }
-               <button class="btn btn-default">{ $submit }</button>
+               <button class="btn btn-outline-secondary">{ $submit }</button>
             </div>
          </div>,
+         $method)
+};
+
+declare function v:one-button-form(
+   $action as xs:string,
+   $submit as xs:string,
+   $hidden as element(h:input)*
+) as element(h:form)
+{
+   v:one-button-form($action, $submit, 'post', $hidden)
+};
+
+declare function v:one-button-form(
+   $action as xs:string,
+   $submit as xs:string,
+   $method as xs:string,
+   $hidden as element(h:input)*
+) as element(h:form)
+{
+   if ( fn:exists($hidden[fn:not(@type eq 'hidden')]) ) then
+      t:error('invalid-form', 'Non-hidden input fieldd')
+   else
+      v:form($action, (), (
+            $hidden,
+            <button xmlns="http://www.w3.org/1999/xhtml" class="btn btn-outline-secondary"> {
+               $submit
+            }
+            </button>
+         ),
          $method)
 };
 
@@ -802,8 +870,8 @@ declare %private function v:form-impl(
 declare function v:input-text-area($name as xs:string, $label as xs:string, $placeholder as xs:string)
    as element(h:div)
 {
-   <div xmlns="http://www.w3.org/1999/xhtml" class="form-group">
-      <label for="{ $name }" class="col-sm-2 control-label">{ $label }</label>
+   <div xmlns="http://www.w3.org/1999/xhtml" class="form-group row">
+      <label for="{ $name }" class="col-sm-2 col-form-label">{ $label }</label>
       <div class="col-sm-10">
          <textarea class="form-control" name="{ $name }" placeholder="{ $placeholder }"/>
       </div>
@@ -835,8 +903,8 @@ declare function v:input-text(
 ) as element(h:div)
 {
    <div xmlns="http://www.w3.org/1999/xhtml">
-      { v:inject-class('form-group', $div-attrs) }
-      <label for="{ $id }" class="col-sm-2 control-label">{ $label }</label>
+      { v:inject-class(('form-group', 'row'), $div-attrs) }
+      <label for="{ $id }" class="col-sm-2 col-form-label">{ $label }</label>
       <div class="col-sm-10">
          <input type="text" name="{ $id }" placeholder="{ $placeholder }"> {
             v:inject-class('form-control', $input-attrs)
@@ -849,9 +917,9 @@ declare function v:input-text(
 declare function v:submit($label as xs:string)
    as element(h:div)
 {
-   <div xmlns="http://www.w3.org/1999/xhtml" class="form-group">
-      <div class="col-sm-offset-2 col-sm-10">
-         <button type="submit" class="btn btn-default">{ $label }</button>
+   <div xmlns="http://www.w3.org/1999/xhtml" class="form-group row">
+      <div class="col">
+         <button type="submit" class="btn btn-outline-secondary float-right">{ $label }</button>
       </div>
    </div>
 };
@@ -874,8 +942,8 @@ declare function v:input-select(
 ) as element(h:div)
 {
    <div xmlns="http://www.w3.org/1999/xhtml">
-      { v:inject-class('form-group', $div-attrs) }
-      <label for="{ $id }" class="col-sm-2 control-label">{ $label }</label>
+      { v:inject-class(('form-group', 'row'), $div-attrs) }
+      <label for="{ $id }" class="col-sm-2 col-form-label">{ $label }</label>
       <div class="col-sm-10">
          <select name="{ $id }"> {
             v:inject-class('form-control', $select-attrs),
@@ -956,14 +1024,15 @@ declare function v:input-select-rulesets(
          v:input-option($r, $r, $selected[$r = $checked]),
       $div-attrs,
       v:inject-class('selectpicker',
-         v:inject-attr('multiple', 'multiple', ' ', $select-attrs)))
+         v:inject-attr('data-style', 'btn-outline-secondary', ' ',
+            v:inject-attr('multiple', 'multiple', ' ', $select-attrs))))
 };
 
 declare function v:input-file($id as xs:string, $label as xs:string)
    as element(h:div)
 {
-   <div xmlns="http://www.w3.org/1999/xhtml" class="form-group">
-      <label for="{ $id }" class="col-sm-2 control-label">{ $label }</label>
+   <div xmlns="http://www.w3.org/1999/xhtml" class="form-group row">
+      <label for="{ $id }" class="col-sm-2 col-form-label">{ $label }</label>
       <div class="col-sm-10">
          <input type="file" name="{ $id }"/>
       </div>
@@ -973,10 +1042,13 @@ declare function v:input-file($id as xs:string, $label as xs:string)
 declare function v:input-checkbox($id as xs:string, $label as xs:string, $checked as xs:string)
    as element(h:div)
 {
-   <div xmlns="http://www.w3.org/1999/xhtml" class="form-group">
-      <label for="{ $id }" class="col-sm-2 control-label">{ $label }</label>
+   <div xmlns="http://www.w3.org/1999/xhtml" class="form-group row">
+      <div class="col-sm-2 col-form-label pt-0">{ $label }</div>
       <div class="col-sm-10">
-         <input type="checkbox" name="{ $id }" checked="{ $checked }"/>
+         <div class="form-check">
+            <input type="checkbox" name="{ $id }" checked="{ $checked }"
+                   class="form-check-input"/>
+         </div>
       </div>
    </div>
 };
@@ -990,24 +1062,26 @@ declare function v:input-radio(
 {
    <div xmlns="http://www.w3.org/1999/xhtml" class="radio">
       <label>
-	 <input type="radio" name="{ $name }" id="{ $id }" value="{ $value }"> {
+         <input type="radio" name="{ $name }" id="{ $id }" value="{ $value }"> {
             $label
-	 }
-	 </input>
+         }
+         </input>
       </label>
    </div>
 };
 
-declare function v:input-radio-group($label as xs:string, $radios as element(h:label)*)
-   as element(h:div)
+declare function v:input-radio-group($label as xs:string, $radios as element(h:div)*)
+   as element(h:fieldset)
 {
-   <div xmlns="http://www.w3.org/1999/xhtml" class="form-group">
-      <label class="col-sm-2 control-label">{ $label }</label>
-      <div class="col-sm-10"> {
-         $radios
-      }
+   <fieldset class="form-group" xmlns="http://www.w3.org/1999/xhtml">
+      <div class="row">
+         <legend class="col-form-label col-sm-2 pt-0">{ $label }</legend>
+         <div class="col-sm-10"> {
+            $radios
+         }
+         </div>
       </div>
-   </div>
+   </fieldset>
 };
 
 declare function v:input-radio-inline(
@@ -1015,7 +1089,7 @@ declare function v:input-radio-inline(
    $id      as xs:string,
    $value   as xs:string,
    $label   as xs:string
-) as element(h:label)
+) as element(h:div)
 {
    v:input-radio-inline($name, $id, $value, $label, ())
 };
@@ -1026,17 +1100,16 @@ declare function v:input-radio-inline(
    $value   as xs:string,
    $label   as xs:string,
    $opts    as xs:string*
-) as element(h:label)
+) as element(h:div)
 {
-   <label class="radio-inline" xmlns="http://www.w3.org/1999/xhtml">
-      <input type="radio" name="{ $name }" id="{ $id }" value="{ $value }"> {
+   <div class="form-check" xmlns="http://www.w3.org/1999/xhtml">
+      <input class="form-check-input" type="radio" name="{ $name }" id="{ $id }" value="{ $value }"> {
          $opts[. eq 'checked']  ! attribute { . } { . },
-         $opts[. eq 'required'] ! attribute { . } { . },
-         ' ',
-         $label
+         $opts[. eq 'required'] ! attribute { . } { . }
       }
       </input>
-   </label>
+      <label class="form-check-label" for="{ $id }">{ $label }</label>
+   </div>
 };
 
 declare function v:input-hidden($id as xs:string, $val as xs:string)
@@ -1054,112 +1127,138 @@ declare function v:input-hidden($id as xs:string, $val as xs:string, $attrs as a
    </input>
 };
 
-declare function v:input-exec-target($name as xs:string, $label as xs:string)
+declare function v:input-db-widget($name as xs:string)
    as element((: h:input|h:div :))+
 {
-   v:input-exec-target($name, $name, $label)
+   v:input-db-widget($name, ())
 };
 
-declare function v:input-exec-target($id as xs:string, $name as xs:string, $label as xs:string)
+declare function v:input-db-widget($name as xs:string, $label as xs:string?)
    as element((: h:input|h:div :))+
 {
-   <div xmlns="http://www.w3.org/1999/xhtml" class="form-group">
-      <label for="{ $name }" class="col-sm-2 control-label">{ $label }</label>
-      <div class="col-sm-10">
-	 <div class="btn-group" xmlns="http://www.w3.org/1999/xhtml">
-	    <button type="button" class="btn btn-default dropdown-toggle"
-		    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-	       Databases <span class="caret"/>
-	    </button>
-	    <ul class="dropdown-menu" style="min-width: 400pt"> {
-	       for $db in a:get-databases()/a:database
-	       order by $db/a:name
-	       return
-		  v:format-exec-target-db($db, $id)
-	    }
-	    </ul>
-	 </div>
-         {
-            let $all := a:get-appservers()/a:appserver
-            for $srv in (<srv label="HTTP"   type="http"/>,
-                         <srv label="XDBC"   type="xdbc"/>,
-                         <srv label="ODBC"   type="odbc"/>,
-                         <srv label="WebDAV" type="webDAV"/>)
-            return
-	       <div class="btn-group" style="margin-left: 10px;">
-		  <button type="button" class="btn btn-default dropdown-toggle"
-			  data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-		     { xs:string($srv/@label) } servers <span class="caret"/>
-		  </button>
-		  <ul class="dropdown-menu" style="min-width: 400pt"> {
-		     let $asses := $all[@type eq $srv/@type]
-		     return
-			if ( fn:exists($asses) ) then
-			   for $as in $asses
-			   order by $as/a:name
-			   return
-			      v:format-exec-target-as($as, $id, $srv/@label)
-			else
-			   <li><a style="font-style: italic">(none)</a></li>
-		  }
-		  </ul>
-	       </div>
-         }
-      </div>
-   </div>,
-   <div xmlns="http://www.w3.org/1999/xhtml" id="{ $id }" class="form-group emlc-target-field">
-      <label class="col-sm-2 control-label"/>
-      <div class="col-sm-10">
-	 <input type="text" class="form-control" required="required" placeholder="Select a target (database or server)"/>
-	 <input name="{ $name }" type="hidden" value=""/>
-      </div>
-   </div>
+   v:input-db-widget($name, $name, $label)
 };
 
-declare function v:format-exec-target-db(
+declare function v:input-db-widget($id as xs:string, $name as xs:string, $label as xs:string?)
+   as element((: h:input|h:div :))+
+{
+   let $buttons := (
+         <div class="btn-group">
+            <button type="button" class="btn btn-outline-secondary dropdown-toggle"
+                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+               Databases
+            </button>
+            <div class="dropdown-menu" style="min-width: 400pt"> {
+               for $db in a:get-databases()/a:database
+               order by $db/a:name
+               return
+                  v:format-db-widget-db($db, $id)
+            }
+            </div>
+         </div>,
+         let $all := a:get-appservers()/a:appserver
+         for $srv in (<srv label="HTTP"   type="http"/>,
+                      <srv label="XDBC"   type="xdbc"/>,
+                      <srv label="ODBC"   type="odbc"/>,
+                      <srv label="WebDAV" type="webDAV"/>)
+         return (
+            ' ',
+            <div class="btn-group" style="margin-left: 10px;">
+               <button type="button" class="btn btn-outline-secondary dropdown-toggle"
+                       data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  { xs:string($srv/@label) } servers
+               </button>
+               <div class="dropdown-menu" style="min-width: 400pt"> {
+                  let $asses := $all[@type eq $srv/@type]
+                  return
+                     if ( fn:exists($asses) ) then
+                        for $as in $asses
+                        order by $as/a:name
+                        return
+                           v:format-db-widget-as($as, $id, $srv/@label)
+                     else
+                        <a class="dropdown-item" style="font-style: italic" href="#">(none)</a>
+               }
+               </div>
+            </div>
+         ))
+   return
+      if ( fn:exists($label) ) then (
+         <div xmlns="http://www.w3.org/1999/xhtml" class="form-group row">
+            <label for="{ $name }" class="col-sm-2 col-form-label">{ $label }</label>
+            <div class="col-sm-10">{ $buttons }</div>
+         </div>,
+         <div xmlns="http://www.w3.org/1999/xhtml" id="{ $id }" class="form-group row emlc-target-field">
+            <label class="col-sm-2 col-form-label"/>
+            <div class="col-sm-10">
+               <input type="text" class="form-control" required="required" placeholder="Select a target (database or server)"/>
+               <input name="{ $name }" type="hidden" value=""/>
+            </div>
+         </div>
+      )
+      else (
+         <div xmlns="http://www.w3.org/1999/xhtml" class="row" style="margin-bottom: 20px;">
+            <div class="col-sm-12">{ $buttons }</div>
+         </div>,
+         <div xmlns="http://www.w3.org/1999/xhtml" id="{ $id }" class="row emlc-target-field" style="margin-bottom: 20px;">
+            <div class="col-sm-12">
+               <input type="text" class="form-control" required="required" placeholder="Select a target (database or server)"/>
+               <input name="{ $name }" type="hidden" value=""/>
+            </div>
+         </div>
+      )
+};
+
+declare function v:format-db-widget-db(
    $db    as element(a:database),
    $field as xs:string
-) as element(h:li)
+) as element(h:a)
 {
-   <li xmlns="http://www.w3.org/1999/xhtml">
-      <a data-field="#{ $field }" data-id="{ $db/@id }" data-label="{ $db/a:name }" class="emlc-target-entry"> {
-         $db/fn:string(a:name)
-      }
-      </a>
-   </li>
+   <a xmlns="http://www.w3.org/1999/xhtml"
+      class="emlc-target-entry dropdown-item"
+      href="#"
+      data-field="#{ $field }"
+      data-id="{ $db/@id }"
+      data-label="{ $db/a:name }"> {
+      $db/fn:string(a:name)
+   }
+   </a>
 };
 
-declare function v:format-exec-target-as(
+declare function v:format-db-widget-as(
    $as    as element(a:appserver),
    $field as xs:string,
    $type  as xs:string
-) as element(h:li)
+) as element(h:a)
 {
    let $name  := xs:string($as/a:name)
    let $label := $name || ' (' || $type || ')'
    return
-      <li xmlns="http://www.w3.org/1999/xhtml">
-         <a data-field="#{ $field }" data-id="{ $as/@id }" data-label="{ $label }" class="emlc-target-entry">
-            <span> {
-               $name
-            }
-            </span>
-            <br/>
-            <small> {
-               '          Content: ' || $as/a:db
-            }
-            </small>
-            <br/>
-            <small> {
-               '          Modules: '
-                  || ( $as/a:modules-db, 'file' )[1]
-                  || ' &lt;'
-                  || $as/a:root
-                  || '>'
-            }
-            </small>
-         </a>
-      </li>
+      <a xmlns="http://www.w3.org/1999/xhtml"
+         class="emlc-target-entry dropdown-item"
+         href="#"
+         data-field="#{ $field }"
+         data-id="{ $as/@id }"
+         data-label="{ $label }">
+         <span> {
+            $name
+         }
+         </span>
+         <br/>
+         <small> {
+            '          Content: ' || $as/a:db
+         }
+         </small>
+         <br/>
+         <small> {
+            '          Modules: '
+               || ( $as/a:modules-db, 'file' )[1]
+               || ' &lt;'
+               || $as/a:root
+               || '>'
+         }
+         </small>
+      </a>
 };
 
 (:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

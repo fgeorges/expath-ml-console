@@ -2,6 +2,8 @@ xquery version "3.0";
 
 import module namespace v = "http://expath.org/ns/ml/console/view" at "lib/view.xqy";
 
+declare namespace c = "http://expath.org/ns/ml/console";
+
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
 declare function local:page()
@@ -16,11 +18,11 @@ declare function local:page()
       </div>
       <p>You will find the following sections in the Console:</p>
       <ul> {
-         for $p in $v:pages/*
+         for $p in $v:pages/c:page
          return
             <li>
                <a href="{ $p/xs:string(@name) }">{ $p/xs:string(@title) }</a>
-           </li>
+            </li>
       }
       </ul>
       <p>You will find the following types of component in the Console:</p>

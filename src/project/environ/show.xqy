@@ -16,7 +16,7 @@ declare function this:error(
    $environ as xs:string,
    $project as xs:string,
    $err     as item((: map:map :))
-)
+) as document-node()
 {
    v:console-page('../../../../', 'project', 'Environ ' || $environ, function() {
       let $code   := map:get($err, 'name')
@@ -55,7 +55,7 @@ declare function this:page(
    $environ as xs:string,
    $project as xs:string,
    $elems   as item((: json:array :))
-)
+) as document-node()
 {
    v:console-page('../../../../', 'project', 'Environ ' || $environ, function() {
       <p>Details of the environment <code>{ $environ }</code>, in project

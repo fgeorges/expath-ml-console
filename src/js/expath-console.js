@@ -180,6 +180,22 @@ function saveDoc(id, type)
    var fd = new FormData();
    fd.append('doc', editorContent(id));
    fd.append('uri', info.uri);
+   // the message alert
+   var msg = function(status, title, message) {
+      var template = $('#' + id + '-message');
+      var alert    = template.clone();
+      alert.children('strong').text(title);
+      alert.children('span').text(message);
+      alert.addClass('show alert-' + status);
+      alert.insertBefore(template);
+      alert.show();
+      if ( status === 'success' ) {
+         // if success, auto-dismiss after 4 secs
+         alert.delay(4000).slideUp(500, function() {
+            $(this).alert('close');
+         });
+      }
+   };
    // the request itself
    $.ajax({
       url: endpoint,
@@ -189,10 +205,10 @@ function saveDoc(id, type)
       processData: false,
       contentType: false,
       success: function(data) {
-         alert('Success: ' + data);
+         msg('success', '', data);
       },
       error: function(xhr, status, error) {
-         alert('Error: ' + status + ' (' + error + ')\n\nSee logs for details.');
+         msg('danger', 'Error: ', status + ' (' + error + ') - See logs for details.');
       }});
 };
 
@@ -382,11 +398,8 @@ function saveJson(jsonId)
 
 function download(text, name, type)
 {
-   var a = document.createElement('a');
-   var b = new Blob([ text ], { type: type });
-   a.href = URL.createObjectURL(b);
-   a.download = name;
-   a.click();
+   var blob = new Blob([ text ], { type: type });
+   saveAs(blob, name);
 }
 
 function profileImpl(queryId, endpoint, success)
@@ -394,7 +407,7 @@ function profileImpl(queryId, endpoint, success)
    // the request content
    var fd = new FormData();
    fd.append('query',  editorContent(queryId));
-   fd.append('target', $('#target-id').text());
+   fd.append('target', $('#target input:hidden').val());
    // the request itself
    $.ajax({
       url: endpoint,
@@ -496,22 +509,6 @@ function displayStackFrame(frame, area)
          var c = frame.code[i];
          list.append('<li><code>' + c + '</code></li>');
       }
-   }
-}
-
-function selectTarget(targetId, id, targetLabel, label)
-{
-   // set the ID on the hidden element
-   $('#' + targetId).text(id);
-   // set the label on the display button
-   var btn = $('#' + targetLabel);
-   btn.text(label);
-   // toggle the class of the display button if necessary
-   if ( btn.hasClass('btn-danger') ) {
-      btn.removeClass('btn-danger');
-      btn.addClass('btn-primary');
-      // activate the buttons waiting for a target
-      $('.need-target').prop('disabled', false);
    }
 }
 

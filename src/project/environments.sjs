@@ -54,10 +54,10 @@ const details = {
 
 envs.sort((a, b) => {
     return a.name < b.name
-	? -1
-	: a.name > b.name
-	? 1
-	: 0;
+        ? -1
+        : a.name > b.name
+        ? 1
+        : 0;
 });
 envs.forEach(env => {
     let d = {
@@ -68,25 +68,31 @@ envs.forEach(env => {
     details[env.name] = d;
     // reset, having one global environ not needed in this case
     ctxt.platform.environ = null;
-    const environ = project.environ(env.name, params, force);
-    environ.compile(params, force);
-    environ.databases().forEach(db => {
-        d.databases.push({
-            name : db.name
+    try {
+        const environ = project.environ(env.name, params, force);
+        environ.compile(params, force);
+        environ.databases().forEach(db => {
+            d.databases.push({
+                name : db.name
+            });
         });
-    });
-    environ.servers().forEach(srv => {
-        d.servers.push({
-            name    : srv.name,
-            content : srv.content && srv.content.name,
-            modules : srv.modules && srv.modules.name
+        environ.servers().forEach(srv => {
+            d.servers.push({
+                name    : srv.name,
+                content : srv.content && srv.content.name,
+                modules : srv.modules && srv.modules.name
+            });
         });
-    });
-    environ.sources().forEach(src => {
-        d.sources.push({
-            name : src.name
+        environ.sources().forEach(src => {
+            d.sources.push({
+                name : src.name
+            });
         });
-    });
+    }
+    catch (err) {
+        // TODO: Display an error message...
+        d.err = err;
+    }
 });
 
 view.page(id, envs, JSON.stringify(details));

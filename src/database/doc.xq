@@ -11,6 +11,7 @@ import module namespace v   = "http://expath.org/ns/ml/console/view"   at "../li
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
 declare namespace c    = "http://expath.org/ns/ml/console";
+declare namespace h    = "http://www.w3.org/1999/xhtml";
 declare namespace xdmp = "http://marklogic.com/xdmp";
 declare namespace map  = "http://marklogic.com/xdmp/map";
 declare namespace sec  = "http://marklogic.com/xdmp/security";
@@ -65,6 +66,17 @@ declare function local:page($db as element(a:database), $uri as xs:string, $sche
 (:~
  : The summary section.
  :)
+declare function local:remove-button()
+   as element(h:button)
+{
+   <button type="submit" class="btn btn-outline-danger btn-sm" style="margin-top: -5px">
+      <span class="fa fa-ban" aria-hidden="true"/>
+   </button>
+};
+
+(:~
+ : The summary section.
+ :)
 declare function local:summary($uri as xs:string)
    as element()+
 {
@@ -114,7 +126,7 @@ declare function local:content($uri as xs:string, $dir as xs:string?, $root as x
    as element()+
 {
    <h3>Content</h3>,
-   <p>You can <a href="bin?uri={ $uri }">download</a> the document.</p>,
+   <p>You can <a href="bin?uri={ fn:encode-for-uri($uri) }">download</a> the document.</p>,
    let $doc := fn:doc($uri)
    let $id  := fn:generate-id($doc)
    return
@@ -149,11 +161,12 @@ declare function local:content($uri as xs:string, $dir as xs:string?, $root as x
          TODO: Implement binary doc deletion, without the ACE editor to hold the
          document URI...  Actually, should be easy to change using the ID, and
          use the URI instead...
-         <button class="btn btn-danger" onclick='deleteDoc("{ $id }");'>
+         <button class="btn btn-outline-danger" onclick='deleteDoc("{ $id }");'>
             Delete
          </button>
          :)
-      )
+      ),
+   <p/>
 };
 
 (:~
@@ -190,8 +203,7 @@ declare function local:collections(
                            v:input-hidden('uri', $uri),
                            v:input-hidden('database', $db/@id),
                            v:input-hidden('redirect', 'true'),
-                           (: TODO: Replace with a Bootstrap character icon... :)
-                           v:submit('Remove')))
+                           local:remove-button()))
                      }
                      </td>
                   </tr>
@@ -242,8 +254,7 @@ declare function local:metadata(
                            <input type="hidden" name="uri"      value="{ $uri }"/>,
                            <input type="hidden" name="database" value="{ $db/@id }"/>,
                            <input type="hidden" name="redirect" value="true"/>,
-                           (: TODO: Replace with a Bootstrap character icon... :)
-                           v:submit('Remove')))
+                           local:remove-button()))
                      }
                      </td>
                   </tr>
@@ -310,8 +321,7 @@ declare function local:permissions(
                            <input type="hidden" name="uri"        value="{ $uri }"/>,
                            <input type="hidden" name="database"   value="{ $db/@id }"/>,
                            <input type="hidden" name="redirect"   value="true"/>,
-                           (: TODO: Replace with a Bootstrap character icon... :)
-                           v:submit('Remove')))
+                           local:remove-button()))
                      }
                      </td>
                   </tr>
@@ -342,7 +352,8 @@ declare function local:permissions(
       <input type="hidden" name="uri"      value="{ $uri }"/>
       <input type="hidden" name="database" value="{ $db/@id }"/>
       <input type="hidden" name="redirect" value="true"/>
-      <button type="submit" class="btn btn-default">Add</button>
+      <span>  </span>
+      <button type="submit" class="btn btn-outline-secondary">Add</button>
    </form>
 };
 

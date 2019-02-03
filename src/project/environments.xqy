@@ -21,22 +21,24 @@ declare function env:input-select-text(
 ) as element(h:div)+
 {
    <div class="exclusive">
-      <div class="form-group">
-         <label for="{ $id }-path" class="col-sm-2 control-label">{ $label }</label>
+      <div class="form-group row">
+         <label for="{ $id }-path" class="col-sm-2 col-form-label">{ $label }</label>
          <div class="col-sm-10">
             <div class="input-group">
                <!-- TODO: When source sets supported, only one of both is required... -->
                <input type="text" name="{ $id }-path" class="form-control excl-first"
                       placeholder="{ $placeholder-1 }" required="required" value="{ $default }"/>
-               <span class="input-group-addon">
-                  <input type="radio" name="{ $id }-path-check" class="excl-first-check" checked="checked"/>
-               </span>
+               <div class="input-group-append">
+                  <div class="input-group-text">
+                     <input type="radio" name="{ $id }-path-check" class="excl-first-check" checked="checked"/>
+                  </div>
+               </div>
             </div>
          </div>
       </div>
-      <div class="form-group">
-         { if ( fn:empty($options) ) then attribute { 'hidden' } { 'hidden' } else () }
-         <label for="{ $id }-srcset" class="col-sm-2 control-label"/>
+      <div class="form-group row">
+         { ((: if ( fn:empty($options) ) then attribute { 'hidden' } { 'hidden' } else () :)) }
+         <label for="{ $id }-srcset" class="col-sm-2 col-form-label"/>
          <div class="col-sm-10">
             <div class="input-group">
                <select id="{ $id }-srcset" name="{ $id }-srcset" class="form-control excl-second">
@@ -45,9 +47,11 @@ declare function env:input-select-text(
                   </option>
                   { $options }
                </select>
-               <span class="input-group-addon">
-                  <input type="radio" name="{ $id }-srcset-check" class="excl-second-check"/>
-               </span>
+               <div class="input-group-append">
+                  <div class="input-group-text">
+                     <input type="radio" name="{ $id }-srcset-check" class="excl-second-check"/>
+                  </div>
+               </div>
             </div>
          </div>
       </div>
@@ -58,7 +62,7 @@ declare function env:page(
    $project as xs:string,
    $envs    as item((: json:array :)),
    $details as xs:string
-)
+) as document-node()
 {
    v:console-page('../../', 'project', 'Environments', function() {
       <p>The project { v:proj-link('../' || $project, $project) } get the following
@@ -77,6 +81,8 @@ declare function env:page(
       }
       </form>,
       <p>Select above the environment to act upon, in the action forms below.</p>,
+      <h3 class="lfam-error" style="display: none">Error</h3>,
+      <pre class="lfam-error" style="display: none" id="lfam-error-msg"></pre>,
       <h3>Show</h3>,
       <p>Show the details of an environment, with all imports resolved.</p>,
       v:form('to/be/set', attribute { 'data-action-template' } { 'environ/{env}/show' }, (
@@ -131,7 +137,7 @@ declare function env:page(
          v:submit('Deploy')))
    },
    (<script>
-      var details = JSON.parse('{ $details }');
+      var details = JSON.parse('{ fn:replace($details, '\\n', '\\\\n') }');
 
       function defaultContentDb(detail) {{
          // if exactly 1 server, it is its content db
@@ -172,8 +178,18 @@ declare function env:page(
 
                var type = $(this).data('load-type');
                if ( type ) {{
+                  $('.lfam-error').hide();
                   // the current environ detail
                   var detail = details[env];
+		  // any error to display?
+		  if ( detail.err ) {{
+		    let msg = detail.err;
+		    if ( detail.err.stack ) {{
+		      msg = detail.err.stack.replace(/\\\\n/g, '\n');
+		    }}
+		    $('#lfam-error-msg').text(msg);
+		    $('.lfam-error').show();
+		  }}
                   // the default source set to select
                   var defaultSrc = type === 'load' ? 'data' : 'src';
                   // the default database to select
@@ -195,13 +211,16 @@ declare function env:page(
                         opt.prop('selected', true);
                      }}
                   }});
-                  var group = $(this).find('div[class="exclusive"]')
-                      .find('div[class="form-group"]').eq(1);
+                  var group = $(this).find('div.exclusive').find('div.form-group').eq(1);
                   if ( detail.sources.length ) {{
                      group.show();
+		     $(this).find('.excl-first-check' ).prop('checked', false);
+		     $(this).find('.excl-second-check').prop('checked', true);
                   }}
                   else {{
                      group.hide();
+		     $(this).find('.excl-first-check' ).prop('checked', true);
+		     $(this).find('.excl-second-check').prop('checked', false);
                   }}
 
                   // set the target dropdown lists...

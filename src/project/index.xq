@@ -62,9 +62,9 @@ declare function local:page() as element()+
    <p>XProject is a simple project structure for XQuery- and XSLT-based projects.  It is based on
       simple conventions, like a directory <code>src/</code>, a directory <code>xproject/</code>,
       and a project descriptor in <code>xproject/project.xml</code>.  You can find everything
-      about XProject on <a href="http://expath.org/modules/xproject/">this page</a>.  You can
-      either plug to an existing project (use "add"), or create a brand-new one (use "create").</p>,
-   v:one-liner-link('Add/create project', 'project/_/xproject', 'Add'),
+      about XProject on <a href="http://expath.org/modules/xproject/">this page</a>.</p>,
+   <p>You can either plug to an existing project, or create a brand-new one.</p>,
+   v:one-liner-link('Add project', 'project/_/xproject', 'Add'),
 
    <h3>Source directories</h3>,
    <p>The projects based on XProject are fully supported in the Console.  But if you projects

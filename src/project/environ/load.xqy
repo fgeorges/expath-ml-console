@@ -17,7 +17,7 @@ declare function this:error(
    $environ as xs:string,
    $project as xs:string,
    $err     as item((: map:map :))
-)
+) as document-node()
 {
    v:console-page('../../../../', 'project', 'Environ ' || $environ, function() {
       let $code  := map:get($err, 'name')
@@ -54,13 +54,13 @@ declare variable $this:action-props :=
 
 declare variable $this:actions :=
    <actions xmlns="">
-      <action type="ForestCreate"   icon="tree-conifer"/>
-      <action type="ForesAttach"    icon="tree-conifer"/>
-      <action type="ForestDetach"   icon="tree-conifer"/>
-      <action type="DatabaseCreate" icon="floppy-disk"/>
-      <action type="DatabaseUpdate" icon="floppy-disk"/>
-      <action type="ServerCreate"   icon="hdd"/>
-      <action type="ServerUpdate"   icon="hdd"/>
+      <action type="ForestCreate"   icon="tree"/>
+      <action type="ForesAttach"    icon="tree"/>
+      <action type="ForestDetach"   icon="tree"/>
+      <action type="DatabaseCreate" icon="database"/>
+      <action type="DatabaseUpdate" icon="database"/>
+      <action type="ServerCreate"   icon="server"/>
+      <action type="ServerUpdate"   icon="server"/>
       <action type="DocInsert"      icon="file"/>
       <action type="MultiDocInsert" icon="file"/>
    </actions>;
@@ -76,7 +76,7 @@ declare function this:action($action as item((: map:map :))) as element()
       else
          <p class="mlproj-todo"> {
             $this:action-props ! attribute { 'data-' || . } { map:get($action, .) },
-            <span class="glyphicon glyphicon-{ $def/@icon }" aria-hidden="true"/>,
+            <span class="fa fa-{ $def/@icon }" aria-hidden="true"/>,
             ' ',
             $msg
          }
@@ -110,7 +110,7 @@ declare function this:page(
    $type     as xs:string,
    $cmd-args as item((: json:array :)),
    $actions  as item((: json:array :))
-)
+) as document-node()
 {
    v:console-page('../../../../', 'project', 'Environ ' || $environ, function() {
       this:intro($environ, $project, $type, $cmd-args),
@@ -128,7 +128,7 @@ declare function this:page(
                Click on "Execute" to start loading.
             </div>,
             <pre id="error" style="display: none"/>,
-            <button id="doit" type="button" class="btn btn-default">Execute</button>
+            <button id="doit" type="button" class="btn btn-outline-secondary">Execute</button>
          )
    },
    (<script>

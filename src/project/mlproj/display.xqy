@@ -100,7 +100,7 @@ declare function disp:database(
    $props    as item((: map:map :))
 ) as element()+
 {
-   <h3><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"/>{ ' ' }{ $name }</h3>,
+   <h3><span class="fa fa-database" aria-hidden="true"/>{ ' ' }{ $name }</h3>,
    <p>Database <code>{ $name }</code>.</p>,
    <table class="table table-striped">
       <thead>
@@ -132,7 +132,7 @@ declare function disp:server(
    $props   as item((: map:map :))
 ) as element()+
 {
-   <h3><span class="glyphicon glyphicon-hdd" aria-hidden="true"/>{ ' ' }{ $name }</h3>,
+   <h3><span class="fa fa-server" aria-hidden="true"/>{ ' ' }{ $name }</h3>,
    <p>Server <code>{ $name }</code>.</p>,
    <table class="table table-striped">
       <thead>
@@ -158,7 +158,7 @@ declare function disp:source(
    $props as item((: map:map :))
 ) as element()+
 {
-   <h3><span class="glyphicon glyphicon-inbox" aria-hidden="true"/>{ ' ' }{ $name }</h3>,
+   <h3><span class="fa fa-folder-open" aria-hidden="true"/>{ ' ' }{ $name }</h3>,
    <p>Source set <code>{ $name }</code>.</p>,
    <table class="table table-striped">
       <thead>
@@ -180,7 +180,7 @@ declare function disp:mimetype(
    $props as item((: map:map :))
 ) as element()+
 {
-   <h3><span class="glyphicon glyphicon-inbox" aria-hidden="true"/>{ ' ' }{ $name }</h3>,
+   <h3><span class="fa fa-sitemap" aria-hidden="true"/>{ ' ' }{ $name }</h3>,
    <p>Mimetype <code>{ $name }</code>.</p>,
    <table class="table table-striped">
       <thead>
@@ -205,7 +205,7 @@ declare function disp:project(
    $version as xs:string?
 ) as element()+
 {
-   <h3><span class="glyphicon glyphicon-briefcase" aria-hidden="true"/>{ ' ' }{ $code }</h3>,
+   <h3><span class="fa fa-briefcase" aria-hidden="true"/>{ ' ' }{ $code }</h3>,
    <p>Project <code>{ $code }</code>.</p>,
    <table class="table table-striped">
       <thead>
@@ -253,7 +253,7 @@ declare function disp:environ(
    $imports  as map:map*
 ) as element()+
 {
-   <h3><span class="glyphicon glyphicon-globe" aria-hidden="true"/>{ ' ' }{ $envipath }</h3>,
+   <h3><span class="fa fa-globe" aria-hidden="true"/>{ ' ' }{ $envipath }</h3>,
    <p>Environment <code>{ $envipath }</code>.</p>,
    <table class="table table-striped">
       <thead>

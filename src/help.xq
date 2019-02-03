@@ -68,4 +68,4 @@ declare function local:page()
    </wrapper>/*
 };
 
-v:console-page('',  'help', 'Help', local:page#0)
+v:console-page('', 'help', 'Help', local:page#0)

@@ -45,4 +45,4 @@ const actions = command.prepare();
 proj.addConfig(id, 'xproject', proj.configValue('dir', dir));
 actions.execute();
 
-view.page(abbrev, actions.done, actions.error, actions.todo, global.verbose);
+view.page(local, actions.done, actions.error, actions.todo, global.verbose);
