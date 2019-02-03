@@ -616,7 +616,14 @@ declare function v:edit-node(
       <dummy xmlns="http://www.w3.org/1999/xhtml">
          <button class="btn btn-outline-secondary" onclick='saveDoc("{ $id }", "{ $type }");'>Save</button>
          <span>  </span>
-         <button class="btn btn-outline-danger pull-right" onclick='deleteDoc("{ $id }");'>Delete</button>
+         <button class="btn btn-outline-danger float-right" onclick='deleteDoc("{ $id }");'>Delete</button>
+         <p/>
+         <div id="{ $id }-message" style="display: none" class="alert alert-dismissible fade" role="alert">
+            <strong/> <span/>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+               <span aria-hidden="true">&#215;</span>
+            </button>
+         </div>
          <form method="POST" action="{ $top }delete" style="display: none" id="{ $id }-delete">
             <input type="hidden" name="doc"        value="{ $uri }"/>
             <input type="hidden" name="back-label" value="the directory"/>
@@ -645,10 +652,10 @@ declare function v:ace-editor(
         ace-theme="ace/theme/pastel_on_dark"
         ace-gutter="true">
    {
-      attribute { 'id'         } { $id }[fn:exists($id)],
-      attribute { 'ace-uri'    } { $uri }[fn:exists($uri)],
-      attribute { 'ace-top'    } { $top }[fn:exists($top)],
-      attribute { 'style'      } { 'height: ' || $height }[fn:exists($height)],
+      attribute { 'id'      } { $id }[fn:exists($id)],
+      attribute { 'ace-uri' } { $uri }[fn:exists($uri)],
+      attribute { 'ace-top' } { $top }[fn:exists($top)],
+      attribute { 'style'   } { 'height: ' || $height }[fn:exists($height)],
       (: TODO: Any better way to detect non-node JS objects? (incl. arrays) :)
       if ( b:is-map($content) ) then
          xdmp:javascript-eval(
@@ -801,7 +808,7 @@ declare function v:one-liner-link(
 ) as element(h:form)
 {
    if ( fn:exists($hidden[fn:not(@type eq 'hidden')]) ) then
-      t:error('invalid-form', 'Non-hidden input fieldd')
+      t:error('invalid-form', 'Non-hidden input field')
    else
       v:form($action, (),
          <div xmlns="http://www.w3.org/1999/xhtml" class="form-group row">

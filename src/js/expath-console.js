@@ -180,6 +180,22 @@ function saveDoc(id, type)
    var fd = new FormData();
    fd.append('doc', editorContent(id));
    fd.append('uri', info.uri);
+   // the message alert
+   var msg = function(status, title, message) {
+      var template = $('#' + id + '-message');
+      var alert    = template.clone();
+      alert.children('strong').text(title);
+      alert.children('span').text(message);
+      alert.addClass('show alert-' + status);
+      alert.insertBefore(template);
+      alert.show();
+      if ( status === 'success' ) {
+         // if success, auto-dismiss after 4 secs
+         alert.delay(4000).slideUp(500, function() {
+            $(this).alert('close');
+         });
+      }
+   };
    // the request itself
    $.ajax({
       url: endpoint,
@@ -189,10 +205,10 @@ function saveDoc(id, type)
       processData: false,
       contentType: false,
       success: function(data) {
-         alert('Success: ' + data);
+         msg('success', '', data);
       },
       error: function(xhr, status, error) {
-         alert('Error: ' + status + ' (' + error + ')\n\nSee logs for details.');
+         msg('danger', 'Error: ', status + ' (' + error + ') - See logs for details.');
       }});
 };
 
