@@ -7,6 +7,10 @@ declare namespace xdmp = "http://marklogic.com/xdmp";
 
 declare variable $init:base-uri      := 'http://expath.org/ml/console/';
 declare variable $init:config-uri    := $init:base-uri || 'config.xml';
+declare variable $init:ace-base-uri  := $init:base-uri || 'ace/';
+declare variable $init:prefixes-uri  := $init:ace-base-uri || 'prefixes-';
+declare variable $init:functions-uri := $init:ace-base-uri || 'functions-';
+declare variable $init:types-uri     := $init:ace-base-uri || 'types-';
 
 declare function init:get-config() as element(c:config)
 {
