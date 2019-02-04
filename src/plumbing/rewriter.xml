@@ -4,6 +4,12 @@
        Resources, home, and misc.
    -->
    <match-method any-of="GET">
+      <match-path matches="^/js/emlc/emlc-ace-([-a-z]+).js$">
+         <add-query-param name="name">$1</add-query-param>
+         <dispatch>/database/ace-script.sjs</dispatch>
+      </match-path>
+   </match-method>
+   <match-method any-of="GET">
       <match-path matches="^/(images|js|style)/.+$">
          <dispatch>$0</dispatch>
       </match-path>
