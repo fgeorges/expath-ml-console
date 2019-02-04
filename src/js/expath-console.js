@@ -17,7 +17,64 @@
 // TODO: Upgrade to Bootstrap 4?
 //
 
+var langtools = ace.require('ace/ext/language_tools');
 var highlight = ace.require('ace/ext/static_highlight');
+
+var emlc = emlc || {};
+
+// TODO: Refactor this entire file, and how and when this function is called...
+langtools.addCompleter({
+    getCompletions: function(editor, session, pos, prefix, callback) {
+        let results = [];
+        const mode = session.getMode().$id;
+        if ( mode === 'ace/mode/javascript' ) {
+            const token = session.getTokenAt(pos.row, pos.column);
+            if ( token && token.type === 'identifier' ) {
+                const forPrefix = function() {
+                    if ( /^[a-z2]$/.test(token.value) ) {
+                        results = emlc.acePrefixesSjs;
+                    }
+                };
+                if ( token.index < 2 ) {
+                    forPrefix();
+                }
+                else {
+                    const tokens = session.getTokens(pos.row);
+                    const dot    = tokens[token.index - 1];
+                    const prefix = tokens[token.index - 2];
+                    if ( dot.type === 'punctuation.operator' && dot.value === '.' && prefix.type === 'identifier' ) {
+                        results = emlc.aceFunctionsSjs[prefix.value];
+                    }
+                    else {
+                        forPrefix();
+                    }
+                }
+            }
+        }
+        else if ( mode === 'ace/mode/xquery' ) {
+            const token = session.getTokenAt(pos.row, pos.column);
+            if ( token && token.type === 'support.function' ) {
+                const tok = token.value;
+                if ( tok.length === prefix.length ) {
+                    if ( /^[a-z2]$/.test(tok) ) {
+                        results = emlc.acePrefixesXqy;
+                    }
+                }
+                else {
+                    const parts = tok.split(':');
+                    if ( parts.length === 2 ) {
+                        results = emlc.aceFunctionsXqy[parts[0]];
+                    }
+                }
+            }
+        }
+        callback(null, results);
+    }
+
+    // getDocTooltip: function(item) {
+    //     item.docHTML = '<b>Foobar</b><hr></hr><em>Blabla</em>';
+    // }
+});
 
 /*~
  * Init a (read-only) code snippet on the page.
@@ -40,7 +97,7 @@ function initCodeSnippet()
 }
 
 /*~ Contains all editors on the page, by ID. */
-var editors = { };
+emlc.editors = { };
 
 /*~
  * Init a code editor on the page.
@@ -57,7 +114,10 @@ function initCodeEditor()
    e.editor = ace.edit(elem.get(0));
    e.editor.setTheme(e.theme);
    e.editor.getSession().setMode(e.mode);
-   editors[e.id] = e;
+   e.editor.setOption('enableBasicAutocompletion', true);
+   e.editor.setOption('enableLiveAutocompletion',  true);
+   e.editor.setOption('enableSnippets',            true);
+   emlc.editors[e.id] = e;
 }
 
 /*~
@@ -174,7 +234,7 @@ $(document).ready(function () {
 function saveDoc(id, type)
 {
    // get the ACE doc
-   var info     = editors[id];
+   var info     = emlc.editors[id];
    var endpoint = info.top + 'save-' + type;
    // the request content
    var fd = new FormData();
@@ -220,7 +280,7 @@ function deleteDoc(id)
 
 function editorDocument(id)
 {
-   var info = editors[id];
+   var info = emlc.editors[id];
    if ( info ) {
       var editor = info.editor;
       if ( editor ) {

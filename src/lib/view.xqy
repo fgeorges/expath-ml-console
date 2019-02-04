@@ -38,6 +38,15 @@ declare variable $v:js-libs :=
       <c:lib code="emlc.target">
          <c:path>emlc/emlc-target.js</c:path>
       </c:lib>
+      <!-- TODO: For now, load everything, but should cherry-pick between sjs and xqy. -->
+      <c:lib code="emlc.ace">
+         <c:path>emlc/emlc-ace-prefixes-sjs.js</c:path>
+         <c:path>emlc/emlc-ace-prefixes-xqy.js</c:path>
+         <c:path>emlc/emlc-ace-types-sjs.js</c:path>
+         <c:path>emlc/emlc-ace-types-xqy.js</c:path>
+         <c:path>emlc/emlc-ace-functions-sjs.js</c:path>
+         <c:path>emlc/emlc-ace-functions-xqy.js</c:path>
+      </c:lib>
       <c:lib code="marked">
          <c:path>marked.min.js</c:path>
          <c:path>highlight/highlight.pack.js</c:path>
@@ -288,6 +297,7 @@ declare %private function v:console-page-static(
                'bootstrap.bundle.min.js',
                'bootstrap-select.min.js',
                'ace/ace.js',
+               'ace/ext-language_tools.js',
                'ace/ext-static_highlight.js',
                'datatables.min.js',
                'file-upload-9.28.0/js/vendor/jquery.ui.widget.js',
