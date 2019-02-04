@@ -1,19 +1,41 @@
 <rewriter xmlns="http://marklogic.com/xdmp/rewriter">
 
    <!--
-       Home, resources and misc.
+       Resources, home, and misc.
    -->
+   <match-method any-of="GET">
+      <match-path matches="^/js/emlc/emlc-ace-([-a-z]+).js$">
+         <add-query-param name="name">$1</add-query-param>
+         <dispatch>/database/ace-script.sjs</dispatch>
+      </match-path>
+   </match-method>
+   <match-method any-of="GET">
+      <match-path matches="^/(images|js|style)/.+$">
+         <dispatch>$0</dispatch>
+      </match-path>
+   </match-method>
    <match-path matches="^/$">
-      <dispatch>/home.xq</dispatch>
+      <match-method any-of="GET">
+         <dispatch>/home.xq</dispatch>
+      </match-method>
    </match-path>
-   <match-path matches="^/(images|js|style)/.+$">
-      <dispatch>$0</dispatch>
+   <match-path matches="^/init$">
+      <match-method any-of="GET">
+         <dispatch>/init/index.xq</dispatch>
+      </match-method>
+      <match-method any-of="POST">
+         <dispatch>/init/do-init.sjs</dispatch>
+      </match-method>
    </match-path>
    <match-path matches="^/devel$">
-      <dispatch>/devel.xq</dispatch>
+      <match-method any-of="GET">
+         <dispatch>/devel.xq</dispatch>
+      </match-method>
    </match-path>
    <match-path matches="^/help$">
-      <dispatch>/help.xq</dispatch>
+      <match-method any-of="GET">
+         <dispatch>/help.xq</dispatch>
+      </match-method>
    </match-path>
 
    <!--

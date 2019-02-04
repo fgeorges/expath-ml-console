@@ -5,9 +5,10 @@ xquery version "3.0";
  :)
 module namespace v = "http://expath.org/ns/ml/console/view";
 
-import module namespace a = "http://expath.org/ns/ml/console/admin"  at "admin.xqy";
-import module namespace b = "http://expath.org/ns/ml/console/binary" at "binary.xqy";
-import module namespace t = "http://expath.org/ns/ml/console/tools"  at "tools.xqy";
+import module namespace a    = "http://expath.org/ns/ml/console/admin"  at "admin.xqy";
+import module namespace b    = "http://expath.org/ns/ml/console/binary" at "binary.xqy";
+import module namespace t    = "http://expath.org/ns/ml/console/tools"  at "tools.xqy";
+import module namespace init = "http://expath.org/ns/ml/console/init"   at "../init/lib-init.xqy";
 
 declare namespace c    = "http://expath.org/ns/ml/console";
 declare namespace h    = "http://www.w3.org/1999/xhtml";
@@ -36,6 +37,15 @@ declare variable $v:js-libs :=
    <c:libs>
       <c:lib code="emlc.target">
          <c:path>emlc/emlc-target.js</c:path>
+      </c:lib>
+      <!-- TODO: For now, load everything, but should cherry-pick between sjs and xqy. -->
+      <c:lib code="emlc.ace">
+         <c:path>emlc/emlc-ace-prefixes-sjs.js</c:path>
+         <c:path>emlc/emlc-ace-prefixes-xqy.js</c:path>
+         <c:path>emlc/emlc-ace-types-sjs.js</c:path>
+         <c:path>emlc/emlc-ace-types-xqy.js</c:path>
+         <c:path>emlc/emlc-ace-functions-sjs.js</c:path>
+         <c:path>emlc/emlc-ace-functions-xqy.js</c:path>
       </c:lib>
       <c:lib code="marked">
          <c:path>marked.min.js</c:path>
@@ -142,12 +152,31 @@ declare function v:console-page(
    $scripts as element()*
 ) as document-node()
 {
+   if ( init:is-init() ) then (
+      v:console-page-no-check($root, $page, $title, $content, $scripts)
+   )
+   else (
+      v:redirect($root || 'init'),
+      xdmp:set-response-content-type("text/plain"),
+      document {
+         'The Console is not initialized, you are being redirected'
+      }
+   )
+};
+
+declare function v:console-page-no-check(
+   $root    as xs:string,
+   $page    as xs:string,
+   $title   as xs:string,
+   $content as function() as element()+,
+   $scripts as element()*
+) as document-node()
+{
    xdmp:set-response-content-type("text/html"),
    document {
       '<!doctype html>&#10;' ||
       xdmp:quote(
-         let $cnt  := v:eval-content($content)
-         let $pres := $cnt/descendant-or-self::h:pre
+         let $cnt := v:eval-content($content)
          return
             v:console-page-static($root, $page, $title, $cnt, $scripts),
          <options xmlns="xdmp:quote">
@@ -268,6 +297,7 @@ declare %private function v:console-page-static(
                'bootstrap.bundle.min.js',
                'bootstrap-select.min.js',
                'ace/ace.js',
+               'ace/ext-language_tools.js',
                'ace/ext-static_highlight.js',
                'datatables.min.js',
                'file-upload-9.28.0/js/vendor/jquery.ui.widget.js',
