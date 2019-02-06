@@ -161,7 +161,7 @@ declare function local:content($uri as xs:string, $dir as xs:string?, $root as x
          TODO: Implement binary doc deletion, without the ACE editor to hold the
          document URI...  Actually, should be easy to change using the ID, and
          use the URI instead...
-         <button class="btn btn-outline-danger" onclick='deleteDoc("{ $id }");'>
+         <button class="btn btn-outline-danger" onclick='emlc.deleteDoc("{ $id }");'>
             Delete
          </button>
          :)

@@ -24,6 +24,9 @@ declare function local:db-link($name as xs:string?)
       <em>none</em>
 };
 
+(:
+Dead code to remove, unless we want to use popovers again...
+
 declare function local:popover($title as xs:string, $content as xs:string)
    as attribute()+
 {
@@ -44,6 +47,7 @@ declare function local:input(
 {
    v:input-text($name, $label, $hint, local:popover($title, $help))
 };
+:)
 
 declare function local:page($db as element(a:database))
    as element()+

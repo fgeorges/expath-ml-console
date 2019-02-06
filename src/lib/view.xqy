@@ -40,6 +40,7 @@ declare variable $v:js-libs :=
       </c:lib>
       <!-- TODO: For now, load everything, but should cherry-pick between sjs and xqy. -->
       <c:lib code="emlc.ace">
+         <c:path>emlc/emlc-ace.js</c:path>
          <c:path>emlc/emlc-ace-prefixes-sjs.js</c:path>
          <c:path>emlc/emlc-ace-prefixes-xqy.js</c:path>
          <c:path>emlc/emlc-ace-types-sjs.js</c:path>
@@ -644,9 +645,9 @@ declare function v:edit-node(
    return (
       v:ace-editor($node, 'editor', $mode, $id, $uri, $top, '250pt'),
       <dummy xmlns="http://www.w3.org/1999/xhtml">
-         <button class="btn btn-outline-secondary" onclick='saveDoc("{ $id }", "{ $type }");'>Save</button>
+         <button class="btn btn-outline-secondary" onclick='emlc.saveDoc("{ $id }", "{ $type }");'>Save</button>
          <span>  </span>
-         <button class="btn btn-outline-danger float-right" onclick='deleteDoc("{ $id }");'>Delete</button>
+         <button class="btn btn-outline-danger float-right" onclick='emlc.deleteDoc("{ $id }");'>Delete</button>
          <p/>
          <div id="{ $id }-message" style="display: none" class="alert alert-dismissible fade" role="alert">
             <strong/> <span/>
@@ -720,7 +721,11 @@ declare function v:inject-attr(
 {
    let $a := $attrs[fn:node-name(.) eq xs:QName($name)]
    return (
-      attribute { $name } { fn:string-join(($values, $a), $sep) },
+      attribute { $name } {
+         fn:string-join(
+            ($values, $a ! xs:string(.)),
+            $sep)
+      },
       $attrs except $a
    )
 };
@@ -801,7 +806,8 @@ declare function v:one-liner-form(
 ) as element(h:form)
 {
    v:form($action, $attrs,
-      <div xmlns="http://www.w3.org/1999/xhtml" class="form-group row">
+      <div xmlns="http://www.w3.org/1999/xhtml">
+         { v:inject-class(('form-group', 'row'), $content/@*) }
          { $content/label }
          <div class="col-sm-9">
             { $content/descendant-or-self::input }

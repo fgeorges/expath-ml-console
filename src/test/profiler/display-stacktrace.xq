@@ -18,7 +18,7 @@ declare variable $script :=
             dataType: 'json',
             success: function(data) {{
                var pretty = JSON.stringify(data, null, 3);
-               editorSetContent('raw-json', pretty);
+               emlc.editorSetContent('raw-json', pretty);
                displayStackTrace(data, $('#stacktrace'));
             }},
             error: function(xhr, status, error) {{

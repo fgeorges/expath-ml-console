@@ -148,4 +148,5 @@ declare function local:page()
 
 v:console-page('../', 'profiler', 'Profiler', local:page#0, (
    <lib>filesaver</lib>,
+   <lib>emlc.ace</lib>,
    <lib>emlc.target</lib>))
