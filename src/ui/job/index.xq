@@ -38,9 +38,9 @@ declare function local:page()
             v:input-text('name', 'Name', 'Short label', (), attribute required { 'required' }),
             v:input-text-area('desc', 'Description', 'Longer description (optional)'),
             v:input-db-widget('target', 'Target'),
-	    v:input-radio-group('Language', (
-	       v:input-radio-inline('lang', 'lang-sjs', 'sjs', 'JavaScript', 'required'),
-	       v:input-radio-inline('lang', 'lang-xqy', 'xqy', 'XQuery',     'required'))),
+            v:input-radio-group('Language', (
+               v:input-radio-inline('lang', 'lang-sjs', 'sjs', 'JavaScript', 'required'),
+               v:input-radio-inline('lang', 'lang-xqy', 'xqy', 'XQuery',     'required'))),
             v:submit('Create')))
       }
    </wrapper>/*

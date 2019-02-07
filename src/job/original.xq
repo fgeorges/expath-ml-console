@@ -319,7 +319,8 @@ declare function local:format-as(
 };
 
 v:console-page('../', 'job', 'Jobs', local:page#0,
-   <script>
+   (<lib>emlc.job</lib>,
+    <script>
       $('input[type=radio][name=lang]').change(function() {{
          switchLang(this.value);
       }});
@@ -342,15 +343,15 @@ v:console-page('../', 'job', 'Jobs', local:page#0,
       }}
 
       function create() {{
-         jobCreate('create-code', 'create-detail', 'total-time', 'tasks-count', 'job-uri', 'job-coll', 'create-dry');
+         emlc.jobCreate('create-code', 'create-detail', 'total-time', 'tasks-count', 'job-uri', 'job-coll', 'create-dry');
          $('.need-job').prop('disabled', false);
       }}
 
       function run() {{
-         jobStart('task-code', 'job-coll');
+         emlc.jobStart('task-code', 'job-coll');
       }}
 
       function testTask() {{
          alert('TODO: Still to implement a way to test a single task, live.');
       }}
-   </script>)
+    </script>))
