@@ -30,7 +30,7 @@ declare function b:dir-children($items as element(h:li)+, $back-url as xs:string
    <button xmlns="http://www.w3.org/1999/xhtml"
            class="btn btn-danger"
            title="Delete selected documents and directories"
-           onclick='deleteUris("orig-form", "hidden-form");'>
+           onclick='emlc.deleteUris("orig-form", "hidden-form");'>
       Delete
    </button>,
    v:inline-form(
@@ -620,49 +620,4 @@ declare function b:create-doc-form(
       }
 
    </div>
-};
-
-(:~
- : Generate the piece of JavaScript required by the code in `b:create-doc-form()`.
- :)
-declare function b:create-doc-javascript() as element(h:script)
-{
-   <script xmlns="http://www.w3.org/1999/xhtml" type="text/javascript">
-
-      // initialize the jQuery File Upload widget
-      $('#fileupload').fileupload({{
-         url: '../../loader/upload'
-      }});
-
-      // is any required field missing value?
-      function missingRequired(inputs) {{
-         return inputs.filter(function () {{
-            return ! ( this.value || !$(this).prop('required') );
-         }}).first().focus().length != 0;
-      }};
-
-      // event handler to set the additional input fields
-      $('#fileupload').bind('fileuploadsubmit', function (evt, data) {{
-         // the input elements
-         var inputs = data.context.find(':input');
-         // missing any required value?
-         if ( missingRequired(inputs) ) {{
-            data.context.find('button').prop('disabled', false);
-            return false;
-         }}
-         // set the form data from the input elements
-         data.formData = inputs.serializeArray();
-         // set the content type based on format
-         var format = inputs.filter('[name="format"]').val();
-
-// **********
-// TODO: Set the file content type from the input selection (xml/text/binary/json)
-//    - xml    -> application/xml
-//    - text   -> text/plain
-//    - binary -> application/octet-stream
-//    - json   -> application/json
-// A bit of a hack, but will be parsed properly on ML-side.  What about HTML?
-// **********
-      }});
-   </script>
 };

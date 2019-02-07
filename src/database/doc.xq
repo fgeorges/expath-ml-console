@@ -375,5 +375,5 @@ return
                })
          })
       },
-      ( b:create-doc-javascript(),
-        <lib>emlc.ace</lib> ))
+      (<lib>emlc.ace</lib>,
+       <lib>emlc.browser</lib>))

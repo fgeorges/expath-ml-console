@@ -45,6 +45,9 @@ declare variable $v:js-libs :=
          <c:path>emlc/emlc-ace-functions-sjs.js</c:path>
          <c:path>emlc/emlc-ace-functions-xqy.js</c:path>
       </c:lib>
+      <c:lib code="emlc.browser">
+         <c:path>emlc/emlc-browser.js</c:path>
+      </c:lib>
       <c:lib code="emlc.cxan">
          <c:path>emlc/emlc-cxan.js</c:path>
       </c:lib>

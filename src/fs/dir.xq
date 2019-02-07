@@ -154,7 +154,7 @@ return
       function() {
          local:page($uri, $start)
       },
-      (b:create-doc-javascript(),
+      (<lib>emlc.browser</lib>,
        <lib>marked</lib>,
        <script type="text/javascript">
           var renderer = new marked.Renderer();

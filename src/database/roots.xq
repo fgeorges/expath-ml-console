@@ -113,4 +113,4 @@ return
                })
          })
       },
-      b:create-doc-javascript())
+      <lib>emlc.browser</lib>)

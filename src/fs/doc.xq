@@ -1,6 +1,5 @@
 xquery version "3.0";
 
-import module namespace b   = "http://expath.org/ns/ml/console/browse"          at "../database/browse-lib.xqy";
 import module namespace dbc = "http://expath.org/ns/ml/console/database/config" at "../database/db-config-lib.xqy";
 
 import module namespace a   = "http://expath.org/ns/ml/console/admin"  at "../lib/admin.xqy";
@@ -140,4 +139,4 @@ return
       function() {
          local:page($uri)
       },
-      b:create-doc-javascript())
+      <lib>emlc.browser</lib>)
