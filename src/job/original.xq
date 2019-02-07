@@ -80,10 +80,10 @@ declare function local:page()
 {
    <wrapper>
       <div style="display: none">
-	 <p id="sample-create-xqy">{ $sample-create-xqy }</p>
-	 <p id="sample-create-sjs">{ $sample-create-sjs }</p>
-	 <p id="sample-task-xqy">{ $sample-task-xqy }</p>
-	 <p id="sample-task-sjs">{ $sample-task-sjs }</p>
+         <p id="sample-create-xqy">{ $sample-create-xqy }</p>
+         <p id="sample-create-sjs">{ $sample-create-sjs }</p>
+         <p id="sample-task-xqy">{ $sample-task-xqy }</p>
+         <p id="sample-task-sjs">{ $sample-task-sjs }</p>
       </div>
 
       <p><b>TODO</b>: Implement "Run job", based on the URI of the job currently
@@ -101,10 +101,10 @@ declare function local:page()
 
       <h3>Setup</h3>
       <label class="radio-inline">
-	 <input type="radio" name="lang" id="lang-xqy" value="xqy" checked="checked"/> XQuery
+         <input type="radio" name="lang" id="lang-xqy" value="xqy" checked="checked"/> XQuery
       </label>
       <label class="radio-inline">
-	 <input type="radio" name="lang" id="lang-sjs" value="sjs"/> JavaScript
+         <input type="radio" name="lang" id="lang-sjs" value="sjs"/> JavaScript
       </label>
       <p/>
       <div class="row">
@@ -128,7 +128,7 @@ declare function local:page()
                   HTTP servers <span class="caret"/>
                </button>
                <ul class="dropdown-menu" style="min-width: 400pt"> {
-		  local:format-asses('http')
+                  local:format-asses('http')
                }
                </ul>
             </div>
@@ -138,7 +138,7 @@ declare function local:page()
                   XDBC servers <span class="caret"/>
                </button>
                <ul class="dropdown-menu" style="min-width: 400pt"> {
-		  local:format-asses('xdbc')
+                  local:format-asses('xdbc')
                }
                </ul>
             </div>
@@ -148,7 +148,7 @@ declare function local:page()
                   ODBC servers <span class="caret"/>
                </button>
                <ul class="dropdown-menu" style="min-width: 400pt"> {
-		  local:format-asses('odbc')
+                  local:format-asses('odbc')
                }
                </ul>
             </div>
@@ -158,7 +158,7 @@ declare function local:page()
                   WebDAV servers <span class="caret"/>
                </button>
                <ul class="dropdown-menu" style="min-width: 400pt"> {
-		  local:format-asses('webDAV')
+                  local:format-asses('webDAV')
                }
                </ul>
             </div>
@@ -171,7 +171,7 @@ declare function local:page()
 
       <h3>Create job</h3>
       <!-- TODO: How to change dynamically the language of the editor, depending
-	   on the value of the "lang" radio buttons?  And its content to
+           on the value of the "lang" radio buttons?  And its content to
            $sample-create-xqy? -->
       { v:edit-text(text { $sample-create-xqy }, 'xquery', 'create-code') }
 
@@ -181,60 +181,60 @@ declare function local:page()
                     class="btn btn-default need-target"
                     disabled="disabled"
                     onclick="create();">Create</button>
-	    <div class="checkbox">
-	       <label>
-		  <input type="checkbox" value="" checked="checked" id="create-dry"/> Dry mode
-	       </label>
-	    </div>
+            <div class="checkbox">
+               <label>
+                  <input type="checkbox" value="" checked="checked" id="create-dry"/> Dry mode
+               </label>
+            </div>
          </div>
       </div>
 
       <div class="create-success" style="display: none">
-	 <h3>Created job</h3>
-	 <p>
-	    Total time: <span id="total-time"/>
-	 </p>
-	 <p>
-	    Number of tasks created: <span id="tasks-count"/>
-	 </p>
-	 {
-	    let $db := xdmp:database-name(xdmp:database())
-	    return (
-	       <p>
-		  <span>Job URI: </span>
-		  <a data-href="../db/{ $db }/doc?uri=">
-		     <code class="doc" id="job-uri"/>
-		  </a>
-	       </p>,
-	       <p>
-		  <span>Collection: </span>
-		  <a data-href="../db/{ $db }/coll?uri=">
-		     <code class="coll" id="job-coll"/>
-		  </a>
-	       </p>
-	    )
-	 }
-	 <table class="table table-bordered prof-datatable" id="create-detail" data-order-on="1">
-	    <thead>
-	       <tr>
-		  <th>Number</th>
-		  <th>Created</th>
-		  <th>Label</th>
-		  <th>URI</th>
-	       </tr>
-	    </thead>
-	    <tbody/>
-	 </table>
+         <h3>Created job</h3>
+         <p>
+            Total time: <span id="total-time"/>
+         </p>
+         <p>
+            Number of tasks created: <span id="tasks-count"/>
+         </p>
+         {
+            let $db := xdmp:database-name(xdmp:database())
+            return (
+               <p>
+                  <span>Job URI: </span>
+                  <a data-href="../db/{ $db }/doc?uri=">
+                     <code class="doc" id="job-uri"/>
+                  </a>
+               </p>,
+               <p>
+                  <span>Collection: </span>
+                  <a data-href="../db/{ $db }/coll?uri=">
+                     <code class="coll" id="job-coll"/>
+                  </a>
+               </p>
+            )
+         }
+         <table class="table table-bordered prof-datatable" id="create-detail" data-order-on="1">
+            <thead>
+               <tr>
+                  <th>Number</th>
+                  <th>Created</th>
+                  <th>Label</th>
+                  <th>URI</th>
+               </tr>
+            </thead>
+            <tbody/>
+         </table>
       </div>
 
       <h3>Task code</h3>
       <!-- TODO: How to change dynamically the language of the editor, depending
-	   on the value of the "lang" radio buttons?  And its content to
+           on the value of the "lang" radio buttons?  And its content to
            $sample-task-xqy? -->
       { v:edit-text(text { $sample-task-xqy }, 'xquery', 'task-code') }
 
       <!-- TODO: Disable the buttons (test create, run job, etc.) until a source has
-	   been selected.  Look at the profiler to see how it is done there. -->
+           been selected.  Look at the profiler to see how it is done there. -->
       <div class="row">
          <div class="col-sm-3">
             <button id="run-job"
@@ -336,13 +336,13 @@ v:console-page('../', 'job', 'Jobs', local:page#0,
          editors[which + '-code']
             .editor
             .setSession(
-	       ace.createEditSession(
+               ace.createEditSession(
                   $('#sample-' + which + '-' + lang).text(),
                   mode));
       }}
 
       function create() {{
-	 jobCreate('create-code', 'create-detail', 'total-time', 'tasks-count', 'job-uri', 'job-coll', 'create-dry');
+         jobCreate('create-code', 'create-detail', 'total-time', 'tasks-count', 'job-uri', 'job-coll', 'create-dry');
          $('.need-job').prop('disabled', false);
       }}
 
