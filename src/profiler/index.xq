@@ -93,11 +93,11 @@ declare function local:page()
                <button id="go-profile"
                        class="btn btn-outline-secondary need-target"
                        disabled="disabled"
-                       onclick='profile("prof-query", "prof-json");'>Profile</button>
+                       onclick='emlc.profile("prof-query", "prof-json");'>Profile</button>
                <button id="go-as-xml"
                        class="btn btn-outline-secondary need-target"
                        disabled="disabled"
-                       onclick='profileXml("prof-query");'
+                       onclick='emlc.profileXml("prof-query");'
                        style="margin-left: 10px;">As XML</button>
             </div>
          </div>
@@ -139,14 +139,15 @@ declare function local:page()
       <h3>JSON report</h3>
       { v:edit-text(text { '' }, 'json', 'prof-json', 'profile') }
       <button class="btn btn-outline-secondary float-right" style="margin-bottom: 20pt"
-              onclick='saveJson("prof-json");'>Save JSON</button>
+              onclick='emlc.saveJson("prof-json");'>Save JSON</button>
       <!-- hidden fields -->
-      <input type="file" id="xmlFile"  style="display: none" onchange='loadXml(this.files[0],  "prof-json")'/>
-      <input type="file" id="jsonFile" style="display: none" onchange='loadJson(this.files[0], "prof-json")'/>
+      <input type="file" id="xmlFile"  style="display: none" onchange='emlc.loadXml(this.files[0],  "prof-json")'/>
+      <input type="file" id="jsonFile" style="display: none" onchange='emlc.loadJson(this.files[0], "prof-json")'/>
    </wrapper>/*
 };
 
 v:console-page('../', 'profiler', 'Profiler', local:page#0, (
    <lib>filesaver</lib>,
    <lib>emlc.ace</lib>,
+   <lib>emlc.profiler</lib>,
    <lib>emlc.target</lib>))
