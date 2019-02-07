@@ -124,4 +124,4 @@ declare function local:package-row($pkg as element(pp:package), $as as element(a
    </tr>
 };
 
-v:console-page('../', 'pkg', 'App server', local:page#0)
+v:console-page('../', 'pkg', 'App server', local:page#0, <lib>emlc.cxan</lib>)

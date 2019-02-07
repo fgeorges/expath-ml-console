@@ -21,78 +21,9 @@
 // ensure the emlc global var
 window.emlc = window.emlc || {};
 
-/*~
- * Send a REST request to the CXAN website selected in the CXAN install form.
- *
- * @param endpoint The endpoint to send the request to.
- * 
- * @param callback The callback function to call when the XML response is
- * received from the REST service.
- */
-function cxanRest(endpoint, callback)
-{
-   var site   = $("#cxan-install :input[name='std-website']").val();
-   var domain = site == 'prod' ? 'http://cxan.org' : 'http://test.cxan.org';
-   $.ajax({
-      url: domain + endpoint,
-      dataType: 'xml',
-      headers: {
-         accept: 'application/xml'
-      }
-   }).done(callback);
-}
-
-/*~
- * Handler for `change` event for field `std-website` of the CXAN install form.
- *
- * Remove all options on the field `repo`, send a REST request to CXAN to get the
- * list of all repositories in the new selected website, and add the new options
- * accordingly.
- */
-function cxanWebsiteChanges()
-{
-   // remove the old repositories
-   var repo = $("#cxan-install :input[name='repo']");
-   $('option', repo).remove();
-   // add the repositories for the new selected site
-   cxanRest('/pkg', function(xml) {
-      $(xml).find('id').each(function() {
-         var id = $(this).text();
-         repo.append($('<option>', { value : id }).text(id));
-      });
-      repo.change();
-   });
-}
-
-/*~
- * Handler for `change` event for field `repo` of the CXAN install form.
- *
- * Remove all options on the field `pkg`, send a REST request to CXAN to get the
- * list of all packages in the new selected repo, and add the new options
- * accordingly.
- */
-function cxanRepoChanges()
-{
-   // remove the old packages
-   var pkg = $("#cxan-install :input[name='pkg']");
-   $('option', pkg).remove();
-   // add the packages for the new selected repo
-   var repo = $(this).val();
-   cxanRest('/pkg/' + repo, function(xml) {
-      $(xml).find('abbrev').each(function() {
-         var abbrev = $(this).text();
-         pkg.append($('<option>', { value : repo + '/' + abbrev }).text(abbrev));
-      });
-   });
-}
-
 // initialise page components
 $(document).ready(function () {
-   // initialise the CXAN install form, if any
-   $("#cxan-install :input[name='repo']").change(cxanRepoChanges);
-   var site = $("#cxan-install :input[name='std-website']");
-   site.change(cxanWebsiteChanges);
-   site.change();
+
    // initialise the data tables
    $('.datatable').DataTable({
       info: false,

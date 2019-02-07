@@ -35,9 +35,6 @@ declare variable $v:pages as element(c:pages) :=
 
 declare variable $v:js-libs :=
    <c:libs>
-      <c:lib code="emlc.target">
-         <c:path>emlc/emlc-target.js</c:path>
-      </c:lib>
       <!-- TODO: For now, load everything, but should cherry-pick between sjs and xqy. -->
       <c:lib code="emlc.ace">
          <c:path>emlc/emlc-ace.js</c:path>
@@ -47,6 +44,12 @@ declare variable $v:js-libs :=
          <c:path>emlc/emlc-ace-types-xqy.js</c:path>
          <c:path>emlc/emlc-ace-functions-sjs.js</c:path>
          <c:path>emlc/emlc-ace-functions-xqy.js</c:path>
+      </c:lib>
+      <c:lib code="emlc.cxan">
+         <c:path>emlc/emlc-cxan.js</c:path>
+      </c:lib>
+      <c:lib code="emlc.target">
+         <c:path>emlc/emlc-target.js</c:path>
       </c:lib>
       <c:lib code="marked">
          <c:path>marked.min.js</c:path>

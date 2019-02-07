@@ -4,6 +4,7 @@
 window.emlc = window.emlc || {};
 
 (function() {
+
    const langtools = ace.require('ace/ext/language_tools');
    const highlight = ace.require('ace/ext/static_highlight');
 
@@ -17,6 +18,9 @@ window.emlc = window.emlc || {};
       $('.code').each(initCodeSnippet);
       $('.editor').each(initCodeEditor);
    });
+
+   // init ACE, does not need to wait for page being loaded
+   initAce();
 
    /*~ Contains all editors on the page, by ID. */
    emlc.editors = {};
@@ -38,7 +42,7 @@ window.emlc = window.emlc || {};
          function (highlighted) {
             // nothing
          });
-   };
+   }
 
    /*~
     * Init a code editor on the page.
@@ -63,57 +67,59 @@ window.emlc = window.emlc || {};
    /*~
     * Add completer for Marklogic functions to ACE.
     */
-   langtools.addCompleter({
-      getCompletions: function(editor, session, pos, prefix, callback) {
-         let results = [];
-         const mode = session.getMode().$id;
-         if ( mode === 'ace/mode/javascript' ) {
-            const token = session.getTokenAt(pos.row, pos.column);
-            if ( token && token.type === 'identifier' ) {
-               const forPrefix = function() {
-                  if ( /^[a-z2]$/.test(token.value) ) {
-                     results = emlc.acePrefixesSjs;
-                  }
-               };
-               if ( token.index < 2 ) {
-                  forPrefix();
-               }
-               else {
-                  const tokens = session.getTokens(pos.row);
-                  const dot    = tokens[token.index - 1];
-                  const prefix = tokens[token.index - 2];
-                  if ( dot.type === 'punctuation.operator' && dot.value === '.' && prefix.type === 'identifier' ) {
-                     results = emlc.aceFunctionsSjs[prefix.value];
-                  }
-                  else {
+   function initAce() {
+      langtools.addCompleter({
+         getCompletions: function(editor, session, pos, prefix, callback) {
+            let results = [];
+            const mode = session.getMode().$id;
+            if ( mode === 'ace/mode/javascript' ) {
+               const token = session.getTokenAt(pos.row, pos.column);
+               if ( token && token.type === 'identifier' ) {
+                  const forPrefix = function() {
+                     if ( /^[a-z2]$/.test(token.value) ) {
+                        results = emlc.acePrefixesSjs;
+                     }
+                  };
+                  if ( token.index < 2 ) {
                      forPrefix();
                   }
-               }
-            }
-         }
-         else if ( mode === 'ace/mode/xquery' ) {
-            const token = session.getTokenAt(pos.row, pos.column);
-            if ( token && token.type === 'support.function' ) {
-               const tok = token.value;
-               if ( tok.length === prefix.length ) {
-                  if ( /^[a-z2]$/.test(tok) ) {
-                     results = emlc.acePrefixesXqy;
-                  }
-               }
-               else {
-                  const parts = tok.split(':');
-                  if ( parts.length === 2 ) {
-                     results = emlc.aceFunctionsXqy[parts[0]];
+                  else {
+                     const tokens = session.getTokens(pos.row);
+                     const dot    = tokens[token.index - 1];
+                     const prefix = tokens[token.index - 2];
+                     if ( dot.type === 'punctuation.operator' && dot.value === '.' && prefix.type === 'identifier' ) {
+                        results = emlc.aceFunctionsSjs[prefix.value];
+                     }
+                     else {
+                        forPrefix();
+                     }
                   }
                }
             }
+            else if ( mode === 'ace/mode/xquery' ) {
+               const token = session.getTokenAt(pos.row, pos.column);
+               if ( token && token.type === 'support.function' ) {
+                  const tok = token.value;
+                  if ( tok.length === prefix.length ) {
+                     if ( /^[a-z2]$/.test(tok) ) {
+                        results = emlc.acePrefixesXqy;
+                     }
+                  }
+                  else {
+                     const parts = tok.split(':');
+                     if ( parts.length === 2 ) {
+                        results = emlc.aceFunctionsXqy[parts[0]];
+                     }
+                  }
+               }
+            }
+            callback(null, results);
          }
-         callback(null, results);
-      }
-      // getDocTooltip: function(item) {
-      //     item.docHTML = '<b>Foobar</b><hr></hr><em>Blabla</em>';
-      // }
-   });
+         // getDocTooltip: function(item) {
+         //     item.docHTML = '<b>Foobar</b><hr></hr><em>Blabla</em>';
+         // }
+      });
+   }
 
    // id is the id of the ACE editor element
    // type is either 'xml' or 'text'
@@ -155,12 +161,12 @@ window.emlc = window.emlc || {};
          error: function(xhr, status, error) {
             msg('danger', 'Error: ', status + ' (' + error + ') - See logs for details.');
          }});
-   };
+   }
 
    // id is the id of the ACE editor element
    function deleteDoc(id) {
       $('#' + id + '-delete').submit();
-   };
+   }
 
    function editorDocument(id) {
       var info = emlc.editors[id];
@@ -173,20 +179,20 @@ window.emlc = window.emlc || {};
             }
          }
       }
-   };
+   }
 
    function editorContent(id) {
       var doc = editorDocument(id);
       if ( doc ) {
          return doc.getValue();
       }
-   };
+   }
 
    function editorSetContent(id, value) {
       var doc = editorDocument(id);
       if ( doc ) {
          doc.setValue(value);
       }
-   };
+   }
 
 })();
