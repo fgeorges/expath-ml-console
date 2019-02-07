@@ -328,7 +328,12 @@ declare %private function v:console-page-static(
             for $script in $scripts
             return
                if ( $script[self::*:script] ) then
-                  <script>{ $script/(@*, node()) }</script>
+                  <script> {
+                    $script/(@type, attribute type { 'text/javascript' })[1],
+                    $script/(@* except @type),
+                    $script/node()
+                  }
+                  </script>
                else if ( $script[self::*:lib/@src] ) then
                   v:import-javascript($root || 'js/', $script/@src)
                else if ( $script[self::*:lib] ) then
