@@ -160,6 +160,12 @@
       <dispatch>/database/matching.xq</dispatch>
    </match-path>
 
+   <!-- database api -->
+   <match-path matches="^/api/db/([-_0-9a-zA-Z]+)/triples$">
+      <add-query-param name="db">$1</add-query-param>
+      <dispatch>/api/db/triples.sjs</dispatch>
+   </match-path>
+
    <!--
        File system.
    -->
