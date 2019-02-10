@@ -15,6 +15,14 @@ declare namespace cts  = "http://marklogic.com/cts";
 declare namespace xdmp = "http://marklogic.com/xdmp";
 declare namespace map  = "http://marklogic.com/xdmp/map";
 
+(: Page to display triples from a database.  Can be called with:
+ :
+ : 1) /db/{id}/triples?rsrc=...       - display details of the resource with the given IRI
+ : 2) /db/{id}/triples/...            - display details of the resource with the given CURIE
+ : 3) /db/{id}/triples?init-curie=... - redirect to 2)
+ : 4) /db/{id}/triples                - display the list of resources
+ :)
+
 (: Fixed page size for now. :)
 declare variable $page-size := 100;
 
@@ -60,7 +68,6 @@ declare function local:page--browse($db as element(a:database), $start as xs:int
 {
    <p>Database: { $db/a:name ! v:db-link('../' || ., .) }</p>,
    <p> {
-      (: TODO: Pass parameters properly, instead of concatenating values. :)
       let $query :=
             'SELECT DISTINCT ?s WHERE {
                 ?s ?p ?o .
@@ -68,9 +75,11 @@ declare function local:page--browse($db as element(a:database), $start as xs:int
                 FILTER ( isIRI(?s) )
              }
              ORDER BY ?s
-             OFFSET ' || $start - 1 || '
-             LIMIT ' || $page-size
-      let $res   := sem:sparql($query)
+             OFFSET $start
+             LIMIT  $size'
+      let $res   := sem:sparql($query, map:new((
+                       map:entry('start', $start - 1),
+                       map:entry('size',  $page-size))))
       let $count := fn:count($res)
       let $to    := $start + $count - 1
       return (
@@ -88,7 +97,7 @@ declare function local:page--browse($db as element(a:database), $start as xs:int
 };
 
 (:~
- : The page content, when browsing resource list.
+ : The page content, when displaying resource details.
  :
  : @todo Configurize the rule sets to use...
  :)
