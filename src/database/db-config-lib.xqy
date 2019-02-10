@@ -5,7 +5,8 @@ module namespace dbc = "http://expath.org/ns/ml/console/database/config";
 import module namespace a = "http://expath.org/ns/ml/console/admin" at "../lib/admin.xqy";
 import module namespace t = "http://expath.org/ns/ml/console/tools" at "../lib/tools.xqy";
 
-declare namespace c = "http://expath.org/ns/ml/console";
+declare namespace c    = "http://expath.org/ns/ml/console";
+declare namespace xdmp = "http://marklogic.com/xdmp";
 
 (:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  : Database config access
@@ -145,6 +146,12 @@ declare variable $dbc:default-config :=
       </triple-prefixes>
    </config>;
 
+declare function dbc:config-component($name as xs:QName)
+   as element((: $name :))*
+{
+   dbc:config-component(xdmp:database(), $name)
+};
+
 declare function dbc:config-component($db as item()?, $name as xs:QName)
    as element((: $name :))*
 {
@@ -152,7 +159,7 @@ declare function dbc:config-component($db as item()?, $name as xs:QName)
       dbc:config-component-1(
          $name,
          ( $db ! t:query(., function() { fn:doc($dbc:config-doc)/* }),
-           fn:doc(dbc:config-system-doc($db))/*,
+           $db ! fn:doc(dbc:config-system-doc(.))/*,
            fn:doc($dbc:defaults-doc)/*,
            $dbc:default-config ))
    }/*
@@ -191,6 +198,12 @@ declare function dbc:config-component-1($name as xs:QName, $docs as element(c:co
  : Triple prefixes config
  :)
 
+declare function dbc:config-triple-prefixes()
+   as element(c:decl)*
+{
+   dbc:config-component(t:qname('triple-prefixes'))/*
+};
+
 declare function dbc:config-triple-prefixes($db as item()?)
    as element(c:decl)*
 {
@@ -200,6 +213,12 @@ declare function dbc:config-triple-prefixes($db as item()?)
 (:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  : URI schemes config
  :)
+
+declare function dbc:config-uri-schemes()
+   as element(c:scheme)*
+{
+   dbc:config-component(t:qname('uri-schemes'))/*
+};
 
 declare function dbc:config-uri-schemes($db as item()?)
    as element(c:scheme)*
@@ -228,6 +247,12 @@ declare function dbc:is-absolute($uri as xs:string, $schemes as element(c:scheme
 (:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  : Default rulesets config
  :)
+
+declare function dbc:config-default-rulesets()
+   as element(c:ruleset)*
+{
+   dbc:config-component(t:qname('default-rulesets'))/*
+};
 
 declare function dbc:config-default-rulesets($db as item()?)
    as element(c:ruleset)*
