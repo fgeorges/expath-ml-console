@@ -6,6 +6,8 @@ declare namespace err   = "http://www.w3.org/2005/xqt-errors";
 declare namespace mlerr = "http://marklogic.com/xdmp/error";
 declare namespace xdmp  = "http://marklogic.com/xdmp";
 
+declare variable $t:console-ns := 'http://expath.org/ns/ml/console';
+
 (:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  : Work on different databases
  :)
@@ -64,6 +66,15 @@ declare function t:update(
 (:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  : Simple tools
  :)
+
+(:~
+ : Return a QName in the Console namespace.  $name is the local name.
+ :)
+declare function t:qname($name as xs:string)
+   as xs:QName
+{
+   fn:QName($t:console-ns, 'c:' || $code)
+};
 
 (:~
  : Ignore its parameter and always return the empty sequence.
@@ -178,9 +189,7 @@ declare function t:catch-ml($codes as xs:string+, $fun as function() as item()*)
 declare function t:error($code as xs:string, $msg as xs:string)
    as empty-sequence()
 {
-   fn:error(
-      fn:QName('http://expath.org/ns/ml/console', 'c:' || $code),
-      $msg)
+   fn:error(t:qname($code), $msg)
 };
 
 (:~
@@ -189,10 +198,7 @@ declare function t:error($code as xs:string, $msg as xs:string)
 declare function t:error($code as xs:string, $msg as xs:string, $info as item()*)
    as empty-sequence()
 {
-   fn:error(
-      fn:QName('http://expath.org/ns/ml/console', 'c:' || $code),
-      $msg,
-      $info)
+   fn:error(t:qname($code), $msg, $info)
 };
 
 (:~

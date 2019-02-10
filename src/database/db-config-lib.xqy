@@ -1,4 +1,4 @@
-xquery version "3.0";
+xquery version "3.1";
 
 module namespace dbc = "http://expath.org/ns/ml/console/database/config";
 
@@ -6,8 +6,6 @@ import module namespace a = "http://expath.org/ns/ml/console/admin" at "../lib/a
 import module namespace t = "http://expath.org/ns/ml/console/tools" at "../lib/tools.xqy";
 
 declare namespace c = "http://expath.org/ns/ml/console";
-
-declare variable $console-ns := 'http://expath.org/ns/ml/console';
 
 (:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  : Database config access
@@ -196,7 +194,7 @@ declare function dbc:config-component-1($name as xs:QName, $docs as element(c:co
 declare function dbc:config-triple-prefixes($db as item()?)
    as element(c:decl)*
 {
-   dbc:config-component($db, fn:QName($console-ns, 'triple-prefixes'))/*
+   dbc:config-component($db, t:qname('triple-prefixes'))/*
 };
 
 (:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -206,7 +204,7 @@ declare function dbc:config-triple-prefixes($db as item()?)
 declare function dbc:config-uri-schemes($db as item()?)
    as element(c:scheme)*
 {
-   dbc:config-component($db, fn:QName($console-ns, 'uri-schemes'))/*
+   dbc:config-component($db, t:qname('uri-schemes'))/*
 };
 
 declare function dbc:resolve($uri as xs:string, $prefix as xs:string?, $schemes as element(c:scheme)*) as xs:string
@@ -234,5 +232,5 @@ declare function dbc:is-absolute($uri as xs:string, $schemes as element(c:scheme
 declare function dbc:config-default-rulesets($db as item()?)
    as element(c:ruleset)*
 {
-   dbc:config-component($db, fn:QName($console-ns, 'default-rulesets'))/*
+   dbc:config-component($db, t:qname('default-rulesets'))/*
 };

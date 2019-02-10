@@ -101,7 +101,7 @@ declare function this:job($id as xs:string) as node()?
 {
    cts:search(fn:collection($this:kind.job)/*, cts:or-query((
       cts:json-property-value-query('id', $id),
-      cts:element-value-query(xs:QName('c:id'), $id))))
+      cts:element-value-query(t:qname('id'), $id))))
 };
 
 declare function this:status($job as node()) as xs:string
@@ -186,7 +186,7 @@ declare function this:task($id as xs:string) as node()?
 {
    cts:search(fn:collection($this:kind.task)/*, cts:or-query((
       cts:json-property-value-query('id', $id),
-      cts:element-value-query(xs:QName('c:id'), $id))))
+      cts:element-value-query(t:qname('id'), $id))))
 };
 
 declare function this:order($task as node()) as xs:integer
