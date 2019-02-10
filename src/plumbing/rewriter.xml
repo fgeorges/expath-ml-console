@@ -212,11 +212,8 @@
    </match-path>
 
    <!--
-       Browser and loader.
+       Loader.
    -->
-   <match-path matches="^/browser$">
-      <dispatch>/browser/index.xq</dispatch>
-   </match-path>
    <match-path matches="^/loader$">
       <dispatch>/loader/index.xq</dispatch>
    </match-path>
@@ -331,18 +328,6 @@
    </match-path>
    <match-path matches="^/tools/axes$">
       <dispatch>/tools/axes.xq</dispatch>
-   </match-path>
-   <match-path matches="^/tools/browse-db$">
-      <dispatch>/tools/browse-db.xq</dispatch>
-   </match-path>
-   <match-path matches="^/tools/browse-colls$">
-      <dispatch>/tools/browse-colls.xq</dispatch>
-   </match-path>
-   <match-path matches="^/tools/browse-triples$">
-      <dispatch>/tools/browse-triples.xq</dispatch>
-   </match-path>
-   <match-path matches="^/tools/browse-classes$">
-      <dispatch>/tools/browse-classes.xq</dispatch>
    </match-path>
    <match-path matches="^/tools/add-coll$">
       <dispatch>/tools/add-coll.xq</dispatch>
