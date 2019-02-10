@@ -73,7 +73,7 @@ declare function t:update(
 declare function t:qname($name as xs:string)
    as xs:QName
 {
-   fn:QName($t:console-ns, 'c:' || $code)
+   fn:QName($t:console-ns, 'c:' || $name)
 };
 
 (:~
