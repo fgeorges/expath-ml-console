@@ -44,7 +44,7 @@ declare function t:database-id($db as item()) as xs:unsignedLong?
 declare function t:database-name($db as item()) as xs:string?
 {
    if ( $db instance of element(a:database) ) then
-      $db/@name
+      $db/a:name
    else if ( $db castable as xs:unsignedLong ) then
       t:catch-ml('XDMP-NOSUCHDB', function() {
          xdmp:database-name(xs:unsignedLong($db))
