@@ -14,6 +14,12 @@
  * If "subject-lang" is passed, then the default value for "subject-type" is
  * rdf:langString, so it is not mandatory to set it as well.
  *
+ * Similar to "subject", "subject-type" and "subject-lang", the service can be invoked
+ * with the same parameters, only with "subject*" replaced by "predicate*" or "object*",
+ * to set resp. the predicate or the object of the triples to search for.  Any combination
+ * of "subject*", "predicate*" and "object*" is allowed (given than each "set" of params
+ * is consistent, and at least one if provided).
+ *
  * The type "xs:QName" is not supported.
  *
  * The result is an object with a property "triples", an array of triples with the
@@ -49,8 +55,14 @@
     const rules    = sjs.optionalField('rules', null);
     const prefixes = dbc.configTriplePrefixes(db);
 
-    function resolve(value, type) {
-        const typed = convert(value, type);
+    function resolve(value, type, lang) {
+        if ( ! value ) {
+            if ( type || lang ) {
+                throw new Error(`Type and lang are only allowed with a value: ${type}/${lang}`);
+            }
+            return null;
+        }
+        const typed = convert(value, type, lang);
         const rsrc  = {};
         if ( sem.isIRI(typed) ) {
             const curie = triples.curie(typed, prefixes);
@@ -70,6 +82,9 @@
     function convert(value, type, lang) {
         if ( ! type ) {
             type = lang ? 'rdf:langString' : 'iri';
+        }
+        else if ( lang && type !== 'rdf:langString' ) {
+            throw new Error(`The lang parameter is only allowed with rdf:langString: ${type}`);
         }
         switch ( type ) {
         case 'iri':
@@ -223,9 +238,23 @@
     };
 
     const subj = resolve(
-        sjs.mandatoryField('subject'),
+        sjs.optionalField('subject'),
         sjs.optionalField('subject-type', null),
         sjs.optionalField('subject-lang', null));
+
+    const pred = resolve(
+        sjs.optionalField('predicate'),
+        sjs.optionalField('predicate-type', null),
+        sjs.optionalField('predicate-lang', null));
+
+    const obj = resolve(
+        sjs.optionalField('object'),
+        sjs.optionalField('object-type', null),
+        sjs.optionalField('object-lang', null));
+
+    if ( ! subj && ! pred && ! obj ) {
+        throw new Error(`At least one of subject, predicate or object is mandatory.`);
+    }
 
     // TODO: For temporal documents, should be sem:store((), cts:collection-query('latest'))
     // Or not, if the database only got triples for `latest` already, e.g. if they are
@@ -235,24 +264,35 @@
     // TODO: Support windowing, in case one single resources has thousands of triples.
     const query = `
         PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-        SELECT ?pred ?obj ?label WHERE {
-          $subj ?pred ?obj .
+        SELECT * WHERE {
+          ?subj ?pred ?obj .
           OPTIONAL {
-            ?obj rdfs:label ?label .
+            ?subj rdfs:label ?slabel .
           }
-        }
-        ORDER BY ?pred`;
+          OPTIONAL {
+            ?obj rdfs:label ?olabel .
+          }
+        }`;
 
-    const matches = sjs.query(db,
-        () => triples.sparql(query, {subj: subj.iri || subj.value}, null, [], []));
+    const params = {};
+    if ( subj ) { params.subj = subj.iri || subj.value; }
+    if ( pred ) { params.pred = pred.iri || pred.value; }
+    if ( obj  ) { params.obj  = obj.iri  || obj.value;  }
+    const matches = sjs.query(db, () => triples.sparql(query, params, null, [], []));
 
     const result = { triples: [] };
     for ( const m of matches ) {
-        result.triples.push({
-            subject:   subj,
-            predicate: tojson(m.pred),
-            object:    tojson(m.obj)
-        });
+        const res = {};
+        res.subject   = subj || tojson(m.subj);
+        res.predicate = pred || tojson(m.pred);
+        res.object    = obj  || tojson(m.obj);
+        if ( fn.head(m.slabel) ) {
+            res.subject.label = m.slabel;
+        }
+        if ( fn.head(m.olabel) ) {
+            res.object.label = m.olabel;
+        }
+        result.triples.push(res);
     }
 
     return result;
