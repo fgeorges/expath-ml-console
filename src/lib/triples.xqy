@@ -60,7 +60,7 @@ declare function this:sparql(
     $store)
 };
 
-declare function this:curie($iri as xs:string) as xs:string {
+declare function this:curie($iri as xs:string) as xs:string? {
   this:curie($iri, dbc:config-triple-prefixes())
 };
 
@@ -69,15 +69,35 @@ declare function this:curie(
   $prefixes as element(c:decl)*
 ) as xs:string?
 {
-  let $local := fn:substring-after($iri, '#')
+  let $local := fn:substring-after($iri, '#')[.]
   return
-    if ( fn:empty($local[.]) ) then
+    if ( fn:empty($local) ) then
       fn:error((), 'No hash character in IRI: ' || $iri)
     else
       let $uri    := fn:substring-before($iri, '#') || '#'
       let $prefix := $prefixes[c:uri eq $uri]/c:prefix
       return
         $prefix ! (. || ':' || $local)
+};
+
+declare function this:expand($curie as xs:string) as xs:string? {
+  this:expand($curie, dbc:config-triple-prefixes())
+};
+
+declare function this:expand(
+  $curie    as xs:string,
+  $prefixes as element(c:decl)*
+) as xs:string?
+{
+  let $local := fn:substring-after($curie, ':')
+  return
+    if ( fn:empty($local) ) then
+      fn:error((), 'No colon character in CURIE: ' || $curie)
+    else
+      let $prefix := fn:substring-before($curie, ':')
+      let $uri    := fn:zero-or-one($prefixes[c:prefix eq $prefix]/c:uri)
+      return
+        $uri ! (. || $local)
 };
 
 declare function this:rdf($name as xs:string) as xs:string {

@@ -159,7 +159,7 @@ declare function dbc:config-component($db as item()?, $name as xs:QName)
       dbc:config-component-1(
          $name,
          ( $db ! t:query(., function() { fn:doc($dbc:config-doc)/* }),
-           $db ! fn:doc(dbc:config-system-doc(.))/*,
+           $db ! t:database-name(.) ! fn:doc(dbc:config-system-doc(.))/*,
            fn:doc($dbc:defaults-doc)/*,
            $dbc:default-config ))
    }/*

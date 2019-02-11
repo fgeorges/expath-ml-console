@@ -2,6 +2,7 @@ xquery version "3.0";
 
 module namespace t = "http://expath.org/ns/ml/console/tools";
 
+declare namespace a     = "http://expath.org/ns/ml/console/admin";
 declare namespace err   = "http://www.w3.org/2005/xqt-errors";
 declare namespace mlerr = "http://marklogic.com/xdmp/error";
 declare namespace xdmp  = "http://marklogic.com/xdmp";
@@ -22,7 +23,7 @@ declare variable $t:console-ns := 'http://expath.org/ns/ml/console';
  :)
 declare function t:database-id($db as item()) as xs:unsignedLong?
 {
-   if ( $db instance of element() and fn:exists($db/@id) ) then
+   if ( $db instance of element(a:database) ) then
       xs:unsignedLong($db/@id)
    else if ( $db castable as xs:unsignedLong ) then
       xs:unsignedLong($db)
@@ -30,6 +31,26 @@ declare function t:database-id($db as item()) as xs:unsignedLong?
       t:catch-ml('XDMP-NOSUCHDB', function() {
          xdmp:database($db)
       })
+};
+
+(:~
+ : Return the name of a database.
+ :
+ : If `$db` is an xs:unsignedLong, it is the ID of a database, and its name is
+ : returned (if no such database, the empty sequence is returned).  If it is an
+ : a:database element, its `@name` is returned.  If it is neither, it is returned
+ : as a string.
+ :)
+declare function t:database-name($db as item()) as xs:string?
+{
+   if ( $db instance of element(a:database) ) then
+      $db/@name
+   else if ( $db castable as xs:unsignedLong ) then
+      t:catch-ml('XDMP-NOSUCHDB', function() {
+         xdmp:database-name(xs:unsignedLong($db))
+      })
+   else
+      $db
 };
 
 (:~
