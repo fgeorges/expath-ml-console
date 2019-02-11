@@ -146,12 +146,6 @@ declare variable $dbc:default-config :=
       </triple-prefixes>
    </config>;
 
-declare function dbc:config-component($name as xs:QName)
-   as element((: $name :))*
-{
-   dbc:config-component(xdmp:database(), $name)
-};
-
 declare function dbc:config-component($db as item()?, $name as xs:QName)
    as element((: $name :))*
 {
@@ -198,12 +192,6 @@ declare function dbc:config-component-1($name as xs:QName, $docs as element(c:co
  : Triple prefixes config
  :)
 
-declare function dbc:config-triple-prefixes()
-   as element(c:decl)*
-{
-   dbc:config-component(t:qname('triple-prefixes'))/*
-};
-
 declare function dbc:config-triple-prefixes($db as item()?)
    as element(c:decl)*
 {
@@ -213,12 +201,6 @@ declare function dbc:config-triple-prefixes($db as item()?)
 (:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  : URI schemes config
  :)
-
-declare function dbc:config-uri-schemes()
-   as element(c:scheme)*
-{
-   dbc:config-component(t:qname('uri-schemes'))/*
-};
 
 declare function dbc:config-uri-schemes($db as item()?)
    as element(c:scheme)*
@@ -247,12 +229,6 @@ declare function dbc:is-absolute($uri as xs:string, $schemes as element(c:scheme
 (:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  : Default rulesets config
  :)
-
-declare function dbc:config-default-rulesets()
-   as element(c:ruleset)*
-{
-   dbc:config-component(t:qname('default-rulesets'))/*
-};
 
 declare function dbc:config-default-rulesets($db as item()?)
    as element(c:ruleset)*

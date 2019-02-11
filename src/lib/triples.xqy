@@ -38,7 +38,7 @@ declare function this:sparql(
   $options as xs:string*
 ) as item()*
 {
-  this:sparql($query, $params, $store, $options, dbc:config-triple-prefixes())
+  this:sparql($query, $params, $store, $options, dbc:config-triple-prefixes(xdmp:database()))
 };
 
 declare function this:sparql(
@@ -61,7 +61,7 @@ declare function this:sparql(
 };
 
 declare function this:curie($iri as xs:string) as xs:string? {
-  this:curie($iri, dbc:config-triple-prefixes())
+  this:curie($iri, dbc:config-triple-prefixes(xdmp:database()))
 };
 
 declare function this:curie(
@@ -81,7 +81,7 @@ declare function this:curie(
 };
 
 declare function this:expand($curie as xs:string) as xs:string? {
-  this:expand($curie, dbc:config-triple-prefixes())
+  this:expand($curie, dbc:config-triple-prefixes(xdmp:database()))
 };
 
 declare function this:expand(
