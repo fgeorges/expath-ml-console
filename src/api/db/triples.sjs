@@ -33,11 +33,16 @@
  *
  * Each value is an object with the following properties:
  *
- *   {type, iri, curie?}  ||  {type, value, lang?}  ||  {blank nodes...?}
+ *   {type, iri, curie?, labels?, classes?}  ||  {type, value, lang?}  ||  {blank nodes...?}
  *
  * Either it is an IRI, and so it might have a CURIE as well if the corresponding prefix
  * is configured on "db".  Or it is a simple value, and a lang if it is an rdf:langString.
  * Type is either "iri", "rdf:langString", or an "xs:*" type.
+ *
+ * For an IRI, the service also resolves its rdfs:labels and rdf:classes (a resource can
+ * have several labels and several classes).  The property "classes" is an array of
+ * strings.  The property "classes" is an array of objects, each with an "iri", and an
+ * optional "curie".
  *
  * TODO: Support blank nodes.
  *
@@ -261,24 +266,60 @@
     // projected through TDE, and they are restricted to `latest`.
     const store = rules && sem.rulesetStore(rules.split(','), sem.store());
 
+    // the "main" query
     // TODO: Support windowing, in case one single resources has thousands of triples.
     const query = `
-        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
         SELECT * WHERE {
           ?subj ?pred ?obj .
-          OPTIONAL {
-            ?subj rdfs:label ?slabel .
-          }
-          OPTIONAL {
-            ?obj rdfs:label ?olabel .
-          }
         }`;
-
     const params = {};
     if ( subj ) { params.subj = subj.iri || subj.value; }
     if ( pred ) { params.pred = pred.iri || pred.value; }
     if ( obj  ) { params.obj  = obj.iri  || obj.value;  }
     const matches = sjs.query(db, () => triples.sparql(query, params, null, [], []));
+
+    // resolve the labels and classes
+    const iris = [];
+    for ( const m of matches ) {
+        const s = (m.subj && sem.isIRI(m.subj) && m.subj) || (subj && subj.iri);
+        const o = (m.obj  && sem.isIRI(m.obj)  && m.obj)  || (obj  && obj.iri);
+        if ( s ) { iris.push(s); }
+        if ( o ) { iris.push(o); }
+    }
+    const labels  = {};
+    const classes = {};
+    if ( iris.length ) {
+        const q2 = `
+            PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            SELECT ?iri ?label ?clazz WHERE {
+              { ?iri rdfs:label ?label . }
+              UNION
+              { ?iri rdf:type ?clazz . }
+              FILTER (?iri = ?iris)
+            }`;
+        const p2 = {iris: iris};
+        const m2 = sjs.query(db, () => triples.sparql(q2, p2, null, [], []));
+        for ( const m of m2 ) {
+            if ( fn.head(m.label) ) {
+                let slot = labels[m.iri];
+                if ( ! slot ) {
+                    slot = labels[m.iri] = [];
+                }
+                slot.push(m.label);
+            }
+            if ( fn.head(m.clazz) ) {
+                let slot = classes[m.iri];
+                if ( ! slot ) {
+                    slot = classes[m.iri] = [];
+                }
+                const cl = {iri: m.clazz};
+                const cu = triples.curie(m.clazz, prefixes);
+                if ( cu ) { cl.curie = cu };
+                slot.push(cl);
+            }
+        }
+    }
 
     const result = { triples: [] };
     for ( const m of matches ) {
@@ -286,11 +327,27 @@
         res.subject   = subj || tojson(m.subj);
         res.predicate = pred || tojson(m.pred);
         res.object    = obj  || tojson(m.obj);
-        if ( fn.head(m.slabel) ) {
-            res.subject.label = m.slabel;
+        const siri = res.subject.iri;
+        const oiri = res.object.iri;
+        if ( siri ) {
+            const l = labels[siri];
+            if ( l ) {
+                res.subject.labels = l;
+            }
+            const c = classes[siri];
+            if ( c ) {
+                res.subject.classes = c;
+            }
         }
-        if ( fn.head(m.olabel) ) {
-            res.object.label = m.olabel;
+        if ( oiri ) {
+            const l = labels[oiri];
+            if ( l ) {
+                res.object.labels = l;
+            }
+            const c = classes[oiri];
+            if ( c ) {
+                res.object.classes = c;
+            }
         }
         result.triples.push(res);
     }
