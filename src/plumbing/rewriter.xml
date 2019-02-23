@@ -41,27 +41,27 @@
    <!--
        App servers.
    -->
-   <match-path matches="^/appserver/([-_0-9a-zA-Z]+)$">
+   <match-path matches="^/appserver/([-_.0-9a-zA-Z]+)$">
       <add-query-param name="id">$1</add-query-param>
       <dispatch>/appserver/index.xq</dispatch>
    </match-path>
-   <match-path matches="^/appserver/([-_0-9a-zA-Z]+)/init-repo$">
+   <match-path matches="^/appserver/([-_.0-9a-zA-Z]+)/init-repo$">
       <add-query-param name="id">$1</add-query-param>
       <dispatch>/appserver/init-repo.xq</dispatch>
    </match-path>
-   <match-path matches="^/appserver/([-_0-9a-zA-Z]+)/delete-repo$">
+   <match-path matches="^/appserver/([-_.0-9a-zA-Z]+)/delete-repo$">
       <add-query-param name="id">$1</add-query-param>
       <dispatch>/appserver/delete-repo.xq</dispatch>
    </match-path>
-   <match-path matches="^/appserver/([-_0-9a-zA-Z]+)/install-pkg$">
+   <match-path matches="^/appserver/([-_.0-9a-zA-Z]+)/install-pkg$">
       <add-query-param name="id">$1</add-query-param>
       <dispatch>/appserver/install-pkg.xq</dispatch>
    </match-path>
-   <match-path matches="^/appserver/([-_0-9a-zA-Z]+)/install-cxan$">
+   <match-path matches="^/appserver/([-_.0-9a-zA-Z]+)/install-cxan$">
       <add-query-param name="id">$1</add-query-param>
       <dispatch>/appserver/install-cxan.xq</dispatch>
    </match-path>
-   <match-path matches="^/appserver/([-_0-9a-zA-Z]+)/pkg/([^/]+)/delete$">
+   <match-path matches="^/appserver/([-_.0-9a-zA-Z]+)/pkg/([^/]+)/delete$">
       <add-query-param name="id">$1</add-query-param>
       <add-query-param name="pkg">$2</add-query-param>
       <dispatch>/appserver/delete-pkg.xq</dispatch>
@@ -73,89 +73,89 @@
    <match-path matches="^/db$">
       <dispatch>/database/index.xq</dispatch>
    </match-path>
-   <match-path matches="^/db/([-_0-9a-zA-Z]+)$">
+   <match-path matches="^/db/([-_.0-9a-zA-Z]+)$">
       <add-query-param name="name">$1</add-query-param>
       <dispatch>/database/show.xq</dispatch>
    </match-path>
-   <match-path matches="^/db/([-_0-9a-zA-Z]+)/axes$">
+   <match-path matches="^/db/([-_.0-9a-zA-Z]+)/axes$">
       <add-query-param name="database">$1</add-query-param>
       <dispatch>/database/axes.xq</dispatch>
    </match-path>
-   <match-path matches="^/db/([-_0-9a-zA-Z]+)/bin$">
+   <match-path matches="^/db/([-_.0-9a-zA-Z]+)/bin$">
       <add-query-param name="name">$1</add-query-param>
       <dispatch>/database/bin.xq</dispatch>
    </match-path>
-   <match-path matches="^/db/([-_0-9a-zA-Z]+)/croots$">
+   <match-path matches="^/db/([-_.0-9a-zA-Z]+)/croots$">
       <add-query-param name="name">$1</add-query-param>
       <add-query-param name="type">coll</add-query-param>
       <dispatch>/database/roots.xq</dispatch>
    </match-path>
-   <match-path matches="^/db/([-_0-9a-zA-Z]+)/cdir$">
+   <match-path matches="^/db/([-_.0-9a-zA-Z]+)/cdir$">
       <add-query-param name="name">$1</add-query-param>
       <add-query-param name="type">coll</add-query-param>
       <dispatch>/database/dir.xq</dispatch>
    </match-path>
-   <match-path matches="^/db/([-_0-9a-zA-Z]+)/coll$">
+   <match-path matches="^/db/([-_.0-9a-zA-Z]+)/coll$">
       <add-query-param name="name">$1</add-query-param>
       <dispatch>/database/coll.xq</dispatch>
    </match-path>
-   <match-path matches="^/db/([-_0-9a-zA-Z]+)/roots$">
+   <match-path matches="^/db/([-_.0-9a-zA-Z]+)/roots$">
       <add-query-param name="name">$1</add-query-param>
       <add-query-param name="type">docs</add-query-param>
       <dispatch>/database/roots.xq</dispatch>
    </match-path>
-   <match-path matches="^/db/([-_0-9a-zA-Z]+)/dir$">
+   <match-path matches="^/db/([-_.0-9a-zA-Z]+)/dir$">
       <add-query-param name="name">$1</add-query-param>
       <add-query-param name="type">docs</add-query-param>
       <dispatch>/database/dir.xq</dispatch>
    </match-path>
-   <match-path matches="^/db/([-_0-9a-zA-Z]+)/doc$">
+   <match-path matches="^/db/([-_.0-9a-zA-Z]+)/doc$">
       <add-query-param name="name">$1</add-query-param>
       <dispatch>/database/doc.xq</dispatch>
    </match-path>
-   <match-path matches="^/db/([-_0-9a-zA-Z]+)/triples$">
+   <match-path matches="^/db/([-_.0-9a-zA-Z]+)/triples$">
       <add-query-param name="name">$1</add-query-param>
       <dispatch>/database/triples.xq</dispatch>
    </match-path>
-   <match-path matches="^/db/([-_0-9a-zA-Z]+)/triples/([^/]+)$">
+   <match-path matches="^/db/([-_.0-9a-zA-Z]+)/triples/([^/]+)$">
       <add-query-param name="name">$1</add-query-param>
       <add-query-param name="curie">$2</add-query-param>
       <dispatch>/database/triples.xq</dispatch>
    </match-path>
-   <match-path matches="^/db/([-_0-9a-zA-Z]+)/classes$">
+   <match-path matches="^/db/([-_.0-9a-zA-Z]+)/classes$">
       <add-query-param name="name">$1</add-query-param>
       <dispatch>/database/classes.xq</dispatch>
    </match-path>
-   <match-path matches="^/db/([-_0-9a-zA-Z]+)/classes/([^/]+)$">
+   <match-path matches="^/db/([-_.0-9a-zA-Z]+)/classes/([^/]+)$">
       <add-query-param name="name">$1</add-query-param>
       <add-query-param name="curie">$2</add-query-param>
       <dispatch>/database/classes.xq</dispatch>
    </match-path>
-   <match-path matches="^/db/([-_0-9a-zA-Z]+)/save-xml$">
+   <match-path matches="^/db/([-_.0-9a-zA-Z]+)/save-xml$">
       <add-query-param name="name">$1</add-query-param>
       <add-query-param name="type">xml</add-query-param>
       <dispatch>/database/save-doc.xq</dispatch>
    </match-path>
-   <match-path matches="^/db/([-_0-9a-zA-Z]+)/save-json$">
+   <match-path matches="^/db/([-_.0-9a-zA-Z]+)/save-json$">
       <add-query-param name="name">$1</add-query-param>
       <add-query-param name="type">json</add-query-param>
       <dispatch>/database/save-doc.xq</dispatch>
    </match-path>
-   <match-path matches="^/db/([-_0-9a-zA-Z]+)/save-text$">
+   <match-path matches="^/db/([-_.0-9a-zA-Z]+)/save-text$">
       <add-query-param name="name">$1</add-query-param>
       <add-query-param name="type">text</add-query-param>
       <dispatch>/database/save-doc.xq</dispatch>
    </match-path>
-   <match-path matches="^/db/([-_0-9a-zA-Z]+)/delete$">
+   <match-path matches="^/db/([-_.0-9a-zA-Z]+)/delete$">
       <add-query-param name="database">$1</add-query-param>
       <add-query-param name="top">../../</add-query-param>
       <dispatch>/tools/delete.xq</dispatch>
    </match-path>
-   <match-path matches="^/db/([-_0-9a-zA-Z]+)/bulk-delete$">
+   <match-path matches="^/db/([-_.0-9a-zA-Z]+)/bulk-delete$">
       <add-query-param name="name">$1</add-query-param>
       <dispatch>/database/bulk-delete.xq</dispatch>
    </match-path>
-   <match-path matches="^/db/([-_0-9a-zA-Z]+)/matching$">
+   <match-path matches="^/db/([-_.0-9a-zA-Z]+)/matching$">
       <add-query-param name="name">$1</add-query-param>
       <dispatch>/database/matching.xq</dispatch>
    </match-path>
@@ -419,53 +419,53 @@
    <match-path matches="^/project$">
       <dispatch>/project/index.xq</dispatch>
    </match-path>
-   <match-path matches="^/project/([-_0-9a-zA-Z]+)$">
+   <match-path matches="^/project/([-_.0-9a-zA-Z]+)$">
       <add-query-param name="id">$1</add-query-param>
       <dispatch>/project/display.xq</dispatch>
    </match-path>
-   <match-path matches="^/project/([-_0-9a-zA-Z]+)/checkup$">
+   <match-path matches="^/project/([-_.0-9a-zA-Z]+)/checkup$">
       <add-query-param name="id">$1</add-query-param>
       <dispatch>/project/checkup.xq</dispatch>
    </match-path>
-   <match-path matches="^/project/([-_0-9a-zA-Z]+)/src$">
+   <match-path matches="^/project/([-_.0-9a-zA-Z]+)/src$">
       <add-query-param name="id">$1</add-query-param>
       <dispatch>/project/sources.xq</dispatch>
    </match-path>
-   <match-path matches="^/project/([-_0-9a-zA-Z]+)/src/(.+)$">
+   <match-path matches="^/project/([-_.0-9a-zA-Z]+)/src/(.+)$">
       <add-query-param name="id">$1</add-query-param>
       <add-query-param name="src">$2</add-query-param>
       <dispatch>/project/src.xq</dispatch>
    </match-path>
-   <match-path matches="^/project/([-0-9a-zA-Z]+)/environ$">
+   <match-path matches="^/project/([-_.0-9a-zA-Z]+)/environ$">
       <add-query-param name="id">$1</add-query-param>
       <dispatch>/project/environments.sjs</dispatch>
    </match-path>
-   <match-path matches="^/project/([-0-9a-zA-Z]+)/environ/([-0-9a-zA-Z]+)$">
+   <match-path matches="^/project/([-_.0-9a-zA-Z]+)/environ/([-_.0-9a-zA-Z]+)$">
       <add-query-param name="project">$1</add-query-param>
       <add-query-param name="environ">$2</add-query-param>
       <dispatch>/project/environ/index.sjs</dispatch>
    </match-path>
-   <match-path matches="^/project/([-0-9a-zA-Z]+)/environ/([-0-9a-zA-Z]+)/show$">
+   <match-path matches="^/project/([-_.0-9a-zA-Z]+)/environ/([-_.0-9a-zA-Z]+)/show$">
       <add-query-param name="project">$1</add-query-param>
       <add-query-param name="environ">$2</add-query-param>
       <dispatch>/project/environ/show.sjs</dispatch>
    </match-path>
-   <match-path matches="^/project/([-0-9a-zA-Z]+)/environ/([-0-9a-zA-Z]+)/setup$">
+   <match-path matches="^/project/([-_.0-9a-zA-Z]+)/environ/([-_.0-9a-zA-Z]+)/setup$">
       <add-query-param name="project">$1</add-query-param>
       <add-query-param name="environ">$2</add-query-param>
       <dispatch>/project/environ/setup.sjs</dispatch>
    </match-path>
-   <match-path matches="^/project/([-0-9a-zA-Z]+)/environ/([-0-9a-zA-Z]+)/load$">
+   <match-path matches="^/project/([-_.0-9a-zA-Z]+)/environ/([-_.0-9a-zA-Z]+)/load$">
       <add-query-param name="project">$1</add-query-param>
       <add-query-param name="environ">$2</add-query-param>
       <dispatch>/project/environ/load.sjs</dispatch>
    </match-path>
-   <match-path matches="^/project/([-0-9a-zA-Z]+)/environ/([-0-9a-zA-Z]+)/deploy$">
+   <match-path matches="^/project/([-_.0-9a-zA-Z]+)/environ/([-_.0-9a-zA-Z]+)/deploy$">
       <add-query-param name="project">$1</add-query-param>
       <add-query-param name="environ">$2</add-query-param>
       <dispatch>/project/environ/deploy.sjs</dispatch>
    </match-path>
-   <match-path matches="^/project/([-0-9a-zA-Z]+)/environ/([-0-9a-zA-Z]+)/action/([a-zA-Z]+)$">
+   <match-path matches="^/project/([-_.0-9a-zA-Z]+)/environ/([-_.0-9a-zA-Z]+)/action/([a-zA-Z]+)$">
       <add-query-param name="project">$1</add-query-param>
       <add-query-param name="environ">$2</add-query-param>
       <add-query-param name="action">$3</add-query-param>
