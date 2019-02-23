@@ -60,6 +60,9 @@ declare variable $v:js-libs :=
       <c:lib code="emlc.target">
          <c:path>emlc/emlc-target.js</c:path>
       </c:lib>
+      <c:lib code="emlc.trible">
+         <c:path>emlc/emlc-trible.js</c:path>
+      </c:lib>
       <c:lib code="marked">
          <c:path>marked.min.js</c:path>
          <c:path>highlight/highlight.pack.js</c:path>

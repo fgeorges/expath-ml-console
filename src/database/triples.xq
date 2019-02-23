@@ -21,6 +21,9 @@ declare namespace map  = "http://marklogic.com/xdmp/map";
  : 2) /db/{id}/triples/...            - display details of the resource with the given CURIE
  : 3) /db/{id}/triples?init-curie=... - redirect to 2)
  : 4) /db/{id}/triples                - display the list of resources
+ :
+ : The token "trible" below (and in emlc-browser.js) stands from "triple table", a table
+ : displaying triples.
  :)
 
 (: Fixed page size for now. :)
@@ -109,8 +112,22 @@ declare function local:page--rsrc(
    $decls as element(c:decl)*
 ) as element()+
 {
-   <p>Database: { $db/a:name ! v:db-link($root || '../' || ., .) }</p>,
-   <p>Resource: { v:rsrc-link($root || 'triples', $rsrc, $decls) }</p>,
+   <p> {
+      $db/a:name ! v:db-link($root || '../' || ., .),
+      text { ' ' },
+      v:rsrc-link($root || 'triples', $rsrc, $decls)
+   }
+   </p>,
+
+   (: TODO: Add a summary here, with some infos like rdfs:label, rdf:type, etc. :)
+
+   <h3>Triples</h3>,
+   <p>All the triples with this resource as their subject.</p>,
+   <table class="table table-compact trible-fillin" style="display: none"
+      data-trible-subject="{ $rsrc }"
+      data-trible-db="{ $db/a:name }"
+      data-trible-rules="{ $rules }"
+      data-trible-root="{ $root }"/>,
 
    <h3>Triples</h3>,
    local:subject-table($rsrc, $root, $rules, $decls, fn:true()),
@@ -395,4 +412,5 @@ return
                   })
                })
          })
-      })
+      },
+      <lib>emlc.trible</lib>)

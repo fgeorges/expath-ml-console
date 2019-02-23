@@ -72,7 +72,7 @@ declare function this:curie(
   let $local := fn:substring-after($iri, '#')[.]
   return
     if ( fn:empty($local) ) then
-      fn:error((), 'No hash character in IRI: ' || $iri)
+      ((: no hash character in iri :))
     else
       let $uri    := fn:substring-before($iri, '#') || '#'
       let $prefix := $prefixes[c:uri eq $uri]/c:prefix
