@@ -81,14 +81,11 @@ declare function local:summary($uri as xs:string)
    as element()+
 {
    <h3>Summary</h3>,
+   <p/>,
    <table class="table table-bordered">
-      <thead>
-         <th>Name</th>
-         <th>Value</th>
-      </thead>
       <tbody>
          <tr>
-            <td>Type</td>
+            <th>Type</th>
             <td> {
                let $doc := fn:doc($uri)
                return
@@ -104,15 +101,15 @@ declare function local:summary($uri as xs:string)
             </td>
          </tr>
          <tr>
-            <td>Document URI</td>
+            <th>URI</th>
             <td><code>{ $uri }</code></td>
          </tr>
          <tr>
-            <td>Forest</td>
+            <th>Forest</th>
             <td>{ xdmp:forest-name(xdmp:document-forest($uri)) }</td>
          </tr>
          <tr>
-            <td>Quality</td>
+            <th>Quality</th>
             <td>{ xdmp:document-get-quality($uri) }</td>
          </tr>
       </tbody>
