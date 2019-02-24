@@ -45,6 +45,9 @@ window.emlc = window.emlc || {};
 
     /*~ Create a link (an `a` element) for an atom which is a resource. */
     function atomLink(kind, root, atom) {
+        if ( atom.blank ) {
+            kind = 'blank';
+        }
         if ( atom.curie ) {
             // <a href="..."><code class="...">...</code></a>
             return aElem(
