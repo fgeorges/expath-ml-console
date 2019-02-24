@@ -284,11 +284,11 @@ declare function local:subject-table(
                   <tr>
                      <td rowspan="2">{ local:display-value($p, 'prop', $root, $decls) }</td>
                      <td>
-                        <span class="fa fa-collapse-down" id="expand{ $unik }"
+                        <span class="fa fa-plus-square" id="expand{ $unik }"
                               title="Expand the blank node"
                               onclick="$('#table{ $unik }').slideToggle();
                                        $('#expand{ $unik }').toggle(); $('#collapse{ $unik }').toggle();"/>
-                        <span class="fa fa-collapse-up"   id="collapse{ $unik }"
+                        <span class="fa fa-minus-square" id="collapse{ $unik }"
                               title="Collapse the blank node" style="display: none"
                               onclick="$('#table{ $unik }').slideToggle();
                                        $('#collapse{ $unik }').toggle(); $('#expand{ $unik }').toggle();"/>
@@ -385,7 +385,7 @@ declare function local:display-type($v as xs:anyAtomicType)
    if ( sem:isIRI($v) ) then
       <span class="fa fa-link" title="Resource"/>
    else if ( sem:isBlank($v) ) then
-      <span class="fa fa-unchecked" title="Blank node"/>
+      <span class="fa fa-bars" title="Blank node"/>
    else if ( sem:isNumeric($v) ) then
       <span class="fa fa-usd" title="Number"/>
    else if ( sem:lang($v) ) then
