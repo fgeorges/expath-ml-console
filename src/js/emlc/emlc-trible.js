@@ -48,10 +48,13 @@ window.emlc = window.emlc || {};
     }
 
     /*~ Create a jQuery `a` element. */
-    function aElem(href, content) {
+    function aElem(href, content, title) {
         const elem = $(document.createElement('a'));
         elem.attr('href', href);
         elem.append(content);
+        if ( title ) {
+            elem.attr('title', title);
+        }
         return elem;
     }
 
@@ -83,7 +86,8 @@ window.emlc = window.emlc || {};
                 : atom.iri;
             return aElem(
                 root + 'triples?rsrc=' + encodeURIComponent(atom.iri),
-                codeElem(text, kind)
+                codeElem(text, kind),
+                hash >= 0 && atom.iri
             )[0].outerHTML;
         }
     }
