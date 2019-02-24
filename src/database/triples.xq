@@ -126,15 +126,15 @@ declare function local:page--rsrc(
    <table class="table table-compact trible-fillin" style="display: none"
       data-trible-subject="{ $rsrc }"
       data-trible-db="{ $db/a:name }"
-      data-trible-root="{ $root }"/>,
       data-trible-rules="{ fn:string-join($rules, ',') }"
+      data-trible-root="{ $root }"/>,
 
    <h3>Inbound triples</h3>,
    <table class="table table-compact trible-fillin" style="display: none"
       data-trible-object="{ $rsrc }"
       data-trible-db="{ $db/a:name }"
-      data-trible-root="{ $root }"/>,
       data-trible-rules="{ fn:string-join($rules, ',') }"
+      data-trible-root="{ $root }"/>,
 
    <h3>Rulesets</h3>,
    <p>The following rulesets have been used to query the triples shown on this page:</p>,
