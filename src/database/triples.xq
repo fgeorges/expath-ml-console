@@ -122,9 +122,17 @@ declare function local:page--rsrc(
    (: TODO: Add a summary here, with some infos like rdfs:label, rdf:type, etc. :)
 
    <h3>Triples</h3>,
-   <p>All the triples with this resource as their subject.</p>,
+   <p>All the triples with this resource as their <em>subject</em>.</p>,
    <table class="table table-compact trible-fillin" style="display: none"
       data-trible-subject="{ $rsrc }"
+      data-trible-db="{ $db/a:name }"
+      data-trible-rules="{ $rules }"
+      data-trible-root="{ $root }"/>,
+
+   <h3>Inbound triples</h3>,
+   <p>All the triples with this resource as their <em>object</em>.</p>,
+   <table class="table table-compact trible-fillin" style="display: none"
+      data-trible-object="{ $rsrc }"
       data-trible-db="{ $db/a:name }"
       data-trible-rules="{ $rules }"
       data-trible-root="{ $root }"/>,

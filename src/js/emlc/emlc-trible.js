@@ -144,14 +144,27 @@ window.emlc = window.emlc || {};
     function fillInTrible() {
         const table   = $(this);
         // extract params set on the table by the server
-        const subject = table.data('trible-subject');
         const db      = table.data('trible-db');
         const rules   = table.data('trible-rules');
         const root    = table.data('trible-root');
+        const subject = table.data('trible-subject');
+        const object  = table.data('trible-object');
+        const dir     = subject ? 'out' : 'in';
+        if ( ! subject && ! object ) {
+            throw new Error('Neither subject nor object set on the trible');
+        }
+        else if ( subject && object ) {
+            throw new Error(`Both subject and object set on the trible: ${subject} - ${object}`);
+        }
         // the endpoint url
-        const url = '/api/db/' + db + '/triples'
-            + '?subject=' + encodeURIComponent(subject);
-            + '&rules='   + encodeURIComponent(rules);
+        const params = {};
+        if ( subject ) params.subject = subject;
+        if ( object  ) params.object  = object;
+        if ( rules   ) params.rules   = rules;
+        const url = '/api/db/' + db + '/triples?'
+            + Object.keys(params)
+                .map(p => `${p}=${encodeURIComponent(params[p])}`)
+                .join('&');
         // do it
         fetch(url, { credentials: 'same-origin' })
             .then(function(resp) {
@@ -162,7 +175,7 @@ window.emlc = window.emlc || {};
                 table.show();
                 // TODO: Pass options stored in the DB config file on the server, as extra
                 // data-trible-* attributes.  E.g. whether to paginate, etc.
-                doFillIn(table, resp.triples, root);
+                doFillIn(table, resp.triples, dir, root);
                 // TODO: Display a load spinner, or a text saying "loading", and hide it
                 // here when everything is done.  Alternatively or in addition, display an
                 // error message, would any error occur (before or within fetch call...)
@@ -175,35 +188,45 @@ window.emlc = window.emlc || {};
      * The `table` is a jQuery table element.  The `triples` are an array of triples, each
      * with 3 atoms.  The `root` is used to resolve links.
      */
-    function doFillIn(table, triples, root) {
+    function doFillIn(table, triples, dir, root) {
+        const details = dir === 'out' ? 'object' : 'subject';
         const columns = [];
+        if ( dir === 'in' ) {
+            columns.push({
+                title: 'Subject',
+                render: function(datum, type, row) {
+                    return valueCell('rsrc', root, row.subject);
+                }});
+        }
         columns.push({
             title: 'Property',
             render: function(datum, type, row) {
                 return valueCell('prop', root, row.predicate);
             }});
-        columns.push({
-            title: 'Object',
-            render: function(datum, type, row) {
-                return valueCell('rsrc', root, row.object);
-            }});
-        if ( triples.find(t => t.object.classes) ) {
+        if ( dir === 'out' ) {
+            columns.push({
+                title: 'Object',
+                render: function(datum, type, row) {
+                    return valueCell('rsrc', root, row.object);
+                }});
+        }
+        if ( triples.find(t => t[details].classes) ) {
             columns.push({
                 title: 'Class',
                 render: function(datum, type, row) {
-                    return classCell(root, row.object);
+                    return classCell(root, row[details]);
                 }});
         }
-        if ( triples.find(t => t.object.labels) ) {
+        if ( triples.find(t => t[details].labels) ) {
             columns.push({
                 title: 'Label',
                 render: function(datum, type, row) {
-                    return labelCell(root, row.object);
+                    return labelCell(root, row[details]);
                 }});
         }
         columns.push({
             title: 'Type',
-            data: 'object',
+            data: details,
             searchable: false,
             orderable: false,
             className: 'dt-body-right',
@@ -215,6 +238,7 @@ window.emlc = window.emlc || {};
             language: {
                 search: 'Filter triples:'
             },
+            order: [[ dir === 'out' ? 0 : 1, 'asc' ]],
             data: triples,
             columns: columns
         });
