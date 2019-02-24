@@ -123,7 +123,6 @@ declare function local:page--rsrc(
    (: TODO: Add a summary here, with some infos like rdfs:label, rdf:type, etc. :)
 
    <h3>Triples</h3>,
-   <p>All the triples with this resource as their <em>subject</em>.</p>,
    <table class="table table-compact trible-fillin" style="display: none"
       data-trible-subject="{ $rsrc }"
       data-trible-db="{ $db/a:name }"
@@ -131,7 +130,6 @@ declare function local:page--rsrc(
       data-trible-root="{ $root }"/>,
 
    <h3>Inbound triples</h3>,
-   <p>All the triples with this resource as their <em>object</em>.</p>,
    <table class="table table-compact trible-fillin" style="display: none"
       data-trible-object="{ $rsrc }"
       data-trible-db="{ $db/a:name }"
@@ -235,14 +233,14 @@ declare function local:page--rsrc(
       'get'),
 
    <h3>Documents</h3>,
-   <p>The triples with this subject (those stored, not inferred), are stored in the
-      following document(s):</p>,
-   <ul> {
-      let $uris := cts:uris('', (), cts:and-query(cts:triple-range-query(sem:iri($rsrc), (), ())))
-      return
-         if ( fn:empty($uris) ) then
-            <li><em>no triple stored in document</em></li>
-         else
+   let $uris := cts:uris('', (), cts:and-query(cts:triple-range-query(sem:iri($rsrc), (), ())))
+   return
+      if ( fn:empty($uris) ) then
+         <p>The triples with this subject are only the result of inference.</p>
+      else (
+         <p>The triples with this subject originate from the following
+            document{ 's'[fn:count($uris) gt 1] }:</p>,
+         <ul> {
             for $uri in $uris
             order by $uri
             return

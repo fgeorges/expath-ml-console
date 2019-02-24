@@ -192,7 +192,8 @@ window.emlc = window.emlc || {};
      * with 3 atoms.  The `root` is used to resolve links.
      */
     function doFillIn(table, triples, dir, root) {
-        const details = dir === 'out' ? 'object' : 'subject';
+        const origin = dir === 'out' ? 'subject' : 'object';
+        const dest   = dir === 'out' ? 'object'  : 'subject';
         const columns = [];
         if ( dir === 'in' ) {
             columns.push({
@@ -213,23 +214,23 @@ window.emlc = window.emlc || {};
                     return valueCell('rsrc', root, row.object);
                 }});
         }
-        if ( triples.find(t => t[details].classes) ) {
+        if ( triples.find(t => t[dest].classes) ) {
             columns.push({
                 title: 'Class',
                 render: function(datum, type, row) {
-                    return classCell(root, row[details]);
+                    return classCell(root, row[dest]);
                 }});
         }
-        if ( triples.find(t => t[details].labels) ) {
+        if ( triples.find(t => t[dest].labels) ) {
             columns.push({
                 title: 'Label',
                 render: function(datum, type, row) {
-                    return labelCell(root, row[details]);
+                    return labelCell(root, row[dest]);
                 }});
         }
         columns.push({
             title: 'Type',
-            data: details,
+            data: dest,
             searchable: false,
             orderable: false,
             className: 'dt-body-right',
@@ -237,7 +238,8 @@ window.emlc = window.emlc || {};
         });
         table.DataTable({
             paging: false,
-            info: false,
+            infoCallback: function() { return `All the triples with this resource as their <em>${origin}</em>.<p/>`; },
+            dom: "<'row'<'col-sm-12 col-md-6'i><'col-sm-12 col-md-6'f>><'row'<'col-sm-12'tr>>",
             language: {
                 search: 'Filter triples:'
             },
