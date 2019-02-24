@@ -92,6 +92,10 @@ declare variable $dbc:default-config :=
       </uri-schemes>
       <triple-prefixes>
          <decl>
+            <prefix>_</prefix>
+            <uri>http://marklogic.com/semantics/blank/</uri>
+         </decl>
+         <decl>
             <prefix>dc</prefix>
             <uri>http://purl.org/dc/terms/</uri>
          </decl>

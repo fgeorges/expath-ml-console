@@ -60,46 +60,6 @@ declare function this:sparql(
     $store)
 };
 
-declare function this:curie($iri as xs:string) as xs:string? {
-  this:curie($iri, dbc:config-triple-prefixes(xdmp:database()))
-};
-
-declare function this:curie(
-  $iri      as xs:string,
-  $prefixes as element(c:decl)*
-) as xs:string?
-{
-  let $local := fn:substring-after($iri, '#')[.]
-  return
-    if ( fn:empty($local) ) then
-      ((: no hash character in iri :))
-    else
-      let $uri    := fn:substring-before($iri, '#') || '#'
-      let $prefix := $prefixes[c:uri eq $uri]/c:prefix
-      return
-        $prefix ! (. || ':' || $local)
-};
-
-declare function this:expand($curie as xs:string) as xs:string? {
-  this:expand($curie, dbc:config-triple-prefixes(xdmp:database()))
-};
-
-declare function this:expand(
-  $curie    as xs:string,
-  $prefixes as element(c:decl)*
-) as xs:string?
-{
-  let $local := fn:substring-after($curie, ':')
-  return
-    if ( fn:empty($local) ) then
-      fn:error((), 'No colon character in CURIE: ' || $curie)
-    else
-      let $prefix := fn:substring-before($curie, ':')
-      let $uri    := fn:zero-or-one($prefixes[c:prefix eq $prefix]/c:uri)
-      return
-        $uri ! (. || $local)
-};
-
 declare function this:rdf($name as xs:string) as xs:string {
   $this:rdfs-uri || $name
 };
@@ -110,4 +70,78 @@ declare function this:rdfs($name as xs:string) as xs:string {
 
 declare function this:xs($name as xs:string) as xs:string {
   $this:xs-uri || $name
+};
+
+declare function this:curie($iri as xs:string) as xs:string? {
+  this:curie($iri, dbc:config-triple-prefixes(xdmp:database()))
+};
+
+(:~
+ : Shorten a resource IRI to a CURIE, if a prefix can be found for it.
+ :
+ : The first entry in `$decls` that matches $iri (that is, the first one for which
+ : $iri starts with the text value of) is used.  If there is no such entry, return
+ : the empty sequence.
+ :)
+declare function this:curie($iri as xs:string, $decls as element(c:decl)*)
+   as xs:string?
+{
+   this:find-prefix-by-iri($iri, $decls)
+      ! ( c:prefix || ':' || fn:substring-after($iri, c:uri) )
+};
+
+declare function this:expand($curie as xs:string) as xs:string? {
+  this:expand($curie, dbc:config-triple-prefixes(xdmp:database()))
+};
+
+(:~
+ : Expand a CURIE notation to the full IRI.
+ :
+ : The first entry in `$decls` that matches the prefix of the CURIE is used.  If
+ : there is no such entry, the function returns the empty sequence.
+ :)
+declare function this:expand($curie as xs:string, $decls as element(c:decl)*)
+   as xs:string?
+{
+   fn:substring-before($curie, ':')[.]
+   ! this:find-prefix-by-prefix(., $decls)
+   ! (c:uri || fn:substring-after($curie, ':'))
+};
+
+(:~
+ : Return the first matching prefix declaration, for a complete resource IRI.
+ :)
+declare function this:find-prefix-by-iri($iri as xs:string, $decls as element(c:decl)*)
+   as element(c:decl)?
+{
+   this:find-matching-prefix($decls, function($decl) {
+      fn:starts-with($iri, $decl/c:uri)
+   })
+};
+
+(:~
+ : Return the first matching prefix declaration, for a given prefix.
+ :)
+declare function this:find-prefix-by-prefix($prefix as xs:string, $decls as element(c:decl)*)
+   as element(c:decl)?
+{
+   this:find-matching-prefix($decls, function($decl) {
+      $decl/c:prefix eq $prefix
+   })
+};
+
+(:~
+ : Return the first matching prefix declaration, for a given predicate.
+ :)
+declare function this:find-matching-prefix(
+   $decls as element(c:decl)*,
+   $pred  as function(element(c:decl)) as xs:boolean
+) as element(c:decl)?
+{
+   if ( fn:empty($decls) ) then
+      ()
+   else if ( $pred($decls[1]) ) then
+      $decls[1]
+   else
+      this:find-matching-prefix(fn:remove($decls, 1), $pred)
 };

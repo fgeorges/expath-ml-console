@@ -5,10 +5,11 @@ xquery version "3.0";
  :)
 module namespace v = "http://expath.org/ns/ml/console/view";
 
-import module namespace a    = "http://expath.org/ns/ml/console/admin"  at "admin.xqy";
-import module namespace b    = "http://expath.org/ns/ml/console/binary" at "binary.xqy";
-import module namespace t    = "http://expath.org/ns/ml/console/tools"  at "tools.xqy";
-import module namespace init = "http://expath.org/ns/ml/console/init"   at "../init/lib-init.xqy";
+import module namespace a       = "http://expath.org/ns/ml/console/admin"   at "admin.xqy";
+import module namespace b       = "http://expath.org/ns/ml/console/binary"  at "binary.xqy";
+import module namespace t       = "http://expath.org/ns/ml/console/tools"   at "tools.xqy";
+import module namespace triples = "http://expath.org/ns/ml/console/triples" at "triples.xqy";
+import module namespace init    = "http://expath.org/ns/ml/console/init"    at "../init/lib-init.xqy";
 
 declare namespace c    = "http://expath.org/ns/ml/console";
 declare namespace h    = "http://www.w3.org/1999/xhtml";
@@ -1407,7 +1408,7 @@ declare function v:iri-link(
    $param    as xs:string
 )
 {
-   let $curie := v:shorten-resource($iri, $decls)
+   let $curie := triples:curie($iri, $decls)
    return
       if ( $curie ) then
          v:component-link($endpoint || '/' || $curie, $curie, $kind)
@@ -1441,78 +1442,4 @@ declare function v:component-link($href as xs:string, $name as xs:string, $kind 
    <a xmlns="http://www.w3.org/1999/xhtml" href="{ $href }">
       <code class="{ $kind }">{ $name }</code>
    </a>
-};
-
-(:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- : Triple display tools
- :)
-
-(:~
- : Shorten a resource URI, if a prefix can be found for it.
- :
- : The first entry in `$decls` that matches $uri (that is, the first one for which
- : $uri starts with the text value of) is used.  If there is no such entry, return
- : the empty sequence.
- :)
-declare function v:shorten-resource($uri as xs:string, $decls as element(c:decl)*)
-   as xs:string?
-{
-   v:find-prefix-by-uri($uri, $decls)
-      ! ( c:prefix || ':' || fn:substring-after($uri, c:uri) )
-};
-
-(:~
- : Expand a CURIE notation to the full URI.
- :
- : The first entry in `$decls` that matches the prefix of the CURIE is used.  If
- : there is no such entry, the function returns the original one.
- :)
-declare function v:expand-curie($curie as xs:string, $decls as element(c:decl)*)
-   as xs:string
-{
-   let $prefix := fn:substring-before($curie, ':')
-   let $decl   := $prefix[.] ! v:find-prefix-by-prefix(., $decls)
-   return
-      if ( fn:empty($decl) ) then
-         $curie
-      else
-         $decl/c:uri || fn:substring-after($curie, ':')
-};
-
-(:~
- : Return the first matching prefix declaration, for a complete resource URI.
- :)
-declare function v:find-prefix-by-uri($uri as xs:string, $decls as element(c:decl)*)
-   as element(c:decl)?
-{
-   v:find-matching-prefix($decls, function($decl) {
-      fn:starts-with($uri, $decl/c:uri)
-   })
-};
-
-(:~
- : Return the first matching prefix declaration, for a given prefix.
- :)
-declare function v:find-prefix-by-prefix($prefix as xs:string, $decls as element(c:decl)*)
-   as element(c:decl)?
-{
-   v:find-matching-prefix($decls, function($decl) {
-      $decl/c:prefix eq $prefix
-   })
-};
-
-(:~
- : Return the first matching prefix declaration, for a given predicate.
- :)
-declare function v:find-matching-prefix(
-   $decls as element(c:decl)*,
-   $pred  as function(element(c:decl)) as xs:boolean
-) as element(c:decl)?
-{
-   if ( fn:empty($decls) ) then
-      ()
-   else if ( $pred($decls[1]) ) then
-      $decls[1]
-   else
-      v:find-matching-prefix(fn:remove($decls, 1), $pred)
 };

@@ -2,10 +2,11 @@ xquery version "3.0";
 
 import module namespace dbc = "http://expath.org/ns/ml/console/database/config" at "db-config-lib.xqy";
 
-import module namespace a   = "http://expath.org/ns/ml/console/admin" at "../lib/admin.xqy";
-import module namespace t   = "http://expath.org/ns/ml/console/tools" at "../lib/tools.xqy";
-import module namespace v   = "http://expath.org/ns/ml/console/view"  at "../lib/view.xqy";
-import module namespace sem = "http://marklogic.com/semantics" at "/MarkLogic/semantics.xqy";
+import module namespace a       = "http://expath.org/ns/ml/console/admin"   at "../lib/admin.xqy";
+import module namespace t       = "http://expath.org/ns/ml/console/tools"   at "../lib/tools.xqy";
+import module namespace triples = "http://expath.org/ns/ml/console/triples" at "../lib/triples.xqy";
+import module namespace v       = "http://expath.org/ns/ml/console/view"    at "../lib/view.xqy";
+import module namespace sem     = "http://marklogic.com/semantics" at "/MarkLogic/semantics.xqy";
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
@@ -46,7 +47,7 @@ declare function local:page(
       local:page--rsrc($db, $rsrc, './', $rules, $decls)
    )
    else if ( fn:exists($curie) ) then (
-      local:page--rsrc($db, v:expand-curie($curie, $decls), '../', $rules, $decls)
+      local:page--rsrc($db, triples:expand($curie, $decls), '../', $rules, $decls)
    )
    else if ( fn:exists($init) ) then (
       local:page--init-curie($init)
