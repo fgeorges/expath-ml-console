@@ -75,6 +75,12 @@ a:active {
 }
 
 .loading {
+  background: url('/images/loading.gif') no-repeat center;
+  height: 100pt;
+  background-size: 64px 64px;
+}
+
+.twitter-typeahead .loading {
   background: url('/images/loading.gif') no-repeat right center;
   background-size: 30px 30px;
 }

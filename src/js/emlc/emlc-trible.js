@@ -27,6 +27,26 @@ window.emlc = window.emlc || {};
         $('.trible-fillin').each(fillInTrible);
     });
 
+    /*~ Display an error on the page. */
+    function onError(err, template, loading) {
+        if ( template ) {
+            var tmpl  = $('#' + template);
+            var alert = tmpl.clone();
+            alert.children('strong').text('Error');
+            alert.children('span').text(err.message || err);
+            alert.addClass('show alert-danger');
+            alert.insertBefore(tmpl);
+            alert.show();
+        }
+        else {
+            alert(`Error when loading triple table: ${err.message || err}`);
+        }
+        if ( loading ) {
+            $('#' + loading).hide();
+        }
+        console.error(err);
+    }
+
     /*~ Create a jQuery `a` element. */
     function aElem(href, content) {
         const elem = $(document.createElement('a'));
@@ -146,43 +166,52 @@ window.emlc = window.emlc || {};
      */
     function fillInTrible() {
         const table   = $(this);
-        // extract params set on the table by the server
-        const db      = table.data('trible-db');
-        const rules   = table.data('trible-rules');
-        const root    = table.data('trible-root');
-        const subject = table.data('trible-subject');
-        const object  = table.data('trible-object');
-        const dir     = subject ? 'out' : 'in';
-        if ( ! subject && ! object ) {
-            throw new Error('Neither subject nor object set on the trible');
+        const message = table.data('trible-message');
+        const loading = table.data('trible-loading');
+        try {
+            // extract params set on the table by the server
+            const db      = table.data('trible-db');
+            const rules   = table.data('trible-rules');
+            const root    = table.data('trible-root');
+            const subject = table.data('trible-subject');
+            const object  = table.data('trible-object');
+            const dir     = subject ? 'out' : 'in';
+            if ( ! subject && ! object ) {
+                throw new Error('Neither subject nor object set on the trible');
+            }
+            else if ( subject && object ) {
+                throw new Error(`Both subject and object set on the trible: ${subject} - ${object}`);
+            }
+            // the endpoint url
+            const params = {};
+            if ( subject ) params.subject = subject;
+            if ( object  ) params.object  = object;
+            if ( rules   ) params.rules   = rules;
+            const url = '/api/db/' + db + '/triples?'
+                + Object.keys(params)
+                    .map(p => `${p}=${encodeURIComponent(params[p])}`)
+                    .join('&');
+            // do it
+            fetch(url, { credentials: 'same-origin' })
+                .then(function(resp) {
+                    return resp.json();
+                })
+                .then(function(resp) {
+                    table.show();
+                    // TODO: Pass options stored in the DB config file on the server, as extra
+                    // data-trible-* attributes.  E.g. whether to paginate, etc.
+                    doFillIn(table, resp.triples, dir, root);
+                    if ( loading ) {
+                        $('#' + loading).hide();
+                    }
+                })
+                .catch(function(err) {
+                    onError(err, message, loading);
+                });
         }
-        else if ( subject && object ) {
-            throw new Error(`Both subject and object set on the trible: ${subject} - ${object}`);
+        catch (err) {
+            onError(err, message, loading);
         }
-        // the endpoint url
-        const params = {};
-        if ( subject ) params.subject = subject;
-        if ( object  ) params.object  = object;
-        if ( rules   ) params.rules   = rules;
-        const url = '/api/db/' + db + '/triples?'
-            + Object.keys(params)
-                .map(p => `${p}=${encodeURIComponent(params[p])}`)
-                .join('&');
-        // do it
-        fetch(url, { credentials: 'same-origin' })
-            .then(function(resp) {
-                return resp.json();
-            })
-            .then(function(resp) {
-                // should we first remove everything in the table?
-                table.show();
-                // TODO: Pass options stored in the DB config file on the server, as extra
-                // data-trible-* attributes.  E.g. whether to paginate, etc.
-                doFillIn(table, resp.triples, dir, root);
-                // TODO: Display a load spinner, or a text saying "loading", and hide it
-                // here when everything is done.  Alternatively or in addition, display an
-                // error message, would any error occur (before or within fetch call...)
-            });
     }
 
     /*~

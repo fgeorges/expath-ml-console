@@ -123,18 +123,38 @@ declare function local:page--rsrc(
    (: TODO: Add a summary here, with some infos like rdfs:label, rdf:type, etc. :)
 
    <h3>Triples</h3>,
+   <div id="out-loading" class="loading"/>,
+   <div id="out-message" style="display: none" class="alert alert-dismissible fade" role="alert">
+      <strong/>: <span/><br/>
+      <em>Please report this, including the stacktrace from your browser JavaScript console.</em>
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+         <span aria-hidden="true">&#215;</span>
+      </button>
+   </div>,
    <table class="table table-compact trible-fillin" style="display: none"
       data-trible-subject="{ $rsrc }"
       data-trible-db="{ $db/a:name }"
       data-trible-rules="{ fn:string-join($rules, ',') }"
-      data-trible-root="{ $root }"/>,
+      data-trible-root="{ $root }"
+      data-trible-loading="out-loading"
+      data-trible-message="out-message"/>,
 
    <h3>Inbound triples</h3>,
+   <div id="in-loading" class="loading"/>,
+   <div id="in-message" style="display: none" class="alert alert-dismissible fade" role="alert">
+      <strong/>: <span/><br/>
+      <em>Please report this, including the stacktrace from your browser JavaScript console.</em>
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+         <span aria-hidden="true">&#215;</span>
+      </button>
+   </div>,
    <table class="table table-compact trible-fillin" style="display: none"
       data-trible-object="{ $rsrc }"
       data-trible-db="{ $db/a:name }"
       data-trible-rules="{ fn:string-join($rules, ',') }"
-      data-trible-root="{ $root }"/>,
+      data-trible-root="{ $root }"
+      data-trible-loading="in-loading"
+      data-trible-message="in-message"/>,
 
    <h3>Rulesets</h3>,
    <p>The following rulesets have been used to query the triples shown on this page:</p>,
