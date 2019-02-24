@@ -1,5 +1,7 @@
 xquery version "3.0";
 
+import module namespace dbc = "http://expath.org/ns/ml/console/database/config" at "db-config-lib.xqy";
+
 import module namespace a   = "http://expath.org/ns/ml/console/admin" at "../lib/admin.xqy";
 import module namespace t   = "http://expath.org/ns/ml/console/tools" at "../lib/tools.xqy";
 import module namespace v   = "http://expath.org/ns/ml/console/view"  at "../lib/view.xqy";
@@ -18,43 +20,28 @@ declare variable $page-size := 100;
  : The overall page function.
  :)
 declare function local:page(
-   $name  as xs:string,
+   $db    as element(a:database),
    $start as xs:integer,
    $super as xs:string?,
    $curie as xs:string?,
    $decls as element(c:decl)*
 ) as element()+
 {
-   let $db := a:get-database($name)
-   return
-      (: TODO: In this case, we should NOT return "200 OK". :)
-      if ( fn:empty($db) ) then (
-         local:page--no-db($name)
-      )
-      else if ( $super[.] ) then (
-         local:page--super($db, $super, $start, './')
-      )
-      else if ( $curie[.] ) then (
-         local:page--super($db, v:expand-curie($curie, $decls), $start, '../')
-      )
-      else (
-         local:page--browse($db, $start)
-      )
-};
-
-(:~
- : The page content, in case the DB does not exist.
- :)
-declare function local:page--no-db($name as xs:string)
-   as element(h:p)
-{
-   <p><b>Error</b>: The database "<code>{ $name }</code>" does not exist.</p>
+   if ( $super[.] ) then (
+      local:page--super($db, $super, $start, './', $decls)
+   )
+   else if ( $curie[.] ) then (
+      local:page--super($db, v:expand-curie($curie, $decls), $start, '../', $decls)
+   )
+   else (
+      local:page--browse($db, $start, $decls)
+   )
 };
 
 (:~
  : The page content, when browsing resource list.
  :)
-declare function local:page--browse($db as element(a:database), $start as xs:integer)
+declare function local:page--browse($db as element(a:database), $start as xs:integer, $decls as element(c:decl)*)
    as element()+
 {
    <p>Database: { v:db-link('classes', $db/a:name) }</p>,
@@ -100,7 +87,7 @@ declare function local:page--browse($db as element(a:database), $start as xs:int
          let $label := map:get($r, 'label')
          return
             <li>
-               { v:class-link('classes', $root) }
+               { v:class-link('classes', $root, $decls) }
                { text { ' - ' || $label } }
             </li>
       )
@@ -117,14 +104,15 @@ declare function local:page--super(
    $db    as element(a:database),
    $super as xs:string,
    $start as xs:integer,
-   $root  as xs:string
+   $root  as xs:string,
+   $decls as element(c:decl)*
 ) as element()+
 {
    let $params := map:entry('super', sem:iri($super))
    let $store  := sem:ruleset-store('rdfs.rules', sem:store())
    return (
       <p>Database: { v:db-link($root || 'classes', $db/a:name) }</p>,
-      <p>Details of { v:class-link($root || 'classes', $super) }:</p>,
+      <p>Details of { v:class-link($root || 'classes', $super, $decls) }:</p>,
       <table class="table table-striped">
          <thead>
             <th>Sub-class of</th>
@@ -150,8 +138,8 @@ declare function local:page--super(
             return
                (: TODO: Abbreviate properties, based on configured prefixes (or well-known?) :)
                <tr>
-                  <td>{ local:display-value(map:get($r, 'class'), $root) }</td>
-                  <td>{ local:display-value(map:get($r, 'label'), $root) }</td>
+                  <td>{ local:display-value(map:get($r, 'class'), $root, $decls) }</td>
+                  <td>{ local:display-value(map:get($r, 'label'), $root, $decls) }</td>
                </tr>
          }
          </tbody>
@@ -181,8 +169,8 @@ declare function local:page--super(
             return
                (: TODO: Abbreviate properties, based on configured prefixes (or well-known?) :)
                <tr>
-                  <td>{ local:display-value(map:get($r, 'class'), $root) }</td>
-                  <td>{ local:display-value(map:get($r, 'label'), $root) }</td>
+                  <td>{ local:display-value(map:get($r, 'class'), $root, $decls) }</td>
+                  <td>{ local:display-value(map:get($r, 'label'), $root, $decls) }</td>
                </tr>
          }
          </tbody>
@@ -190,7 +178,7 @@ declare function local:page--super(
    )
 };
 
-declare function local:display-value($v as xs:anyAtomicType?, $root as xs:string)
+declare function local:display-value($v as xs:anyAtomicType?, $root as xs:string, $decls as element(c:decl)*)
    as element()?
 {
    if ( fn:empty($v) ) then
@@ -198,20 +186,25 @@ declare function local:display-value($v as xs:anyAtomicType?, $root as xs:string
    else if ( sem:isIRI($v) ) then
       (: TODO: Display the link only when the resource exists (that is, there is
          at least one triple with that IRI as subkect). :)
-      v:class-link($root || 'classes', $v)
+      v:class-link($root || 'classes', $v, $decls)
    else
       <span>{ $v }</span>
 };
 
-let $db    := t:mandatory-field('name')
+let $name  := t:mandatory-field('name')
 let $super := t:optional-field('super', ())
 let $curie := t:optional-field('curie', ())
 let $start := xs:integer(t:optional-field('start', 1)[.])
 let $root  := '../../' || '../'[$curie]
-let $decls := t:config-triple-prefixes($db)
 return
    v:console-page($root, 'browser', 'Browse classes', function() {
-      t:query($db, function() {
-         local:page($db, $start, $super, $curie, $decls)
+      v:ensure-db($name, function($db) {
+         let $decls := dbc:config-triple-prefixes($db)
+         return
+            v:ensure-triple-index($db, function() {
+               t:query($db, function() {
+                  local:page($db, $start, $super, $curie, $decls)
+               })
+            })
       })
    })

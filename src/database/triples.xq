@@ -403,8 +403,7 @@ return
       'Browse resources',
       function() {
          v:ensure-db($name, function($db) {
-            let $schemes := dbc:config-uri-schemes($db)
-            let $decls   := dbc:config-triple-prefixes($db)
+            let $decls := dbc:config-triple-prefixes($db)
             return
                v:ensure-triple-index($db, function() {
                   t:query($db, function() {

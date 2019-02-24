@@ -86,7 +86,12 @@ window.emlc = window.emlc || {};
         }
     }
 
-    /*~ Create a cell with the class(es) of an atom. */
+    /*~
+     * Create a cell with the class(es) of an atom.
+     *
+     * TODO: Link to the "class" page, rather than to the "resource" page, once it is
+     * deemed usable.
+     */
     function classCell(root, atom) {
         if ( atom.classes ) {
             return atom.classes.map(function(c) {
