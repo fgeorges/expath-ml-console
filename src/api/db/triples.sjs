@@ -210,11 +210,10 @@
 
     function tojson(value) {
         const res = {};
-        if ( sem.isBlank(value) ) {
-            // TODO: Support blank nodes!
-            throw new Error('Blank nodes not supported yet.  FIXME: Implement me!');
-        }
-        else if ( sem.isIRI(value) ) {
+        if ( sem.isIRI(value) || sem.isBlank(value) ) {
+            if ( sem.isBlank(value) ) {
+                res.blank = true;
+            }
             res.iri = value;
             const curie = triples.curie(value, prefixes);
             if ( curie ) {
