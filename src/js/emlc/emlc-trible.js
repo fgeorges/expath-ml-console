@@ -67,7 +67,7 @@ window.emlc = window.emlc || {};
     }
 
     /*~ Create a link (an `a` element) for an atom which is a resource. */
-    function atomLink(kind, root, atom) {
+    function atomLink(kind, root, atom, shorten) {
         if ( atom.blank ) {
             kind = 'blank';
         }
@@ -75,20 +75,18 @@ window.emlc = window.emlc || {};
             // <a href="..."><code class="...">...</code></a>
             return aElem(
                 root + 'triples/' + atom.curie,
-                codeElem(atom.curie, kind)
-            )[0].outerHTML;
+                codeElem(atom.curie, kind));
         }
         else {
             // <a title="..." href="..."><code class="...">...</code></a>
-            const hash = atom.iri.lastIndexOf('#');
+            const hash = shorten && atom.iri.lastIndexOf('#');
             const text = hash >= 0
-                ? '...' + atom.iri.slice(atom.iri.lastIndexOf('#'))
+                ? '...' + atom.iri.slice(hash)
                 : atom.iri;
             return aElem(
                 root + 'triples?rsrc=' + encodeURIComponent(atom.iri),
                 codeElem(text, kind),
-                hash >= 0 && atom.iri
-            )[0].outerHTML;
+                hash >= 0 && atom.iri);
         }
     }
 
@@ -100,7 +98,7 @@ window.emlc = window.emlc || {};
     function valueCell(kind, root, atom) {
         return atom.value
             ? atom.value
-            : atomLink(kind, root, atom);
+            : atomLink(kind, root, atom, true)[0].outerHTML;
     }
 
     /*~ Create a cell with the label(s) of an atom. */
@@ -122,7 +120,7 @@ window.emlc = window.emlc || {};
     function classCell(root, atom) {
         if ( atom.classes ) {
             return atom.classes.map(function(c) {
-                return atomLink('class', root, c);
+                return atomLink('class', root, c, true)[0].outerHTML;
             }).join('<br style="margin-bottom: 5pt"/>');
         }
         else {
@@ -179,7 +177,6 @@ window.emlc = window.emlc || {};
             const root    = table.data('trible-root');
             const subject = table.data('trible-subject');
             const object  = table.data('trible-object');
-            const dir     = subject ? 'out' : 'in';
             if ( ! subject && ! object ) {
                 throw new Error('Neither subject nor object set on the trible');
             }
@@ -201,10 +198,15 @@ window.emlc = window.emlc || {};
                     return resp.json();
                 })
                 .then(function(resp) {
+                    const dir     = subject ? 'out' : 'in';
+                    const triples = resp.triples;
+                    if ( dir === 'out' && triples.length ) {
+                        enrichSummary(triples[0].subject, root);
+                    }
                     table.show();
                     // TODO: Pass options stored in the DB config file on the server, as extra
                     // data-trible-* attributes.  E.g. whether to paginate, etc.
-                    doFillIn(table, resp.triples, dir, root);
+                    doFillIn(table, triples, dir, root);
                     if ( loading ) {
                         $('#' + loading).hide();
                     }
@@ -280,6 +282,65 @@ window.emlc = window.emlc || {};
             data: triples,
             columns: columns
         });
+    }
+
+    /*~ Enrich the initial summary table with additional info. */
+    function enrichSummary(atom, root) {
+        const summary = $('#summary tbody');
+        if ( atom.labels ) {
+            const tr = $(document.createElement('tr'));
+            const th = $(document.createElement('th'));
+            const td = $(document.createElement('td'));
+            summary.append(tr);
+            tr.append(th);
+            tr.append(td);
+            if ( atom.labels.length > 1 ) {
+                // <tr><th rowspan="...">Labels</th><td>...</td></tr>
+                // <tr><td>...</td></td>
+                th.text('Labels');
+                th.attr('rowspan', atom.labels.length);
+                td.text(atom.labels[0]);
+                atom.labels.slice(1).forEach(function(label) {
+                    const tr = $(document.createElement('tr'));
+                    const td = $(document.createElement('td'));
+                    summary.append(tr);
+                    tr.append(td);
+                    td.text(label);
+                });
+            }
+            else {
+                // <tr><th>Label</th><td>...</td></tr>
+                th.text('Label');
+                td.text(atom.labels[0]);
+            }
+        }
+        if ( atom.classes ) {
+            const tr = $(document.createElement('tr'));
+            const th = $(document.createElement('th'));
+            const td = $(document.createElement('td'));
+            summary.append(tr);
+            tr.append(th);
+            tr.append(td);
+            if ( atom.classes.length > 1 ) {
+                // <tr><th rowspan="...">Classes</th><td>...</td></tr>
+                // <tr><td>...</td></td>
+                th.text('Classes');
+                th.attr('rowspan', atom.classes.length);
+                td.append(atomLink('class', root, atom.classes[0]));
+                atom.classes.slice(1).forEach(function(clazz) {
+                    const tr = $(document.createElement('tr'));
+                    const td = $(document.createElement('td'));
+                    summary.append(tr);
+                    tr.append(td);
+                    td.append(atomLink('class', root, clazz));
+                });
+            }
+            else {
+                // <tr><th>Class</th><td>...</td></tr>
+                th.text('Class');
+                td.append(atomLink('class', root, atom.classes[0]));
+            }
+        }
     }
 
 })();

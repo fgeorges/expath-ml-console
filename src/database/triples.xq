@@ -120,7 +120,19 @@ declare function local:page--rsrc(
    }
    </p>,
 
-   (: TODO: Add a summary here, with some infos like rdfs:label, rdf:type, etc. :)
+   <h3>Summary</h3>,
+   <p/>,
+   <table id="summary" class="table table-bordered">
+      <tbody>
+         <tr><th>IRI</th><td><code>{ $rsrc }</code></td></tr>
+         {
+           triples:curie($rsrc, $decls)
+           ! <tr><th>CURIE</th><td><code>{ . }</code></td></tr>
+         }
+      </tbody>
+   </table>,
+
+   (: TODO: Add an SVG graph here, with the resource surroundings. :)
 
    <h3>Triples</h3>,
    <div id="out-loading" class="loading"/>,
