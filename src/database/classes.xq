@@ -2,10 +2,11 @@ xquery version "3.0";
 
 import module namespace dbc = "http://expath.org/ns/ml/console/database/config" at "db-config-lib.xqy";
 
-import module namespace a   = "http://expath.org/ns/ml/console/admin" at "../lib/admin.xqy";
-import module namespace t   = "http://expath.org/ns/ml/console/tools" at "../lib/tools.xqy";
-import module namespace v   = "http://expath.org/ns/ml/console/view"  at "../lib/view.xqy";
-import module namespace sem = "http://marklogic.com/semantics" at "/MarkLogic/semantics.xqy";
+import module namespace a       = "http://expath.org/ns/ml/console/admin" at "../lib/admin.xqy";
+import module namespace t       = "http://expath.org/ns/ml/console/tools" at "../lib/tools.xqy";
+import module namespace triples = "http://expath.org/ns/ml/console/triples" at "../lib/triples.xqy";
+import module namespace v       = "http://expath.org/ns/ml/console/view"  at "../lib/view.xqy";
+import module namespace sem     = "http://marklogic.com/semantics" at "/MarkLogic/semantics.xqy";
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
@@ -31,7 +32,7 @@ declare function local:page(
       local:page--super($db, $super, $start, './', $decls)
    )
    else if ( $curie[.] ) then (
-      local:page--super($db, v:expand-curie($curie, $decls), $start, '../', $decls)
+      local:page--super($db, triples:expand($curie, $decls), $start, '../', $decls)
    )
    else (
       local:page--browse($db, $start, $decls)
@@ -44,7 +45,7 @@ declare function local:page(
 declare function local:page--browse($db as element(a:database), $start as xs:integer, $decls as element(c:decl)*)
    as element()+
 {
-   <p>Database: { v:db-link('classes', $db/a:name) }</p>,
+   <p>Database: { $db/a:name ! v:db-link('../' || ., .) }</p>,
    <p> {
       (: TODO: As it is, the query includes blank nodes. Filter them out! :)
       (: TODO: Pass parameters properly, instead of concatenating values. :)
