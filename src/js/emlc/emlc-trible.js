@@ -4,7 +4,12 @@
  * Support for "tribles", that is, tables of triples.  Uses Datatables.
  *
  * Terminology: "atom" here refers to one single part of a triple.  That is, either its
- * subject, its prediate or its object part.
+ * subject, its prediate or its object part.  It is represented by an object, with
+ * properties like `iri`, `curie`, `value`, `type`, etc.
+ *
+ * A "resource" is a node in the graph, which is not a scalar value.  That is, it is an
+ * atom with an `iri`.  A resource atom can also have a `curie`, an array of `labels`, and
+ * an array of `classes`.
  *
  * Note on Datatables: if we want to return anything else than a simple string from a
  * column renderer (that is, actual HTML formatting), it must be as a lexical HTML string.
@@ -22,7 +27,7 @@ window.emlc = window.emlc || {};
         $('.trible-fillin').each(fillInTrible);
     });
 
-    /*~ Create a jQuery a element. */
+    /*~ Create a jQuery `a` element. */
     function aElem(href, content) {
         const elem = $(document.createElement('a'));
         elem.attr('href', href);
@@ -30,7 +35,7 @@ window.emlc = window.emlc || {};
         return elem;
     }
 
-    /*~ Create a jQuery code element. */
+    /*~ Create a jQuery `code` element. */
     function codeElem(text, clazz) {
         const elem = $(document.createElement('code'));
         elem.addClass(clazz);
@@ -38,12 +43,8 @@ window.emlc = window.emlc || {};
         return elem;
     }
 
-    /*~
-     * Create a value cell for an atom.
-     *
-     * TODO: Shouldn't we propagate rules also, through links?
-     */
-    function valueCell(kind, root, atom) {
+    /*~ Create a link (an `a` element) for an atom which is a resource. */
+    function atomLink(kind, root, atom) {
         if ( atom.curie ) {
             // <a href="..."><code class="...">...</code></a>
             return aElem(
@@ -51,7 +52,7 @@ window.emlc = window.emlc || {};
                 codeElem(atom.curie, kind)
             )[0].outerHTML;
         }
-        else if ( atom.iri ) {
+        else {
             // <a title="..." href="..."><code class="...">...</code></a>
             const hash = atom.iri.lastIndexOf('#');
             const text = hash >= 0
@@ -62,14 +63,42 @@ window.emlc = window.emlc || {};
                 codeElem(text, kind)
             )[0].outerHTML;
         }
-        else {
-            return atom.value;
-        }
     }
 
     /*~
-     * Create a type cell for an atom.
+     * Create a value cell for an atom.
+     *
+     * TODO: Shouldn't we propagate rules also, through links?
      */
+    function valueCell(kind, root, atom) {
+        return atom.value
+            ? atom.value
+            : atomLink(kind, root, atom);
+    }
+
+    /*~ Create a cell with the label(s) of an atom. */
+    function labelCell(root, atom) {
+        if ( atom.labels ) {
+            return atom.labels.join('<hr/>');
+        }
+        else {
+            return '';
+        }
+    }
+
+    /*~ Create a cell with the class(es) of an atom. */
+    function classCell(root, atom) {
+        if ( atom.classes ) {
+            return atom.classes.map(function(c) {
+                return atomLink('class', root, c);
+            }).join('<br style="margin-bottom: 5pt"/>');
+        }
+        else {
+            return '';
+        }
+    }
+
+    /*~ Create a type cell for an atom. */
     function typeCell(atom) {
         if ( atom.iri || atom.curie ) {
             return '<span class="fa fa-link" title="Resource"/>';
@@ -101,6 +130,12 @@ window.emlc = window.emlc || {};
         }
     }
 
+    /*~
+     * Fill in a triple table, using its `data-*` attribute to retrieve the triples.
+     *
+     * Triples are retrieved asynchronously from the API triples endpoint.  The table is
+     * passed as `this`.
+     */
     function fillInTrible() {
         const table   = $(this);
         // extract params set on the table by the server
@@ -123,10 +158,52 @@ window.emlc = window.emlc || {};
                 // TODO: Pass options stored in the DB config file on the server, as extra
                 // data-trible-* attributes.  E.g. whether to paginate, etc.
                 doFillIn(table, resp.triples, root);
+                // TODO: Display a load spinner, or a text saying "loading", and hide it
+                // here when everything is done.  Alternatively or in addition, display an
+                // error message, would any error occur (before or within fetch call...)
             });
     }
 
+    /*~
+     * Fill in a table with triples.
+     *
+     * The `table` is a jQuery table element.  The `triples` are an array of triples, each
+     * with 3 atoms.  The `root` is used to resolve links.
+     */
     function doFillIn(table, triples, root) {
+        const columns = [];
+        columns.push({
+            title: 'Property',
+            render: function(datum, type, row) {
+                return valueCell('prop', root, row.predicate);
+            }});
+        columns.push({
+            title: 'Object',
+            render: function(datum, type, row) {
+                return valueCell('rsrc', root, row.object);
+            }});
+        if ( triples.find(t => t.object.classes) ) {
+            columns.push({
+                title: 'Class',
+                render: function(datum, type, row) {
+                    return classCell(root, row.object);
+                }});
+        }
+        if ( triples.find(t => t.object.labels) ) {
+            columns.push({
+                title: 'Label',
+                render: function(datum, type, row) {
+                    return labelCell(root, row.object);
+                }});
+        }
+        columns.push({
+            title: 'Type',
+            data: 'object',
+            searchable: false,
+            orderable: false,
+            className: 'dt-body-right',
+            render: typeCell
+        });
         table.DataTable({
             paging: false,
             info: false,
@@ -134,26 +211,8 @@ window.emlc = window.emlc || {};
                 search: 'Filter triples:'
             },
             data: triples,
-            columns: [
-                { title: 'Property',
-                  render: function(datum, type, row) {
-                      return valueCell('prop', root, row.predicate);
-                  }},
-                { title: 'Object',
-                  render: function(datum, type, row) {
-                      return valueCell('rsrc', root, row.object);
-                  }},
-                // TODO: Support the "label" (resp. "class") column, if there is any
-                // object with a label (resp. class) in the whole triple list.
-                //{ title: "Label" },
-                //{ title: "Class" },
-                { title: 'Type',
-                  data: 'object',
-                  searchable: false,
-                  orderable: false,
-                  className: 'dt-body-right',
-                  render: typeCell }
-            ]});
+            columns: columns
+        });
     }
 
 })();
