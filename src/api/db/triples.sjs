@@ -275,7 +275,7 @@
     if ( subj ) { params.subj = subj.iri || subj.value; }
     if ( pred ) { params.pred = pred.iri || pred.value; }
     if ( obj  ) { params.obj  = obj.iri  || obj.value;  }
-    const matches = sjs.query(db, () => triples.sparql(query, params, null, [], []));
+    const matches = sjs.query(db, () => triples.sparql(query, params, store, [], []));
 
     // resolve the labels and classes
     const iris = [];
@@ -298,7 +298,7 @@
               FILTER (?iri = ?iris)
             }`;
         const p2 = {iris: iris};
-        const m2 = sjs.query(db, () => triples.sparql(q2, p2, null, [], []));
+        const m2 = sjs.query(db, () => triples.sparql(q2, p2, store, [], []));
         for ( const m of m2 ) {
             if ( fn.head(m.label) ) {
                 let slot = labels[m.iri];
