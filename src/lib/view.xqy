@@ -193,9 +193,7 @@ declare function v:console-page-no-check(
    document {
       '<!doctype html>&#10;' ||
       xdmp:quote(
-         let $cnt := v:eval-content($content)
-         return
-            v:console-page-static($root, $page, $title, $cnt, $scripts),
+         v:console-page-static($root, $page, $title, v:eval-content($content), $scripts),
          <options xmlns="xdmp:quote">
             <method>html</method>
             <media-type>text/html</media-type>
@@ -211,9 +209,9 @@ declare function v:console-page-no-check(
  : error, this function returns HTML elements describing the error instead, to
  : be displayed to the user.
  :
- : FIXME: In order to be sure the transaction is rolled back in case of failure,
- : do NOT use try/catch here.  Move the error handling to the error handler
- : module, set on the appserver.
+ : TODO: In case of error, return rather something like <c:error>...</c:error>,
+ : and detect it and treat it specially in `v:console-page-static()` (e.g. to
+ : import the ACE editor in order to display the XML nicely...)
  :)
 declare %private function v:eval-content(
    $content as function() as element()+

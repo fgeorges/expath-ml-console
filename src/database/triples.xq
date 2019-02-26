@@ -50,18 +50,22 @@ declare function local:page(
       local:page--rsrc($db, triples:expand($curie, $decls), '../', $rules, $decls)
    )
    else if ( fn:exists($init) ) then (
-      local:page--init-curie($init)
+      local:page--init-curie($init, $rules)
    )
    else (
       local:page--browse($db, $start, $decls)
    )
 };
 
-declare function local:page--init-curie($init as xs:string)
+declare function local:page--init-curie($init as xs:string, $rules as xs:string*)
    as element(h:p)
 {
-   v:redirect('triples/' || $init),
-   <p>You are being redirected to <a href="triples/{ $init }">this page</a>...</p>
+   let $param := if ( fn:exists($rules) ) then '?rulesets=' || fn:string-join($rules, ',') else ()
+   let $url   := 'triples/' || $init || $param
+   return (
+      v:redirect($url),
+      <p>You are being redirected to <a href="{ $url }">this page</a>...</p>
+   )
 };
 
 (:~
