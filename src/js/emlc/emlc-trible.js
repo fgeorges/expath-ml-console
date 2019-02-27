@@ -275,20 +275,25 @@ window.emlc = window.emlc || {};
                 ? shorten(triples[0].subject)
                 : shorten(triples[0].object);
         }
-        const addNode = function(rsrc, pred) {
+        const addNode = function(rsrc, pred, atom) {
             let slot = tripleCache.nodes[rsrc];
             if ( ! slot ) {
-                slot = tripleCache.nodes[rsrc] = [];
+                slot = tripleCache.nodes[rsrc] = {
+                    name:    rsrc,
+                    labels:  atom.labels  || [],
+                    classes: atom.classes || [],
+                    preds:   []
+                };
             }
-            if ( (! tripleCache.subject || tripleCache.subject !== rsrc) && (! slot.includes(pred)) ) {
-                slot.push(pred);
+            if ( (! tripleCache.subject || tripleCache.subject !== rsrc) && (! slot.preds.includes(pred)) ) {
+                slot.preds.push(pred);
             }
         };
         // fill in the cache map
         triples.forEach(function(t) {
             const s = shorten(t.subject);
             const p = shorten(t.predicate);
-            addNode(s, p);
+            addNode(s, p, t.subject);
             if ( t.object.value ) {
                 let slot1 = tripleCache.values[s];
                 if ( ! slot1 ) {
@@ -302,7 +307,7 @@ window.emlc = window.emlc || {};
             }
             else {
                 const o = t.object.iri && shorten(t.object);
-                addNode(o, p);
+                addNode(o, p, t.object);
                 let slot1 = tripleCache.edges[s];
                 if ( ! slot1 ) {
                     slot1 = tripleCache.edges[s] = {};
@@ -338,7 +343,7 @@ window.emlc = window.emlc || {};
     /*~ Flatten the map into a node array suitable for D3. */
     function getNodes() {
         const nodes = Object.keys(tripleCache.nodes).map(function(name) {
-            return { name: name, preds: tripleCache.nodes[name] };
+            return tripleCache.nodes[name];
         });
         return nodes;
     }
@@ -372,8 +377,9 @@ window.emlc = window.emlc || {};
     d3.textBlock = function() {
         // the params from 'instantiation'
         const params = {
-            label:  null,
-            colors: null
+            label:   null,
+            details: null,
+            colors:  null
         };
 
         function impl(selection) {
@@ -383,34 +389,109 @@ window.emlc = window.emlc || {};
                 const label = typeof params.label === 'function'
                     ? params.label(datum, index)
                     : params.label;
+                const details = typeof params.details === 'function'
+                    ? params.details(datum, index)
+                    : params.details;
                 // TODO: Use CSS instead!
                 const colors = typeof params.colors === 'function'
                     ? params.colors(datum, index)
                     : params.colors;
-                const parent = d3.select(this);
-                // first append text to the parent
-                const text = parent.append('text')
-                    .text(label)
-                    .style('font-size', '8pt')
-                    .style('font-family', "'Source Code Pro', Consolas, Menlo, Monaco, 'Courier New', monospace")
-                    .attr('fill', colors.text)
-                    .attr('dominant-baseline', 'central');
-                // get the bounding box of the just created text element
-                const bbox = text.node().getBBox();
-                // then append svg rect to the parent
-                // doing some adjustments so we fit snugly around the text: we are
-                // inside a transform, so only have to move relative to 0
-                parent.insert('rect', ':first-child')
-                    .attr('rx', 3)
-                    .attr('ry', 3)
-                    .attr('x', -5) // 5px margin
-                    .attr('y', - (bbox.height / 1.4)) // so text is vertically within block
-                    .attr('width', bbox.width + 10) // 5px margin on left + right
-                    .attr('height', bbox.height * 1.5)
-                    .attr('fill', colors.bg)
-                    .attr('stroke', colors.border)
-                    .attr('stroke-width', 1);
+                const options = {
+                    folded:  true,
+                    label:   label,
+                    details: details,
+                    color:   colors.color,
+                    bg:      colors.bg,
+                    border:  colors.border
+                };
+                const parent = d3.select(this)
+                    .on('click', function(datum, index) {
+                        draw(this, options);
+                    });
+                draw(this, options);
             });
+        }
+
+        function draw(element, params) {
+            const folded = params.folded;
+            params.folded = ! folded;
+            // remove all content from the parent
+            const parent = d3.select(element).html(null);
+            // first append text to the parent
+            const text = parent.append('text')
+                .text(params.label)
+                .style('font-size', '9pt')
+                .style('font-family', "'Source Code Pro', Consolas, Menlo, Monaco, 'Courier New', monospace")
+                .attr('fill', params.color);
+            // get the bounding box of the just created text element
+            const bbox = text.node().getBBox();
+            let maxwidth = bbox.width;
+            let lines = 1;
+            // this is a draft of something like a summary box for a resource
+            // work in progress...
+            if ( ! folded ) {
+                const adaptWidth = function(e) {
+                    const b = e.node().getBBox();
+                    if ( b.width > maxwidth ) {
+                        maxwidth = b.width;
+                    }
+                };
+                text.style('text-decoration-line', 'underline')
+                    .style('text-decoration-color', params.border);
+                params.details.forEach(function(detail) {
+                    if ( Array.isArray(detail) ) {
+                        detail.forEach(function(d) {
+                            const t = parent.append('text')
+                                .text(d)
+                                .attr('y', 1 + 16 * lines)
+                                .style('font-size', '8pt');
+                            ++lines;
+                            adaptWidth(t);
+                        });
+                    }
+                    else if ( detail.values.length ) {
+                        const values = detail.values;
+                        const t = parent.append('text')
+                            .attr('y', 1 + 16 * lines);
+                        t.append('tspan')
+                            .text((values.length > 1 ? detail.plural : detail.singular) + ': ')
+                            .style('font-size', '9pt');
+                        t.append('tspan')
+                            .text(values[0])
+                            .style('font-size', '8pt')
+                            .style('font-family', "'Source Code Pro', Consolas, Menlo, Monaco, 'Courier New', monospace")
+                            .attr('fill', params.color);
+                        values.slice(1).forEach(function(v) {
+                            t.append('tspan')
+                                .text(', ')
+                                .style('font-size', '9pt');
+                            t.append('tspan')
+                                .text(v)
+                                .style('font-size', '8pt')
+                                .style('font-family', "'Source Code Pro', Consolas, Menlo, Monaco, 'Courier New', monospace")
+                                .attr('fill', params.color);
+                        });
+                        ++lines;
+                        adaptWidth(t);
+                    }
+                });
+            }
+            const bbox2 = text.node().getBBox();
+            const bbox3 = text.node().getBBox();
+            const bbox4 = text.node().getBBox();
+            // then append svg rect to the parent
+            // doing some adjustments so we fit snugly around the text: we are
+            // inside a transform, so only have to move relative to 0
+            parent.insert('rect', ':first-child')
+                .attr('rx', 3)
+                .attr('ry', 3)
+                .attr('x', bbox.x - 5) // 5px margin
+                .attr('y', bbox.y - 3) // 3px margin
+                .attr('width', maxwidth + 10) // 5px margin on left + right
+                .attr('height', bbox.height + 6 + (lines - 1) * 16)
+                .attr('fill', params.bg)
+                .attr('stroke', params.border)
+                .attr('stroke-width', '1px');
         }
 
         // getter/setter for the label param
@@ -419,6 +500,15 @@ window.emlc = window.emlc || {};
                 return params.label;
             }
             params.label = value;
+            return impl;
+        };
+
+        // getter/setter for the details param
+        impl.details = function(value) {
+            if ( ! arguments.length ) {
+                return params.details;
+            }
+            params.details = value;
             return impl;
         };
 
@@ -448,10 +538,23 @@ window.emlc = window.emlc || {};
             .label(function(datum) {
                 return datum.name;
             })
+            .details(function(datum) {
+                return [
+                    { singular: 'predicate',
+                      plural: 'predicates',
+                      values: datum.preds },
+                    { singular: 'class',
+                      plural: 'classes',
+                      values: datum.classes.map(function(c) {
+                          return c.curie || c.iri;
+                      }) },
+                    datum.labels
+                ];
+            })
             .colors(function(datum) {
                 return datum.name === tripleCache.subject
-                    ? { text: '#dd1144', bg: '#fcf6f8', border: '#f7d6df' }
-                    : { text: '#2a839e', bg: '#f5fafb', border: '#a8ddec' };
+                    ? { color: '#dd1144', bg: '#fcf6f8', border: '#f7d6df' }
+                    : { color: '#2a839e', bg: '#f5fafb', border: '#a8ddec' };
             });
         // all the vertex elements
         const vertices = graph.select('#graph-nodes').selectAll('rect')
