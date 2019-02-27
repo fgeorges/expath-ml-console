@@ -1,7 +1,7 @@
 "use strict";
 
 /*~
- * Support for "tribles", that is, tables of triples.  Uses Datatables.
+ * Support for "tribles", that is, "triple tables".  Uses Datatables.
  *
  * Terminology: "atom" here refers to one single part of a triple.  That is, either its
  * subject, its prediate or its object part.  It is represented by an object, with
@@ -21,6 +21,18 @@
 window.emlc = window.emlc || {};
 
 (function() {
+
+    // module variable to store the triples from the requests to the endpoint
+    const tripleCache = {
+        triples: {
+            "in":  null,
+            "out": null
+        },
+        nodes:  {},
+        edges:  {},
+        values: {}    // not used yet
+    };
+    tripleCache.expected = Object.keys(tripleCache.triples).length;
 
     // initialize the triple tables on the page
     $(document).ready(function () {
@@ -66,8 +78,28 @@ window.emlc = window.emlc || {};
         return elem;
     }
 
+    /*~
+     * Shorten an atom IRI (to its CURIE if any, or if possible to "...#stuff" notation.)
+     *
+     * TODO: Add the concept of "shortened IRI" to the service (either the CURIE,
+     * or "...#stuff" if there is a "#" (or ".../stuff" or "...:stuff",) when
+     * applicable (and fallback to the full IRI when displaying it, if there is
+     * none.)
+     */
+    function shorten(atom) {
+        if ( atom.curie ) {
+            return atom.curie;
+        }
+        else {
+            const hash = atom.iri.lastIndexOf('#');
+            return hash > 0
+                ? '...' + atom.iri.slice(hash)
+                : atom.iri;
+        }
+    }
+
     /*~ Create a link (an `a` element) for an atom which is a resource. */
-    function atomLink(kind, root, atom, shorten) {
+    function atomLink(kind, root, atom, toshorten) {
         if ( atom.blank ) {
             kind = 'blank';
         }
@@ -79,14 +111,18 @@ window.emlc = window.emlc || {};
         }
         else {
             // <a title="..." href="..."><code class="...">...</code></a>
-            const hash = shorten && atom.iri.lastIndexOf('#');
-            const text = hash >= 0
-                ? '...' + atom.iri.slice(hash)
-                : atom.iri;
+            let tip;
+            let text = atom.iri;
+            if ( toshorten ) {
+                text = shorten(atom);
+                if ( atom.iri !== text ) {
+                    tip = atom.iri;
+                }
+            }
             return aElem(
                 root + 'triples?rsrc=' + encodeURIComponent(atom.iri),
                 codeElem(text, kind),
-                hash >= 0 && atom.iri);
+                tip);
         }
     }
 
@@ -203,13 +239,11 @@ window.emlc = window.emlc || {};
                     if ( dir === 'out' && triples.length ) {
                         enrichSummary(triples[0].subject, root);
                     }
-                    table.show();
+                    showLoaded(table);
                     // TODO: Pass options stored in the DB config file on the server, as extra
                     // data-trible-* attributes.  E.g. whether to paginate, etc.
                     doFillIn(table, triples, dir, root);
-                    if ( loading ) {
-                        $('#' + loading).hide();
-                    }
+                    cacheTriples(triples, dir);
                 })
                 .catch(function(err) {
                     onError(err, message, loading);
@@ -218,6 +252,240 @@ window.emlc = window.emlc || {};
         catch (err) {
             onError(err, message, loading);
         }
+    }
+
+    function showLoaded(id) {
+        const component = typeof id === 'string' ? $('#' + id) : id;
+        const loading   = component.data('trible-loading');
+        component.show();
+        if ( loading ) {
+            $('#' + loading).hide();
+        }
+    }
+
+    function cacheTriples(triples, dir) {
+        if ( tripleCache.triples[dir] ) {
+            throw new Error(`Already received triples for request "${dir}"`);
+        }
+        // keep the triples as is, from the endpoint
+        tripleCache.triples[dir] = triples;
+        tripleCache.expected --;
+        // cache the subject, if this is the correct request
+        if ( ! tripleCache.subject && triples.length ) {
+            tripleCache.subject = dir === 'out'
+                ? shorten(triples[0].subject)
+                : shorten(triples[0].object);
+        }
+        const addNode = function(rsrc, pred) {
+            let slot = tripleCache.nodes[rsrc];
+            if ( ! slot ) {
+                slot = tripleCache.nodes[rsrc] = [];
+            }
+            if ( (! tripleCache.subject || tripleCache.subject !== rsrc) && (! slot.includes(pred)) ) {
+                slot.push(pred);
+            }
+        };
+        // fill in the cache map
+        triples.forEach(function(t) {
+            const s = shorten(t.subject);
+            const p = shorten(t.predicate);
+            addNode(s, p);
+            if ( t.object.value ) {
+                let slot1 = tripleCache.values[s];
+                if ( ! slot1 ) {
+                    slot1 = tripleCache.values[s] = {};
+                }
+                let slot2 = slot1[p];
+                if ( ! slot2 ) {
+                    slot2 = slot1[p] = [];
+                }
+                slot2.push(t.object.value);
+            }
+            else {
+                const o = t.object.iri && shorten(t.object);
+                addNode(o, p);
+                let slot1 = tripleCache.edges[s];
+                if ( ! slot1 ) {
+                    slot1 = tripleCache.edges[s] = {};
+                }
+                let slot2 = slot1[o];
+                if ( ! slot2 ) {
+                    slot2 = slot1[o] = {};
+                }
+                let slot3 = slot2[p];
+                if ( ! slot3 ) {
+                    slot3 = slot2[p] = {};
+                }
+                // does not allow several triples "?s ?p ?o" (yet?)
+                slot3[p] = t.predicate;
+            }
+        });
+        // time to draw?
+        if ( tripleCache.expected ) {
+            setTimeout(delayedDrawing, 1000);
+        }
+        else {
+            drawGraph();
+        }
+    }
+
+    function delayedDrawing() {
+        // if still expecting one, then go (if not, the last one had already gone)
+        if ( tripleCache.expected ) {
+            drawGraph();
+        }
+    }
+
+    /*~ Flatten the map into a node array suitable for D3. */
+    function getNodes() {
+        const nodes = Object.keys(tripleCache.nodes).map(function(name) {
+            return { name: name, preds: tripleCache.nodes[name] };
+        });
+        return nodes;
+    }
+
+    /*~ Flatten the map into an edge array suitable for D3. */
+    function getEdges() {
+        const edges = [];
+        Object.keys(tripleCache.edges).forEach(function(source) {
+            const slot = tripleCache.edges[source];
+            Object.keys(slot).forEach(function(target) {
+                // does not take the various predicates into account, yet (if more than one)
+                edges.push({ source: source, target: target });
+            });
+        });
+        return edges;
+    }
+
+    /*~
+     * A textBlock is a text label, with a rectangle around it.
+     *
+     * This extension returns a function, which can be called on a D3 selection to append
+     * a `text` element to it, as well as a `rect` element.  Typically, the selection is a
+     * `g` element.  Positionning the text and the rect are done relatively to 0, so using
+     * transform/translate is OK (well is mandatory) to move the text-block around.
+     *
+     * The value of the text label is given as a string or a function returning a string
+     * (when called with datum/index).  The colors to use are represented by an object,
+     * either fixed or returned by a function as well.  It must contain the properties
+     * `text`, `bg` and `border`.
+     */
+    d3.textBlock = function() {
+        // the params from 'instantiation'
+        const params = {
+            label:  null,
+            colors: null
+        };
+
+        function impl(selection) {
+            // inside 'each()', datum is the current data item, index is its index.
+            // 'this' is the element that has been appended, e.g. an svg:g
+            selection.each(function(datum, index) {
+                const label = typeof params.label === 'function'
+                    ? params.label(datum, index)
+                    : params.label;
+                // TODO: Use CSS instead!
+                const colors = typeof params.colors === 'function'
+                    ? params.colors(datum, index)
+                    : params.colors;
+                const parent = d3.select(this);
+                // first append text to the parent
+                const text = parent.append('text')
+                    .text(label)
+                    .style('font-size', '8pt')
+                    .style('font-family', "'Source Code Pro', Consolas, Menlo, Monaco, 'Courier New', monospace")
+                    .attr('fill', colors.text)
+                    .attr('dominant-baseline', 'central');
+                // get the bounding box of the just created text element
+                const bbox = text.node().getBBox();
+                // then append svg rect to the parent
+                // doing some adjustments so we fit snugly around the text: we are
+                // inside a transform, so only have to move relative to 0
+                parent.insert('rect', ':first-child')
+                    .attr('rx', 3)
+                    .attr('ry', 3)
+                    .attr('x', -5) // 5px margin
+                    .attr('y', - (bbox.height / 1.4)) // so text is vertically within block
+                    .attr('width', bbox.width + 10) // 5px margin on left + right
+                    .attr('height', bbox.height * 1.5)
+                    .attr('fill', colors.bg)
+                    .attr('stroke', colors.border)
+                    .attr('stroke-width', 1);
+            });
+        }
+
+        // getter/setter for the label param
+        impl.label = function(value) {
+            if ( ! arguments.length ) {
+                return params.label;
+            }
+            params.label = value;
+            return impl;
+        };
+
+        // getter/setter for the colors param
+        impl.colors = function(value) {
+            if ( ! arguments.length ) {
+                return params.colors;
+            }
+            params.colors = value;
+            return impl;
+        };
+
+        return impl;
+    };
+
+    function drawGraph() {
+        console.log(`Draw graph whilst still expecting ${tripleCache.expected} requests`);
+        showLoaded('graph');
+        const nodes  = getNodes();
+        const edges  = getEdges();
+        const height = 400;
+        const graph  = d3.select('#graph')
+            .attr('width',  '100%')
+            .attr('height', height);
+        // tblock is a function to create a text label, with a rectangle around it
+        const tblock = d3.textBlock()
+            .label(function(datum) {
+                return datum.name;
+            })
+            .colors(function(datum) {
+                return datum.name === tripleCache.subject
+                    ? { text: '#dd1144', bg: '#fcf6f8', border: '#f7d6df' }
+                    : { text: '#2a839e', bg: '#f5fafb', border: '#a8ddec' };
+            });
+        // all the vertex elements
+        const vertices = graph.select('#graph-nodes').selectAll('rect')
+            .data(nodes)
+            .enter()
+              .append('g')
+              .attr('transform', function(datum) { return `translate(${datum.x},${datum.y})`; })
+              .call(tblock);
+        // all the link elements
+        const links = d3.select('#graph-links')
+            .selectAll('line')
+            .data(edges)
+            .enter()
+              .append('line')
+                .attr('stroke', '#a8ddec');
+        // where the force graph magic happens
+        d3.forceSimulation()
+            .nodes(nodes)
+            // parseInt() drops the "*px" at the end
+            .force('center_force', d3.forceCenter((parseInt(graph.style('width')) / 2) - 75, height / 2))
+            .force('charge_force', d3.forceManyBody())
+            .force('links', d3.forceLink(edges).id(function(datum) { return datum.name; }).distance(160))
+            .on('tick', function() {
+                vertices.attr('transform', function(datum) {
+                    const x = datum.x;
+                    const y = datum.y;
+                    return `translate(${x}, ${y})`;
+                })
+                links.attr('x1', function(datum) { return datum.source.x; })
+                    .attr('y1', function(datum) { return datum.source.y; })
+                    .attr('x2', function(datum) { return datum.target.x; })
+                    .attr('y2', function(datum) { return datum.target.y; });
+            });
     }
 
     /*~

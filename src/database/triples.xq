@@ -136,7 +136,13 @@ declare function local:page--rsrc(
       </tbody>
    </table>,
 
-   (: TODO: Add an SVG graph here, with the resource surroundings. :)
+   <h3>Graph</h3>,
+   <p/>,
+   <div id="graph-loading" class="loading"/>,
+   <svg id="graph" style="display: none; border: 0.8px solid #dee2e6; border-radius: 10px" data-trible-loading="graph-loading">
+      <g id="graph-links"/>
+      <g id="graph-nodes"/>
+   </svg>,
 
    <h3>Triples</h3>,
    <div id="out-loading" class="loading"/>,
@@ -277,4 +283,6 @@ return
                })
          })
       },
-      <lib>emlc.trible</lib>)
+      (: TODO: Put D3 in a lib... :)
+      (<script src="https://d3js.org/d3.v5.min.js"/>,
+       <lib>emlc.trible</lib>))
