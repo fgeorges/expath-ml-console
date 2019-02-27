@@ -283,6 +283,4 @@ return
                })
          })
       },
-      (: TODO: Put D3 in a lib... :)
-      (<script src="https://d3js.org/d3.v5.min.js"/>,
-       <lib>emlc.trible</lib>))
+      <lib>emlc.trible</lib>)

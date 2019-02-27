@@ -62,6 +62,7 @@ declare variable $v:js-libs :=
          <c:path>emlc/emlc-target.js</c:path>
       </c:lib>
       <c:lib code="emlc.trible">
+         <c:path>d3.min.js</c:path>
          <c:path>emlc/emlc-trible.js</c:path>
       </c:lib>
       <c:lib code="marked">
