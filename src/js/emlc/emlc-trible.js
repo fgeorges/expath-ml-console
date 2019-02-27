@@ -166,7 +166,10 @@ window.emlc = window.emlc || {};
 
     /*~ Create a type cell for an atom. */
     function typeCell(atom) {
-        if ( atom.iri || atom.curie ) {
+        if ( atom.blank ) {
+            return '<span class="fa fa-vector-square" title="Blank node"/>';
+        }
+        else if ( atom.iri || atom.curie ) {
             return '<span class="fa fa-link" title="Resource"/>';
         }
         else if ( atom.lang ) {
@@ -174,10 +177,6 @@ window.emlc = window.emlc || {};
                 + String.fromCharCode(160) + atom.lang
                 + '</span>';
         }
-        // TODO: Handle blank nodes as well.
-        //else if ( atom.type === 'blank' ) {
-        //    return '<span class="fa fa-unchecked" title="Blank node"/>';
-        //}
         else {
             switch ( atom['type-curie'] ) {
             case 'xs:decimal':
