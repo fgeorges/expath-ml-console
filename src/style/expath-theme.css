@@ -92,6 +92,56 @@ td.cell-code {
 }
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * Trible and triph-specific.
+ */
+
+.triph {
+  display: none;
+  border: 0.8px solid #dee2e6;
+  border-radius: 10px;
+}
+
+.triph-tooltip {
+  display: none;
+  position: absolute;
+  margin: 10pt;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  background: #fbfcfc;
+  border: 0.8px solid #dee2e6;
+  border-radius: 5px;
+  color: #585a5c;
+  font-size: 13px;
+  font-family: "Lucida Grande", Verdana, Arial, Helvetica, sans-serif;
+}
+
+.triph-tooltip p {
+  margin-bottom: 0;
+  padding-left: 6px;
+  padding-right: 5px;
+}
+
+.triph-tooltip ul {
+  margin-bottom: 0;
+  padding-left: 25px;
+  padding-right: 5px;
+}
+
+.triph-tooltip hr {
+  margin-top: 5px;
+  margin-bottom: 3px;
+}
+
+.triph-tooltip span {
+  margin-left: 3px;
+  margin-right___: 5px;
+}
+
+.triph-tooltip a {
+  padding-right: 7px;
+}
+
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  * Code pills (and blocks).
  */
 

@@ -1,7 +1,9 @@
 "use strict";
 
 /*~
- * Support for "tribles", that is, "triple tables".  Uses Datatables.
+ * Support for "tribles" and "triphs", that is, "triple tables" and "triple graphs".
+ *
+ * Tribles use Datatables.  Triphs use D3.
  *
  * Terminology: "atom" here refers to one single part of a triple.  That is, either its
  * subject, its prediate or its object part.  It is represented by an object, with
@@ -275,25 +277,26 @@ window.emlc = window.emlc || {};
                 ? shorten(triples[0].subject)
                 : shorten(triples[0].object);
         }
-        const addNode = function(rsrc, pred, atom) {
+        const addNode = function(rsrc, pred, atomRsrc, atomPred) {
             let slot = tripleCache.nodes[rsrc];
             if ( ! slot ) {
                 slot = tripleCache.nodes[rsrc] = {
                     name:    rsrc,
-                    labels:  atom.labels  || [],
-                    classes: atom.classes || [],
-                    preds:   []
+                    rsrc:    atomRsrc,
+                    labels:  atomRsrc.labels  || [],
+                    classes: atomRsrc.classes || [],
+                    preds:   {}
                 };
             }
-            if ( (! tripleCache.subject || tripleCache.subject !== rsrc) && (! slot.preds.includes(pred)) ) {
-                slot.preds.push(pred);
+            if ( (! tripleCache.subject || tripleCache.subject !== rsrc) && (! slot.preds[pred]) ) {
+                slot.preds[pred] = atomPred;
             }
         };
         // fill in the cache map
         triples.forEach(function(t) {
             const s = shorten(t.subject);
             const p = shorten(t.predicate);
-            addNode(s, p, t.subject);
+            addNode(s, p, t.subject, t.predicate);
             if ( t.object.value ) {
                 let slot1 = tripleCache.values[s];
                 if ( ! slot1 ) {
@@ -307,7 +310,7 @@ window.emlc = window.emlc || {};
             }
             else {
                 const o = t.object.iri && shorten(t.object);
-                addNode(o, p, t.object);
+                addNode(o, p, t.object, t.predicate);
                 let slot1 = tripleCache.edges[s];
                 if ( ! slot1 ) {
                     slot1 = tripleCache.edges[s] = {};
@@ -378,6 +381,8 @@ window.emlc = window.emlc || {};
         // the params from 'instantiation'
         const params = {
             label:   null,
+            root:    null,
+            tooltip: null,
             details: null,
             colors:  null
         };
@@ -389,6 +394,13 @@ window.emlc = window.emlc || {};
                 const label = typeof params.label === 'function'
                     ? params.label(datum, index)
                     : params.label;
+                const root = typeof params.root === 'function'
+                    ? params.root(datum, index)
+                    : params.root;
+                const tooltip = typeof params.tooltip === 'function'
+                    ? params.tooltip(datum, index)
+                    : params.tooltip;
+                tooltip.on('click', function() { tooltip.hide(); });
                 const details = typeof params.details === 'function'
                     ? params.details(datum, index)
                     : params.details;
@@ -399,20 +411,26 @@ window.emlc = window.emlc || {};
                 const options = {
                     folded:  true,
                     label:   label,
+                    root:    root,
+                    tooltip: tooltip,
                     details: details,
                     color:   colors.color,
                     bg:      colors.bg,
                     border:  colors.border
                 };
-                const parent = d3.select(this)
-                    .on('click', function(datum, index) {
-                        draw(this, options);
+                d3.select(this)
+                    .on('click', function() {
+                        // TODO: Open its own edges (retrieve and draw triples from and to
+                        // the current node, to "hop" through the semantic graph...)
+                    })
+                    .on('mouseover', function() {
+                        drawTip(datum, options);
                     });
-                draw(this, options);
+                drawBox(this, options);
             });
         }
 
-        function draw(element, params) {
+        function drawBox(element, params) {
             const folded = params.folded;
             params.folded = ! folded;
             // remove all content from the parent
@@ -494,12 +512,79 @@ window.emlc = window.emlc || {};
                 .attr('stroke-width', '1px');
         }
 
+        function drawTip(datum, params) {
+            const elem = function(name) { return $(document.createElement(name)) };
+            const tt   = params.tooltip;
+
+            tt.html(null)
+                .css("left", (d3.event.pageX - 75) + "px")
+                .css("top",  (d3.event.pageY + 10) + "px")
+                .show();
+
+            if ( datum.labels.length > 1 ) {
+                const labels = elem('ul');
+                tt.append(labels);
+                datum.labels.forEach(function(l) {
+                    labels.append(elem('li').text(l));
+                });
+                tt.append(elem('hr'));
+            }
+            else if ( datum.labels.length ) {
+                tt.append(elem('p').text(datum.labels[0]));
+                tt.append(elem('hr'));
+            }
+
+            const iri = elem('span');
+            iri.append(elem('span').text('IRI:'));
+            iri.append(atomLink('rsrc', params.root, datum.rsrc, true));
+            tt.append(iri);
+
+            if ( datum.classes.length ) {
+                const classes = elem('span');
+                classes.append(elem('span').text('Type:'));
+                datum.classes.forEach(function(c) {
+                    classes.append(atomLink('class', params.root, c, true));
+                });
+                tt.append(elem('hr'));
+                tt.append(classes);
+            }
+
+            const pkeys = Object.keys(datum.preds);
+            if ( pkeys.length ) {
+                const preds = elem('span');
+                preds.append(elem('span').text('Predicate:'));
+                pkeys.forEach(function(p) {
+                    preds.append(atomLink('prop', params.root, datum.preds[p], true));
+                });
+                tt.append(elem('hr'));
+                tt.append(preds);
+            }
+        }
+
         // getter/setter for the label param
         impl.label = function(value) {
             if ( ! arguments.length ) {
                 return params.label;
             }
             params.label = value;
+            return impl;
+        };
+
+        // getter/setter for the root param
+        impl.root = function(value) {
+            if ( ! arguments.length ) {
+                return params.root;
+            }
+            params.root = value;
+            return impl;
+        };
+
+        // getter/setter for the tooltip param
+        impl.tooltip = function(value) {
+            if ( ! arguments.length ) {
+                return params.tooltip;
+            }
+            params.tooltip = value;
             return impl;
         };
 
@@ -530,26 +615,24 @@ window.emlc = window.emlc || {};
         const nodes  = getNodes();
         const edges  = getEdges();
         const height = 400;
-        const graph  = d3.select('#graph')
+        const graph  = d3.select('#triph')
             .attr('width',  '100%')
             .attr('height', height);
+        const root = $('#triph').data('trible-root');
+        const tooltip = $('#triph-tooltip');
         // tblock is a function to create a text label, with a rectangle around it
         const tblock = d3.textBlock()
             .label(function(datum) {
                 return datum.name;
             })
+            .root(root)
+            .tooltip(tooltip)
             .details(function(datum) {
-                return [
-                    { singular: 'predicate',
-                      plural: 'predicates',
-                      values: datum.preds },
-                    { singular: 'class',
-                      plural: 'classes',
-                      values: datum.classes.map(function(c) {
-                          return c.curie || c.iri;
-                      }) },
-                    datum.labels
-                ];
+                return {
+                    labels:  datum.labels,
+                    classes: datum.classes.map(function(c) { return c.curie || c.iri; }),
+                    preds:   datum.preds
+                };
             })
             .colors(function(datum) {
                 return datum.name === tripleCache.subject
@@ -557,14 +640,14 @@ window.emlc = window.emlc || {};
                     : { color: '#2a839e', bg: '#f5fafb', border: '#a8ddec' };
             });
         // all the vertex elements
-        const vertices = graph.select('#graph-nodes').selectAll('rect')
+        const vertices = graph.select('#triph-nodes').selectAll('rect')
             .data(nodes)
             .enter()
               .append('g')
               .attr('transform', function(datum) { return `translate(${datum.x},${datum.y})`; })
               .call(tblock);
         // all the link elements
-        const links = d3.select('#graph-links')
+        const links = d3.select('#triph-links')
             .selectAll('line')
             .data(edges)
             .enter()

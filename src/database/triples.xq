@@ -138,10 +138,11 @@ declare function local:page--rsrc(
 
    <h3>Graph</h3>,
    <p/>,
-   <div id="graph-loading" class="loading"/>,
-   <svg id="graph" style="display: none; border: 0.8px solid #dee2e6; border-radius: 10px" data-trible-loading="graph-loading">
-      <g id="graph-links"/>
-      <g id="graph-nodes"/>
+   <div id="triph-loading" class="loading"/>,
+   <div id="triph-tooltip" class="triph-tooltip"/>,
+   <svg id="triph" class="triph" data-trible-loading="#triph-loading" data-trible-root="{ $root }">
+      <g id="triph-links"/>
+      <g id="triph-nodes"/>
    </svg>,
 
    <h3>Triples</h3>,
