@@ -1,10 +1,6 @@
-/* General rules.
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * General rules.
  */
-
-/* for file-upload */
-.fade.in {
-  opacity: 1
-}
 
 h3 {
   margin-top: 35px;
@@ -19,15 +15,85 @@ main {
   padding-top: 70px;
 }
 
+table {
+  font-size: 13px;
+  font-family: "Lucida Grande", Verdana, Arial, Helvetica, sans-serif;
+}
+
+a:hover {
+  text-decoration: none;
+}
+
+a:active {
+  text-decoration: none;
+}
+
+/* for file-upload */
+.fade.in {
+  opacity: 1
+}
+
+/* forms */
 .col-form-label {
   font-weight: bold;
   text-align: right;
 }
 
-table {
-  font-size: 13px;
-  font-family: "Lucida Grande", Verdana, Arial, Helvetica, sans-serif;
+/* loading spinner */
+.loading {
+  background: url('/images/loading.gif') no-repeat center;
+  height: 100pt;
+  background-size: 64px 64px;
 }
+
+/* typeahead */
+.twitter-typeahead .loading {
+  background: url('/images/loading.gif') no-repeat right center;
+  background-size: 30px 30px;
+}
+
+/* DataTables rules */
+
+/* FIXME: This is missing when importing DataTables CSS with Bootstrap support. */
+/* See https://datatables.net/forums/discussion/31440/. */
+table.dataTable tbody th.dt-body-right,
+table.dataTable tbody td.dt-body-right {
+  text-align: right;
+}
+
+td.cell-code {
+  font-size: 80%;
+}
+
+/* seems to be used only in legacy page job/original.xq, so to remove as well */
+#tasks-count {
+  font-weight: bold;
+}
+
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * Profiler-specific.
+ */
+
+#total-time {
+  font-weight: bold;
+}
+
+.frame {
+  /* font-family: "Source Code Pro", Consolas, Menlo, Monaco, "Courier New", monospace; */
+  padding: 5px;
+  margin-bottom: 15px;
+  /* font-size: 0.8em; */
+  color: #444;
+  background-color: #fcfcfc;
+  border: 1px solid #e0e0e0;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+}
+
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * Code pills (and blocks).
+ */
 
 pre {
   font-family: "Source Code Pro", Consolas, Menlo, Monaco, "Courier New", monospace;
@@ -64,25 +130,6 @@ li code::after {
   margin-left: 4px;
   padding-left: 4px;
   opacity: 0.5;
-}
-
-a:hover {
-  text-decoration: none;
-}
-
-a:active {
-  text-decoration: none;
-}
-
-.loading {
-  background: url('/images/loading.gif') no-repeat center;
-  height: 100pt;
-  background-size: 64px 64px;
-}
-
-.twitter-typeahead .loading {
-  background: url('/images/loading.gif') no-repeat right center;
-  background-size: 30px 30px;
 }
 
 /* red */
@@ -253,41 +300,3 @@ code.proj::after {
    background-color: #f2f7f9;
    border: 1px solid #b8c3c5;
  */
-
-#total-time {
-  font-weight: bold;
-}
-
-#tasks-count {
-  font-weight: bold;
-}
-
-/* DataTables rules.
- */
-
-/* FIXME: This is missing when importing DataTables CSS with Bootstrap support. */
-/* See https://datatables.net/forums/discussion/31440/. */
-table.dataTable tbody th.dt-body-right,
-table.dataTable tbody td.dt-body-right {
-  text-align: right;
-}
-
-td.cell-code {
-  font-size: 80%;
-}
-
-/* Profiler-specific.
- */
-
-.frame {
-  /* font-family: "Source Code Pro", Consolas, Menlo, Monaco, "Courier New", monospace; */
-  padding: 5px;
-  margin-bottom: 15px;
-  /* font-size: 0.8em; */
-  color: #444;
-  background-color: #fcfcfc;
-  border: 1px solid #e0e0e0;
-  -webkit-border-radius: 3px;
-  -moz-border-radius: 3px;
-  border-radius: 3px;
-}
