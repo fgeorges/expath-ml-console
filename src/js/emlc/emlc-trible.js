@@ -179,21 +179,15 @@ window.emlc = window.emlc || {};
                 + String.fromCharCode(160) + atom.lang
                 + '</span>';
         }
+        else if ( atom.numeric ) {
+            return `<strong style="font-size: 1.2em;">3</strong>`;
+        }
+        else if ( ['xs:date', 'xs:dateTime'].includes(atom['type-curie']) ) {
+            return '<span class="far fa-clock" title="Date"/>';
+        }
         else {
-            switch ( atom['type-curie'] ) {
-            case 'xs:decimal':
-            case 'xs:double':
-            case 'xs:float':
-            case 'xs:int':
-            case 'xs:integer':
-                return `<strong style="font-size: 1.2em;">3</strong>`;
-            case 'xs:date':
-            case 'xs:dateTime':
-                return '<span class="far fa-clock" title="Date"/>';
-            default:
-                // assuming a string for everything else.
-                return '<span class="fa fa-font" title="String"/>';
-            }
+            // assuming a string for everything else.
+            return '<span class="fa fa-font" title="String"/>';
         }
     }
 
