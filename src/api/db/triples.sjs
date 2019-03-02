@@ -1,28 +1,28 @@
 "use strict";
 
 /*~
- * Return the triples with subject "subject", on database "db" (using "rules").
+ * Return the triples with subject `subject`, on database `db` (using `rules`).
  *
- * The value of "subject" is interpreted with regard to the parameter "subject-type" (the
- * default is "iri").  The possible types are:
+ * The value of `subject` is interpreted with regard to the parameter `subject-type` (the
+ * default is `iri`).  The possible types are:
  *
  * - iri - a full IRI
  * - curie - a CURIE, given the triple prefixes configured on the database
- * - rdf:langString - an RDF langString, with the lang in "subject-lang"
+ * - rdf:langString - an RDF langString, with the lang in `subject-lang`
  * - xs:* - a value with the given XML Schema type (xs:string, xs:dateTime, etc.)
  *
- * If "subject-lang" is passed, then the default value for "subject-type" is
- * rdf:langString, so it is not mandatory to set it as well.
+ * If `subject-lang` is passed, then the default value for `subject-type` is
+ * `rdf:langString`, so it is not mandatory to set it as well.
  *
- * Similar to "subject", "subject-type" and "subject-lang", the service can be invoked
- * with the same parameters, only with "subject*" replaced by "predicate*" or "object*",
+ * Similar to `subject`, `subject-type` and `subject-lang`, the service can be invoked
+ * with the same parameters, only with `subject*` replaced by `predicate*` or `object*`,
  * to set resp. the predicate or the object of the triples to search for.  Any combination
- * of "subject*", "predicate*" and "object*" is allowed (given than each "set" of params
+ * of `subject*`, `predicate*` and `object*` is allowed (given than each "set" of params
  * is consistent, and at least one if provided).
  *
- * The type "xs:QName" is not supported.
+ * The type `xs:QName` is not supported.
  *
- * The result is an object with a property "triples", an array of triples with the
+ * The result is an object with a property `triples`, an array of triples with the
  * following format:
  *
  *   { triples: [
@@ -31,20 +31,26 @@
  *       ...
  *   ]}
  *
- * Each value is an object with the following properties:
+ * Each atom is an object with the following properties:
  *
- *   {type, iri, curie?, labels?, classes?}  ||  {type, value, lang?}  ||  {blank nodes...?}
+ *   {type, iri, abbrev, curie?, blank?, labels?, classes?}  ||  {type, value, numeric?, lang?}
  *
- * Either it is an IRI, and so it might have a CURIE as well if the corresponding prefix
- * is configured on "db".  Or it is a simple value, and a lang if it is an rdf:langString.
- * Type is either "iri", "rdf:langString", or an "xs:*" type.
+ * In the case of a resource (an IRI):
  *
- * For an IRI, the service also resolves its rdfs:labels and rdf:classes (a resource can
- * have several labels and several classes).  The property "classes" is an array of
- * strings.  The property "classes" is an array of objects, each with an "iri", and an
- * optional "curie".
+ * - type: `iri`
+ * - iri: the IRI
+ * - `abbrev`: the CURIE, or `...#Foo`, or `.../Bar`, or full IRI if nothing shorter
+ * - `curie`: the CURIE if a matching prefix is configured for the database `db`
+ * - `blank`: `true` if this is a blank node, falsy if not
+ * - `labels`: an array of strings, with all the `rdfs:label`
+ * - `classes`: an array of objects, with all the `rdf:type` (each: {iri, abbrev, curie?})
  *
- * TODO: Support blank nodes.
+ * In the case of a simple value (not an IRI):
+ *
+ * - `type`: `rdf:langString`, or an `xs:*` type
+ * - `value`: the value itself (as a string, or as a number for numeric types)
+ * - `numeric`: `true` if a numeric type, falsy if not
+ * - `lang`: the language for an `rdf:langString`
  *
  * TODO: Add windowing.
  */
@@ -76,6 +82,7 @@
             if ( curie ) {
                 rsrc.curie = curie;
             }
+            rsrc.abbrev = triples.abbreviate(rsrc.iri, rsrc.curie);
         }
         else {
             rsrc.type  = type;
@@ -125,7 +132,7 @@
             return xs.Name(value);
         case 'xs:QName':
             // not supported, as they rely on the namespaced declared here
-            // if support is ever needed, can be done using Clark notation
+            // if support is ever needed, could be done using Clark notation
             throw new Error(`QNames not supported: ${value}`);
         case 'xs:anyAtomicType':
             return xs.anyAtomicType(value);
@@ -211,14 +218,16 @@
     function tojson(value) {
         const res = {};
         if ( sem.isIRI(value) || sem.isBlank(value) ) {
+            const curie = triples.curie(value, prefixes);
+            res.type = 'iri';
+            res.iri  = value;
             if ( sem.isBlank(value) ) {
                 res.blank = true;
             }
-            res.iri = value;
-            const curie = triples.curie(value, prefixes);
             if ( curie ) {
                 res.curie = curie;
             }
+            res.abbrev = triples.abbreviate(res.iri, res.curie);
         }
         else {
             const type = sem.datatype(value).toString();
@@ -278,16 +287,19 @@
     const matches = sjs.query(db, () => triples.sparql(query, params, store, [], []));
 
     // resolve the labels and classes
-    const iris = [];
+    const iris = {};
     for ( const m of matches ) {
         const s = (m.subj && sem.isIRI(m.subj) && m.subj) || (subj && subj.iri);
+        const p = (m.pred && sem.isIRI(m.pred) && m.pred) || (pred && pred.iri);
         const o = (m.obj  && sem.isIRI(m.obj)  && m.obj)  || (obj  && obj.iri);
-        if ( s ) { iris.push(s); }
-        if ( o ) { iris.push(o); }
+        if ( s ) { iris[s] = s; }
+        if ( p ) { iris[p] = p; }
+        if ( o ) { iris[o] = o; }
     }
     const labels  = {};
     const classes = {};
-    if ( iris.length ) {
+    const keys    = Object.keys(iris);
+    if ( keys.length ) {
         const q2 = `
             PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
             PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -297,7 +309,7 @@
               { ?iri rdf:type ?clazz . }
               FILTER (?iri = ?iris)
             }`;
-        const p2 = {iris: iris};
+        const p2 = {iris: keys.map(k => iris[k])};
         const m2 = sjs.query(db, () => triples.sparql(q2, p2, store, [], []));
         for ( const m of m2 ) {
             if ( fn.head(m.label) ) {
@@ -326,28 +338,21 @@
         res.subject   = subj || tojson(m.subj);
         res.predicate = pred || tojson(m.pred);
         res.object    = obj  || tojson(m.obj);
-        const siri = res.subject.iri;
-        const oiri = res.object.iri;
-        if ( siri ) {
-            const l = labels[siri];
-            if ( l ) {
-                res.subject.labels = l;
+        const enrich = (slot) => {
+            if ( slot.iri ) {
+                const l = labels[slot.iri];
+                if ( l ) {
+                    slot.labels = l;
+                }
+                const c = classes[slot.iri];
+                if ( c ) {
+                    slot.classes = c;
+                }
             }
-            const c = classes[siri];
-            if ( c ) {
-                res.subject.classes = c;
-            }
-        }
-        if ( oiri ) {
-            const l = labels[oiri];
-            if ( l ) {
-                res.object.labels = l;
-            }
-            const c = classes[oiri];
-            if ( c ) {
-                res.object.classes = c;
-            }
-        }
+        };
+        enrich(res.subject);
+        enrich(res.predicate);
+        enrich(res.object);
         result.triples.push(res);
     }
 
