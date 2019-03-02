@@ -1222,7 +1222,7 @@ declare function v:input-db-widget($id as xs:string, $name as xs:string, $label 
             <div class="btn-group" style="margin-left: 10px;">
                <button type="button" class="btn btn-outline-secondary dropdown-toggle"
                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                  { xs:string($srv/@label) } servers
+                  { xs:string($srv/@label) }
                </button>
                <div class="dropdown-menu" style="min-width: 400pt"> {
                   let $asses := $all[@type eq $srv/@type]
