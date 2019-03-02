@@ -3,15 +3,18 @@ xquery version "3.0";
 import module namespace b   = "http://expath.org/ns/ml/console/browse"          at "browse-lib.xqy";
 import module namespace dbc = "http://expath.org/ns/ml/console/database/config" at "db-config-lib.xqy";
 
-import module namespace a   = "http://expath.org/ns/ml/console/admin"  at "../lib/admin.xqy";
-import module namespace bin = "http://expath.org/ns/ml/console/binary" at "../lib/binary.xqy";
-import module namespace t   = "http://expath.org/ns/ml/console/tools"  at "../lib/tools.xqy";
-import module namespace v   = "http://expath.org/ns/ml/console/view"   at "../lib/view.xqy";
+import module namespace a       = "http://expath.org/ns/ml/console/admin"    at "../lib/admin.xqy";
+import module namespace bin     = "http://expath.org/ns/ml/console/binary"   at "../lib/binary.xqy";
+import module namespace t       = "http://expath.org/ns/ml/console/tools"    at "../lib/tools.xqy";
+import module namespace triples = "http://expath.org/ns/ml/console/triples"  at "../lib/triples.xqy";
+import module namespace v       = "http://expath.org/ns/ml/console/view"     at "../lib/view.xqy";
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
 declare namespace c    = "http://expath.org/ns/ml/console";
 declare namespace h    = "http://www.w3.org/1999/xhtml";
+declare namespace cts  = "http://marklogic.com/cts";
+declare namespace sem  = "http://marklogic.com/semantics";
 declare namespace xdmp = "http://marklogic.com/xdmp";
 declare namespace map  = "http://marklogic.com/xdmp/map";
 declare namespace sec  = "http://marklogic.com/xdmp/security";
@@ -23,6 +26,7 @@ declare function local:page(
    $db      as element(a:database),
    $uri     as xs:string,
    $schemes as element(c:scheme)+
+   $decls   as element(c:decl)*
 ) as element()+
 {
    let $resolved := b:resolve-path($uri, fn:false(), $schemes)
@@ -59,7 +63,11 @@ declare function local:page(
          local:collections($db, $uri, $sep),
          local:metadata($db, $uri),
          local:properties($uri),
-         local:permissions($db, $uri)
+         local:permissions($db, $uri),
+         if ( $db/a:triple-index/fn:boolean(.) ) then
+            local:triples($uri, $decls)
+         else
+            ()
       )
    )
 };
@@ -351,6 +359,49 @@ declare function local:permissions(
    </form>
 };
 
+(:~
+ : The triples section.
+ :)
+declare function local:triples(
+   $uri   as xs:string,
+   $decls as element(c:decl)*
+) as element()+
+{
+   <h3>Triples</h3>,
+   let $triples := cts:triples((), (), (), (), (), cts:document-query($uri))
+   let $section := function($extract, $kind) {
+            let $rdftype := sem:iri(triples:rdf('type'))
+            let $iris    := fn:distinct-values($triples ! $extract(.)[. instance of sem:iri])
+            return
+               if ( fn:exists($iris) ) then (
+                  <p>The resources appearing as <b>{ $kind }</b>, in triples from this
+                     document (including from TDE):</p>,
+                  <ul> {
+                     for $iri    in $iris
+                     let $type   := $triples[$extract(.)[. instance of sem:iri] eq $iri][sem:triple-predicate(.) eq $rdftype]
+                     let $linker := (v:class-link#3[$kind eq 'object'][fn:exists($type)], v:rsrc-link#3)[1]
+                     let $link   := $linker('triples', $iri, $decls)
+                     order by $link
+                     return
+                        <li>{ $link }</li>
+                  }
+                  </ul>
+               )
+               else (
+                  <p>No resource appear as <b>{ $kind }</b>, in triples from this document
+                     (including from TDE).</p>
+               )
+         }
+   return
+      if ( fn:exists($triples) ) then (
+         $section(sem:triple-subject#1, 'subject'),
+         $section(sem:triple-object#1,  'object')
+      )
+      else (
+         <p>This document does not contain any triple (including from TDE).</p>
+      )
+};
+
 let $name   := t:mandatory-field('name')
 let $uri    := t:mandatory-field('uri')
 let $prefix := t:optional-field('prefix', ())
@@ -361,11 +412,12 @@ return
       'Browse documents',
       function() {
          v:ensure-db($name, function($db) {
+            let $decls   := dbc:config-triple-prefixes($db)
             let $schemes := dbc:config-uri-schemes($db)
             let $uri     := dbc:resolve($uri, $prefix, $schemes)
             return
                t:query($db, function() {
-                  local:page($db, $uri, $schemes)
+                  local:page($db, $uri, $schemes, $decls)
                })
          })
       },

@@ -198,7 +198,7 @@ declare function local:page--rsrc(
       'get'),
 
    <h3>Documents</h3>,
-   let $uris := cts:uris('', (), cts:and-query(cts:triple-range-query(sem:iri($rsrc), (), ())))
+   let $uris := cts:uris('', (), cts:triple-range-query(sem:iri($rsrc), (), ()))
    return
       if ( fn:empty($uris) ) then
          <p>The triples with this subject are only the result of inference.</p>
