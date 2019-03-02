@@ -443,60 +443,6 @@ window.emlc = window.emlc || {};
                 .attr('fill', params.color);
             // get the bounding box of the just created text element
             const bbox = text.node().getBBox();
-            let maxwidth = bbox.width;
-            let lines = 1;
-            // this is a draft of something like a summary box for a resource
-            // work in progress...
-            if ( ! folded ) {
-                const adaptWidth = function(e) {
-                    const b = e.node().getBBox();
-                    if ( b.width > maxwidth ) {
-                        maxwidth = b.width;
-                    }
-                };
-                text.style('text-decoration-line', 'underline')
-                    .style('text-decoration-color', params.border);
-                params.details.forEach(function(detail) {
-                    if ( Array.isArray(detail) ) {
-                        detail.forEach(function(d) {
-                            const t = parent.append('text')
-                                .text(d)
-                                .attr('y', 1 + 16 * lines)
-                                .style('font-size', '8pt');
-                            ++lines;
-                            adaptWidth(t);
-                        });
-                    }
-                    else if ( detail.values.length ) {
-                        const values = detail.values;
-                        const t = parent.append('text')
-                            .attr('y', 1 + 16 * lines);
-                        t.append('tspan')
-                            .text((values.length > 1 ? detail.plural : detail.singular) + ': ')
-                            .style('font-size', '9pt');
-                        t.append('tspan')
-                            .text(values[0])
-                            .style('font-size', '8pt')
-                            .style('font-family', "'Source Code Pro', Consolas, Menlo, Monaco, 'Courier New', monospace")
-                            .attr('fill', params.color);
-                        values.slice(1).forEach(function(v) {
-                            t.append('tspan')
-                                .text(', ')
-                                .style('font-size', '9pt');
-                            t.append('tspan')
-                                .text(v)
-                                .style('font-size', '8pt')
-                                .style('font-family', "'Source Code Pro', Consolas, Menlo, Monaco, 'Courier New', monospace")
-                                .attr('fill', params.color);
-                        });
-                        ++lines;
-                        adaptWidth(t);
-                    }
-                });
-            }
-            const bbox2 = text.node().getBBox();
-            const bbox3 = text.node().getBBox();
-            const bbox4 = text.node().getBBox();
             // then append svg rect to the parent
             // doing some adjustments so we fit snugly around the text: we are
             // inside a transform, so only have to move relative to 0
@@ -505,8 +451,8 @@ window.emlc = window.emlc || {};
                 .attr('ry', 3)
                 .attr('x', bbox.x - 5) // 5px margin
                 .attr('y', bbox.y - 3) // 3px margin
-                .attr('width', maxwidth + 10) // 5px margin on left + right
-                .attr('height', bbox.height + 6 + (lines - 1) * 16)
+                .attr('width', bbox.width + 10) // 5px margin on left + right
+                .attr('height', bbox.height + 6)
                 .attr('fill', params.bg)
                 .attr('stroke', params.border)
                 .attr('stroke-width', '1px');
@@ -588,15 +534,6 @@ window.emlc = window.emlc || {};
             return impl;
         };
 
-        // getter/setter for the details param
-        impl.details = function(value) {
-            if ( ! arguments.length ) {
-                return params.details;
-            }
-            params.details = value;
-            return impl;
-        };
-
         // getter/setter for the colors param
         impl.colors = function(value) {
             if ( ! arguments.length ) {
@@ -622,20 +559,12 @@ window.emlc = window.emlc || {};
             .on('click', function() {
                 tooltip.hide();
             });
-        const root = graph.attr('data-trible-root');
-        // tblock is a function to create a text label, with a rectangle around it
+        const root   = graph.attr('data-trible-root');
         const tblock = d3.textBlock()
-            .label(function(datum) {
-                return datum.name;
-            })
             .root(root)
             .tooltip(tooltip)
-            .details(function(datum) {
-                return {
-                    labels:  datum.labels,
-                    classes: datum.classes.map(function(c) { return c.curie || c.iri; }),
-                    preds:   datum.preds
-                };
+            .label(function(datum) {
+                return datum.name;
             })
             .colors(function(datum) {
                 return datum.name === tripleCache.subject
