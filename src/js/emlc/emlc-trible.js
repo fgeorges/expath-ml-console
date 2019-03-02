@@ -612,14 +612,17 @@ window.emlc = window.emlc || {};
     function drawGraph() {
         console.log(`Draw graph whilst still expecting ${tripleCache.expected} requests`);
         showLoaded('#triph');
-        const nodes  = getNodes();
-        const edges  = getEdges();
-        const height = 400;
-        const graph  = d3.select('#triph')
-            .attr('width',  '100%')
-            .attr('height', height);
-        const root = $('#triph').data('trible-root');
+        const nodes   = getNodes();
+        const edges   = getEdges();
+        const height  = 400;
         const tooltip = $('#triph-tooltip');
+        const graph   = d3.select('#triph')
+            .attr('width',  '100%')
+            .attr('height', height)
+            .on('click', function() {
+                tooltip.hide();
+            });
+        const root = graph.attr('data-trible-root');
         // tblock is a function to create a text label, with a rectangle around it
         const tblock = d3.textBlock()
             .label(function(datum) {
