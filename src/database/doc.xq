@@ -25,7 +25,7 @@ declare namespace sec  = "http://marklogic.com/xdmp/security";
 declare function local:page(
    $db      as element(a:database),
    $uri     as xs:string,
-   $schemes as element(c:scheme)+
+   $schemes as element(c:scheme)+,
    $decls   as element(c:decl)*
 ) as element()+
 {

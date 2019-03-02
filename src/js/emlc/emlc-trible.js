@@ -169,7 +169,7 @@ window.emlc = window.emlc || {};
     /*~ Create a type cell for an atom. */
     function typeCell(atom) {
         if ( atom.blank ) {
-            return '<span class="fa fa-vector-square" title="Blank node"/>';
+            return '<span class="fa fa-clone" title="Blank node"/>';
         }
         else if ( atom.iri || atom.curie ) {
             return '<span class="fa fa-link" title="Resource"/>';
@@ -186,10 +186,10 @@ window.emlc = window.emlc || {};
             case 'xs:float':
             case 'xs:int':
             case 'xs:integer':
-                return '<span class="fa fa-usd" title="Number"/>';
+                return `<strong style="font-size: 1.2em;">3</strong>`;
             case 'xs:date':
             case 'xs:dateTime':
-                return '<span class="fa fa-hourglass" title="Date"/>';
+                return '<span class="far fa-clock" title="Date"/>';
             default:
                 // assuming a string for everything else.
                 return '<span class="fa fa-font" title="String"/>';
@@ -481,13 +481,13 @@ window.emlc = window.emlc || {};
             }
 
             const iri = elem('span');
-            iri.append(elem('span').text('IRI:'));
+            iri.append(elem('span').text('IRI: '));
             iri.append(atomLink('rsrc', params.root, datum.rsrc, true));
             tt.append(iri);
 
             if ( datum.classes.length ) {
                 const classes = elem('span');
-                classes.append(elem('span').text('Type:'));
+                classes.append(elem('span').text('Type: '));
                 datum.classes.forEach(function(c) {
                     classes.append(atomLink('class', params.root, c, true));
                 });
@@ -498,7 +498,7 @@ window.emlc = window.emlc || {};
             const pkeys = Object.keys(datum.preds);
             if ( pkeys.length ) {
                 const preds = elem('span');
-                preds.append(elem('span').text('Predicate:'));
+                preds.append(elem('span').text('Predicate: '));
                 pkeys.forEach(function(p) {
                     preds.append(atomLink('prop', params.root, datum.preds[p], true));
                 });

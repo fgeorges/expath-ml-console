@@ -216,51 +216,6 @@ declare function local:page--rsrc(
       )
 };
 
-declare function local:display-value(
-   $val   as xs:anyAtomicType,
-   $kind  as xs:string,
-   $root  as xs:string,
-   $decls as element(c:decl)*
-) as element()
-{
-   if ( sem:isIRI($val) ) then
-      (: TODO: Display the link only when the resource exists (that is, there is
-         at least one triple with that IRI as subject). :)
-      if ( $kind eq 'rsrc' ) then
-         v:rsrc-link($root || 'triples', $val, $decls)
-      else if ( $kind eq 'prop' ) then
-         v:prop-link($root || 'triples', $val, $decls)
-      else
-         t:error('internal', 'Unexpected error - Unkown kind: ' || $kind)
-   else if ( sem:isBlank($val) ) then
-      if ( $kind eq 'rsrc' ) then
-         v:blank-link($root || 'triples', $val, $decls)
-      else
-         t:error('internal', 'Unexpected error - Unkown kind: ' || $kind)
-   else
-      <span>{ $val }</span>
-};
-
-declare function local:display-type($v as xs:anyAtomicType)
-   as element()
-{
-   (: TODO: Return a different class instead per case, and display it graphically
-      rather than using a string. :)
-   if ( sem:isIRI($v) ) then
-      <span class="fa fa-link" title="Resource"/>
-   else if ( sem:isBlank($v) ) then
-      <span class="fa fa-bars" title="Blank node"/>
-   else if ( sem:isNumeric($v) ) then
-      <span class="fa fa-usd" title="Number"/>
-   else if ( sem:lang($v) ) then
-      sem:lang($v) ! <span class="fa fa-font" title="String, language: { . }">&#160;{ . }</span>
-   else if ( $v instance of xs:date or $v instance of xs:dateTime ) then
-      <span class="fa fa-hourglass" title="Date"/>
-   else
-      (: Assuming a string? :)
-      <span class="fa fa-font" title="String"/>
-};
-
 let $name  := t:mandatory-field('name')
 let $rsrc  := t:optional-field('rsrc', ())
 let $curie := t:optional-field('curie', ())
