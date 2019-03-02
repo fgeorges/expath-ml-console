@@ -61,7 +61,7 @@ declare function this:sparql(
 };
 
 declare function this:rdf($name as xs:string) as xs:string {
-  $this:rdfs-uri || $name
+  $this:rdf-uri || $name
 };
 
 declare function this:rdfs($name as xs:string) as xs:string {
