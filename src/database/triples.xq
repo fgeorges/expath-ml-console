@@ -130,8 +130,13 @@ declare function local:page--rsrc(
       <tbody>
          <tr><th>IRI</th><td><code>{ $rsrc }</code></td></tr>
          {
-           triples:curie($rsrc, $decls)
-           ! <tr><th>CURIE</th><td><code>{ . }</code></td></tr>
+           let $curie := triples:curie($rsrc, $decls)
+           return
+              if ( $curie ) then
+                 <tr><th>CURIE</th><td><code>{ $curie }</code></td></tr>
+              else
+                 triples:abbreviate($rsrc, ())[fn:not(. eq $rsrc)]
+                 ! <tr><th>Abbrev</th><td><code>{ . }</code></td></tr>
          }
       </tbody>
    </table>,

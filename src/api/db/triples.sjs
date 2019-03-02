@@ -66,6 +66,10 @@
     const rules    = sjs.optionalField('rules', null);
     const prefixes = dbc.configTriplePrefixes(db);
 
+    function abbreviate(atom) {
+        atom.abbrev = triples.abbreviate(atom.iri, atom.curie);
+    }
+
     function resolve(value, type, lang) {
         if ( ! value ) {
             if ( type || lang ) {
@@ -82,7 +86,7 @@
             if ( curie ) {
                 rsrc.curie = curie;
             }
-            rsrc.abbrev = triples.abbreviate(rsrc.iri, rsrc.curie);
+            abbreviate(rsrc);
         }
         else {
             rsrc.type  = type;
@@ -227,7 +231,7 @@
             if ( curie ) {
                 res.curie = curie;
             }
-            res.abbrev = triples.abbreviate(res.iri, res.curie);
+            abbreviate(res);
         }
         else {
             const type = sem.datatype(value).toString();
@@ -327,6 +331,7 @@
                 const cl = {iri: m.clazz};
                 const cu = triples.curie(m.clazz, prefixes);
                 if ( cu ) { cl.curie = cu };
+                abbreviate(cl);
                 slot.push(cl);
             }
         }
