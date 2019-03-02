@@ -19,15 +19,16 @@ declare namespace sec  = "http://marklogic.com/xdmp/security";
 (:~
  : The overall page function.
  :)
-declare function local:page($db as element(a:database), $uri as xs:string, $schemes as element(c:scheme)+)
-   as element()+
+declare function local:page(
+   $db      as element(a:database),
+   $uri     as xs:string,
+   $schemes as element(c:scheme)+
+) as element()+
 {
    let $resolved := b:resolve-path($uri, fn:false(), $schemes)
    let $root     := xs:string($resolved/@root)
    let $sep      := xs:string($resolved/@sep)
    let $db-name  := xs:string($db/a:name)
-   let $db-root  := './'
-   let $webapp   := '../../'
    let $dir      := if ( fn:exists($sep) and fn:contains($uri, $sep) ) then
                        fn:string-join(fn:tokenize($uri, $sep)[fn:position() lt fn:last()], $sep) || $sep
                     else
@@ -54,11 +55,11 @@ declare function local:page($db as element(a:database), $uri as xs:string, $sche
       )
       else (
          local:summary($uri),
-         local:content($uri, $dir, $root, $sep, $db-root),
-         local:collections($db, $uri, $db-root, $webapp, $sep),
-         local:metadata($db, $uri, $webapp),
+         local:content($uri, $dir, $root, $sep),
+         local:collections($db, $uri, $sep),
+         local:metadata($db, $uri),
          local:properties($uri),
-         local:permissions($db, $uri, $webapp)
+         local:permissions($db, $uri)
       )
    )
 };
@@ -119,7 +120,7 @@ declare function local:summary($uri as xs:string)
 (:~
  : The content section.
  :)
-declare function local:content($uri as xs:string, $dir as xs:string?, $root as xs:string?, $sep as xs:string?, $db-root as xs:string)
+declare function local:content($uri as xs:string, $dir as xs:string?, $root as xs:string?, $sep as xs:string?)
    as element()+
 {
    <h3>Content</h3>,
@@ -138,10 +139,10 @@ declare function local:content($uri as xs:string, $dir as xs:string?, $root as x
 :)
 
       if ( fn:empty($doc/node()[2]) and bin:is-json($doc/node()) ) then (
-         v:edit-json($doc, $id, $uri, $dir, $root, $sep, $db-root)
+         v:edit-json($doc, $id, $uri, $dir, $root, $sep, ())
       )
       else if ( fn:exists($doc/*) ) then (
-         v:edit-xml($doc, $id, $uri, $dir, $root, $sep, $db-root)
+         v:edit-xml($doc, $id, $uri, $dir, $root, $sep, ())
       )
       else if ( fn:exists($doc/text()) and fn:empty($doc/node()[2]) ) then (
          (: TODO: Use the internal MarkLogic way to recognize XQuery modules? :)
@@ -150,7 +151,7 @@ declare function local:content($uri as xs:string, $dir as xs:string?, $root as x
                         'json'[fn:ends-with($uri, '.json')],
                         'text' )[1]
          return
-            v:edit-text($doc/text(), $mode, $id, $uri, $dir, $root, $sep, $db-root)
+            v:edit-text($doc/text(), $mode, $id, $uri, $dir, $root, $sep, ())
       )
       else (
          <p>Binary document display not supported.</p>
@@ -170,11 +171,9 @@ declare function local:content($uri as xs:string, $dir as xs:string?, $root as x
  : The collections section.
  :)
 declare function local:collections(
-   $db      as element(a:database),
-   $uri     as xs:string,
-   $db-root as xs:string,
-   $webapp  as xs:string,
-   $sep     as xs:string?
+   $db  as element(a:database),
+   $uri as xs:string,
+   $sep as xs:string?
 ) as element()+
 {
    <h3>Collections</h3>,
@@ -193,9 +192,9 @@ declare function local:collections(
                order by $c
                return
                   <tr>
-                     <td>{ v:coll-link($db-root, $c) }</td>
+                     <td>{ v:coll-link('', $c) }</td>
                      <td> {
-                        v:inline-form($webapp || 'tools/del-coll', (
+                        v:inline-form('../../tools/del-coll', (
                            v:input-hidden('collection', $c),
                            v:input-hidden('uri', $uri),
                            v:input-hidden('database', $db/@id),
@@ -207,7 +206,7 @@ declare function local:collections(
             }
             </tbody>
          </table>,
-   v:form($webapp || 'tools/add-coll', (
+   v:form('../../tools/add-coll', (
       v:input-text('collection', 'Add collection', 'The collection URI to add the document to'),
       v:input-hidden('uri', $uri),
       v:input-hidden('database', $db/@id),
@@ -220,9 +219,8 @@ declare function local:collections(
  : The metadata section.
  :)
 declare function local:metadata(
-   $db     as element(a:database),
-   $uri    as xs:string,
-   $webapp as xs:string
+   $db  as element(a:database),
+   $uri as xs:string
 ) as element()+
 {
    <h3>Metadata</h3>,
@@ -246,7 +244,7 @@ declare function local:metadata(
                      <td>{ $key }</td>
                      <td>{ map:get($mdata, $key) }</td>
                      <td> {
-                        v:inline-form($webapp || 'tools/del-meta', (
+                        v:inline-form('../../tools/del-meta', (
                            <input type="hidden" name="key"      value="{ $key }"/>,
                            <input type="hidden" name="uri"      value="{ $uri }"/>,
                            <input type="hidden" name="database" value="{ $db/@id }"/>,
@@ -258,7 +256,7 @@ declare function local:metadata(
             }
             </tbody>
          </table>,
-   v:form($webapp || 'tools/add-meta', (
+   v:form('../../tools/add-meta', (
       v:input-text('key',   'Metadata key',   'The name of the metadata to set (or override)'),
       v:input-text('value', 'Metadata value', 'The value of the metadata'),
       v:input-hidden('uri', $uri),
@@ -286,9 +284,8 @@ declare function local:properties($uri as xs:string) as element()+
  : The permissions section.
  :)
 declare function local:permissions(
-   $db     as element(a:database),
-   $uri    as xs:string,
-   $webapp as xs:string
+   $db  as element(a:database),
+   $uri as xs:string
 ) as element()+
 {
    <h3>Permissions</h3>,
@@ -312,7 +309,7 @@ declare function local:permissions(
                      <td>{ $capability }</td>
                      <td>{ $role }</td>
                      <td> {
-                        v:inline-form($webapp || 'tools/del-perm', (
+                        v:inline-form('../../tools/del-perm', (
                            <input type="hidden" name="capability" value="{ $capability }"/>,
                            <input type="hidden" name="role"       value="{ $role }"/>,
                            <input type="hidden" name="uri"        value="{ $uri }"/>,
@@ -326,7 +323,7 @@ declare function local:permissions(
             </tbody>
          </table>,
    <p>Add a permission:</p>,
-   <form class="form-inline" action="{ $webapp }tools/add-perm" method="post">
+   <form class="form-inline" action="../../tools/add-perm" method="post">
       <div class="form-group">
          <label for="capability">Capability&#160;&#160;</label>
          <select name="capability" class="form-control">
@@ -365,7 +362,7 @@ return
       function() {
          v:ensure-db($name, function($db) {
             let $schemes := dbc:config-uri-schemes($db)
-            let $uri     := dbc:resolve($uri, $prefix, dbc:config-uri-schemes($db))
+            let $uri     := dbc:resolve($uri, $prefix, $schemes)
             return
                t:query($db, function() {
                   local:page($db, $uri, $schemes)

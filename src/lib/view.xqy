@@ -563,7 +563,7 @@ declare function v:edit-xml(
    $dir  as xs:string?,
    $root as xs:string?,
    $sep  as xs:string?,
-   $top  as xs:string
+   $top  as xs:string?
 ) as element()+
 {
    v:edit-node($elem, 'xml', 'xml', $id, $uri, $dir, $root, $sep, $top)
@@ -582,7 +582,7 @@ declare function v:edit-json(
    $dir  as xs:string?,
    $root as xs:string?,
    $sep  as xs:string?,
-   $top  as xs:string
+   $top  as xs:string?
 ) as element()+
 {
    v:edit-node($json, 'json', 'json', $id, $uri, $dir, $root, $sep, $top)
@@ -613,7 +613,7 @@ declare function v:edit-text(
    $elem as text(),
    $mode as xs:string,
    $id   as xs:string,
-   $top  as xs:string
+   $top  as xs:string?
 ) as element(h:pre)
 {
    v:ace-editor($elem, 'editor', $mode, $id, (), $top, '250pt')
@@ -633,7 +633,7 @@ declare function v:edit-text(
    $dir  as xs:string?,
    $root as xs:string?,
    $sep  as xs:string?,
-   $top  as xs:string
+   $top  as xs:string?
 ) as element()+
 {
    v:edit-node($text, $mode, 'text', $id, $uri, $dir, $root, $sep, $top)
@@ -654,7 +654,7 @@ declare function v:edit-node(
    $dir  as xs:string?,
    $root as xs:string?,
    $sep  as xs:string?,
-   $top  as xs:string
+   $top  as xs:string?
 ) as element()+
 {
    let $back-params := fn:string-join((
