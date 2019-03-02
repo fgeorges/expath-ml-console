@@ -158,8 +158,8 @@ declare function local:page--rsrc(
       data-trible-db="{ $db/a:name }"
       data-trible-rules="{ fn:string-join($rules, ',') }"
       data-trible-root="{ $root }"
-      data-trible-loading="out-loading"
-      data-trible-message="out-message"/>,
+      data-trible-loading="#out-loading"
+      data-trible-message="#out-message"/>,
 
    <h3>Inbound triples</h3>,
    <div id="in-loading" class="loading"/>,
@@ -175,8 +175,8 @@ declare function local:page--rsrc(
       data-trible-db="{ $db/a:name }"
       data-trible-rules="{ fn:string-join($rules, ',') }"
       data-trible-root="{ $root }"
-      data-trible-loading="in-loading"
-      data-trible-message="in-message"/>,
+      data-trible-loading="#in-loading"
+      data-trible-message="#in-message"/>,
 
    <h3>Rulesets</h3>,
    <p>The following rulesets have been used to query the triples shown on this page:</p>,

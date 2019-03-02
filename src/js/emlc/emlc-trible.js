@@ -42,7 +42,7 @@ window.emlc = window.emlc || {};
     /*~ Display an error on the page. */
     function onError(err, template, loading) {
         if ( template ) {
-            var tmpl  = $('#' + template);
+            var tmpl  = $(template);
             var alert = tmpl.clone();
             alert.children('strong').text('Error');
             alert.children('span').text(err.message || err);
@@ -54,7 +54,7 @@ window.emlc = window.emlc || {};
             alert(`Error when loading triple table: ${err.message || err}`);
         }
         if ( loading ) {
-            $('#' + loading).hide();
+            $(loading).hide();
         }
         console.error(err);
     }
@@ -238,7 +238,7 @@ window.emlc = window.emlc || {};
                     if ( dir === 'out' && triples.length ) {
                         enrichSummary(triples[0].subject, root);
                     }
-                    showLoaded(table);
+                    showLoaded(table, loading);
                     // TODO: Pass options stored in the DB config file on the server, as extra
                     // data-trible-* attributes.  E.g. whether to paginate, etc.
                     doFillIn(table, triples, dir, root);
@@ -253,12 +253,12 @@ window.emlc = window.emlc || {};
         }
     }
 
-    function showLoaded(id) {
-        const component = typeof id === 'string' ? $('#' + id) : id;
-        const loading   = component.data('trible-loading');
+    function showLoaded(id, data) {
+        const component = typeof id === 'string' ? $(id) : id;
+        const loading   = data || component.data('trible-loading');
         component.show();
         if ( loading ) {
-            $('#' + loading).hide();
+            $(loading).hide();
         }
     }
 
@@ -526,7 +526,7 @@ window.emlc = window.emlc || {};
 
     function drawGraph() {
         console.log(`Draw graph whilst still expecting ${tripleCache.expected} requests`);
-        showLoaded('graph');
+        showLoaded('#triph');
         const nodes  = getNodes();
         const edges  = getEdges();
         const height = 400;
@@ -579,9 +579,7 @@ window.emlc = window.emlc || {};
             .force('links', d3.forceLink(edges).id(function(datum) { return datum.name; }).distance(160))
             .on('tick', function() {
                 vertices.attr('transform', function(datum) {
-                    const x = datum.x;
-                    const y = datum.y;
-                    return `translate(${x}, ${y})`;
+                    return `translate(${datum.x}, ${datum.y})`;
                 })
                 links.attr('x1', function(datum) { return datum.source.x; })
                     .attr('y1', function(datum) { return datum.source.y; })
