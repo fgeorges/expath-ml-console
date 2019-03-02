@@ -196,6 +196,9 @@ window.emlc = window.emlc || {};
      *
      * Triples are retrieved asynchronously from the API triples endpoint.  The table is
      * passed as `this`.
+     *
+     * TODO: Pass options stored in the DB config file on the server, as extra attributes
+     * data-trible-*.  E.g. whether to paginate, etc.
      */
     function fillInTrible() {
         const table   = $(this);
@@ -235,8 +238,6 @@ window.emlc = window.emlc || {};
                         enrichSummary(triples[0].subject, root);
                     }
                     showLoaded(table, loading);
-                    // TODO: Pass options stored in the DB config file on the server, as extra
-                    // data-trible-* attributes.  E.g. whether to paginate, etc.
                     doFillIn(table, triples, dir, root);
                     cacheTriples(triples, dir);
                 })
@@ -416,6 +417,16 @@ window.emlc = window.emlc || {};
                     .on('click', function() {
                         // TODO: Open its own edges (retrieve and draw triples from and to
                         // the current node, to "hop" through the semantic graph...)
+                        //
+                        // Send 2 requests, like in fillInTrible() (for triples in and out
+                        // of the node.)  Add them to the same triple cache (I guess I can
+                        // rework it a bit to be optimized as a "triple graph cache", so
+                        // it is specifically for drawing the graph.
+                        //
+                        // Make sure it supports (and is robust for) real graphs, not only
+                        // the current resource and its direct neighbours.
+                        //
+                        // And then just trigger drawing the graph again.
                     })
                     .on('mouseover', function() {
                         drawTip(datum, options);
