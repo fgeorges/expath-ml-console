@@ -134,9 +134,9 @@ window.emlc = window.emlc || {};
      * TODO: Shouldn't we propagate rules also, through links?
      */
     function valueCell(kind, root, atom) {
-        return atom.value
-            ? atom.value
-            : atomLink(kind, root, atom, true)[0].outerHTML;
+        return atom.value === undefined
+            ? atomLink(kind, root, atom, true)[0].outerHTML
+            : atom.value;
     }
 
     /*~ Create a cell with the label(s) of an atom. */
@@ -291,18 +291,7 @@ window.emlc = window.emlc || {};
             const s = shorten(t.subject);
             const p = shorten(t.predicate);
             addNode(s, p, t.subject, t.predicate);
-            if ( t.object.value ) {
-                let slot1 = tripleCache.values[s];
-                if ( ! slot1 ) {
-                    slot1 = tripleCache.values[s] = {};
-                }
-                let slot2 = slot1[p];
-                if ( ! slot2 ) {
-                    slot2 = slot1[p] = [];
-                }
-                slot2.push(t.object.value);
-            }
-            else {
+            if ( t.object.value === undefined ) {
                 const o = t.object.iri && shorten(t.object);
                 addNode(o, p, t.object, t.predicate);
                 let slot1 = tripleCache.edges[s];
@@ -319,6 +308,17 @@ window.emlc = window.emlc || {};
                 }
                 // does not allow several triples "?s ?p ?o" (yet?)
                 slot3[p] = t.predicate;
+            }
+            else {
+                let slot1 = tripleCache.values[s];
+                if ( ! slot1 ) {
+                    slot1 = tripleCache.values[s] = {};
+                }
+                let slot2 = slot1[p];
+                if ( ! slot2 ) {
+                    slot2 = slot1[p] = [];
+                }
+                slot2.push(t.object.value);
             }
         });
         // time to draw?
