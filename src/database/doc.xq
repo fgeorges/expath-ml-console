@@ -374,8 +374,7 @@ declare function local:triples(
             let $iris    := fn:distinct-values($triples ! $extract(.)[. instance of sem:iri])
             return
                if ( fn:exists($iris) ) then (
-                  <p>The resources appearing as <b>{ $kind }</b>, in triples from this
-                     document (including from TDE):</p>,
+                  <p>Every <b>{ $kind }</b> appearing in triples from this document:</p>,
                   <ul> {
                      for $iri    in $iris
                      let $type   := $triples[$extract(.)[. instance of sem:iri] eq $iri][sem:triple-predicate(.) eq $rdftype]

@@ -395,7 +395,9 @@ window.emlc = window.emlc || {};
                 const tooltip = typeof params.tooltip === 'function'
                     ? params.tooltip(datum, index)
                     : params.tooltip;
-                tooltip.on('click', function() { tooltip.hide(); });
+                tooltip
+                    .css('z-index', 100)
+                    .on('click', function() { tooltip.hide(); });
                 const details = typeof params.details === 'function'
                     ? params.details(datum, index)
                     : params.details;
