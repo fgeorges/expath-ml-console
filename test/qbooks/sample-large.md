@@ -7,6 +7,16 @@ block.  A code block is delimited by lines with 3 backticks (or 3 tildes `~`).
 The name after the first line of backticks (or tildes) is the name of the
 language for that code.
 
+And before starting, just to validate that images work as well:
+![test image](../../src/images/expath-icon.png "Some test logo")
+
+Table of content:
+
+- [Query detection](#query-detection)
+- [Result format and links](#result-format-and-links)
+- [SPARQL](#sparql)
+- [Parameters](#parameters)
+
 ## Query detection
 
 The queries are simple code blocks, with the language `js`, `sjs` or
@@ -109,7 +119,7 @@ SELECT * WHERE {
 ```
 
 ```javascript
-// @result: table
+//! @result: table
 sem.sparql(`
     PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
     PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -121,7 +131,7 @@ sem.sparql(`
 ```
 
 ```xquery
-(: @result: table :)
+(:! @result: table :)
 sem:sparql("
     PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
     PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -130,4 +140,32 @@ sem:sparql("
         ?han  rdf:type    sw:People .
         ?han  rdfs:label  'Han Solo' .
     }")
+```
+
+## Parameters
+
+Parameters in XQuery need to be declared:
+
+**TODO**: Support params of type `sem:iri` (and presumably any type not starting
+with the exact string `xs:`.)
+
+```xqy
+declare namespace ns = "some/ns";
+declare variable $foo external;
+declare variable $bar as xs:date? external;
+declare variable $ns:foo external;
+declare variable $ns:bar as sem:iri external;
+
+fn:string-join(($foo, $ns:foo, $ns:bar), ' - ') || ': ' || $bar
+```
+
+For JavaScript, parameters are declared using a special comment.  Whether it
+starts with `//` or `/*`, the first characters need to be `!`, and then the
+keyword `@params` is followed by space-separated variable names:
+
+**TODO**: Support the new `//!` format.
+
+```sjs
+//! @params foo bar
+`${foo} - ${bar}`
 ```
