@@ -16,8 +16,6 @@ keyword `@params` is followed by space-separated variable names.  The `@params`
 declaration goes till the end of the line (or `*/` if any.)  There can be only
 one `@params` declaration in the query.
 
-**TODO**: Support the new `//!` format.
-
 Using `//!`:
 
 ```sjs
@@ -56,6 +54,18 @@ Or using `/*!`:
 `${foo} - ${bar}`
 ```
 
+With type:
+
+```sjs
+/*!
+ * @param foo as:xs.string
+ * @param bar as:xs:date
+ * @param baz
+ * @ignore, not supported yet on the service: @param baz as:element()
+ */
+`${foo} - ${bar} - ${baz}`
+```
+
 ## SPARQL
 
 **TODO**: SPARQL not supported yet.
@@ -74,8 +84,9 @@ declare variable $ns:var   := sem:iri('bar');
 fn:string-join(($param, $ns:param, $var, $ns:var) ! xs:string(.), ' - ')
 ```
 
-**TODO**: Parameters with an explicit type declaration (`xs:*`, `sem:*` and node
-kinds):
+Parameters with an explicit type declaration (`xs:*`, `sem:*` and node kinds):
+
+**TODO**: Support node kinds.
 
 ```xqy
 declare namespace ns = "some/ns";
@@ -85,11 +96,13 @@ declare variable $ns:witness as xs:integer external;
 declare variable $one   as xs:date         external;
 declare variable $two   as xs:anyURI       external;
 declare variable $three as sem:iri         external;
+(: not supported yet
 declare variable $four  as item()          external;
 declare variable $five  as binary()        external;
 declare variable $six   as document-node() external;
+:)
 
-fn:string-join(($witness, $ns:winess, $one, $two, $three, $four, $five, $six) ! xs:string(.), ' - ')
+fn:string-join(($witness, $ns:witness, $one, $two, $three) ! xs:string(.), ' - ')
 ```
 
 **TODO**: Load a file:
@@ -107,17 +120,18 @@ fn:string-join(($witness, $ns:winess, $one, $two, $three, $four, $five, $six) ! 
  : @param $nine   select:file
  :)
 declare namespace ns = "some/ns";
-declare variable $one    as element()       external;
-declare variable $two    as text()          external;
-declare variable $three  as binary()        external;
-declare variable $four   as xs:string       external;
-declare variable $five   as xs:base64Binary external;
-declare variable $six    as element()       external;
-declare variable $seven  as document-node() external;
-declare variable $height as object-node()   external;
-declare variable $nine   as array-node()    external;
+declare variable $one    as xs:string       external;
+declare variable $two    as xs:base64Binary external;
+(: not supported yet
+declare variable $three  as text()          external;
+declare variable $four   as binary()        external;
+declare variable $five   as element()       external;
+declare variable $six    as document-node() external;
+declare variable $seven  as object-node()   external;
+declare variable $height as array-node()    external;
+:)
 
-fn:count(($one, $two, $three, $four, $five))
+fn:count(($one, $two))
 ```
 
 **TODO**: Parameters with occurrence indication:
