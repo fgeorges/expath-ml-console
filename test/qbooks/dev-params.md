@@ -105,7 +105,14 @@ declare variable $six   as document-node() external;
 fn:string-join(($witness, $ns:witness, $one, $two, $three) ! xs:string(.), ' - ')
 ```
 
-**TODO**: Load a file:
+Read the content of a file as the value of the parameter:
+
+**TODO**: Support param types (for `xs:*Binary` and `binary()`, as well as for
+XML and JSON parsing when appropriate).  For now, it is always text that is
+sent.
+
+**TODO**: New type of param to pass the filename of a file param.  Something
+like `@param $ten select:filename($one)`.
 
 ```xqy
 (:!
@@ -131,7 +138,13 @@ declare variable $seven  as object-node()   external;
 declare variable $height as array-node()    external;
 :)
 
-fn:count(($one, $two))
+fn:count(($one, $two)),
+try {
+  fn:count(xdmp:unquote($one)//node())
+}
+catch * {
+  'Error parsing $one as XML'
+}
 ```
 
 **TODO**: Parameters with occurrence indication:
