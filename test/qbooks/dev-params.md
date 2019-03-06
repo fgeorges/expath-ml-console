@@ -1,4 +1,4 @@
-# Simple qbook
+# Parameters
 
 Comprehensive set of examples using parameters, for development purposes.
 
