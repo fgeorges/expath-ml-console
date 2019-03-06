@@ -66,6 +66,17 @@ With type:
 `${foo} - ${bar} - ${baz}`
 ```
 
+Read files:
+
+```sjs
+/*!
+ * @param input select:file
+ */
+
+// parse as JSON
+xdmp.unquote(input)
+```
+
 ## SPARQL
 
 **TODO**: SPARQL not supported yet.
