@@ -80,26 +80,6 @@ window.emlc = window.emlc || {};
         return elem;
     }
 
-    /*~
-     * Shorten an atom IRI (to its CURIE if any, or if possible to "...#stuff" notation.)
-     *
-     * TODO: Add the concept of "shortened IRI" to the service (either the CURIE,
-     * or "...#stuff" if there is a "#" (or ".../stuff" or "...:stuff",) when
-     * applicable (and fallback to the full IRI when displaying it, if there is
-     * none.)
-     */
-    function shorten(atom) {
-        if ( atom.curie ) {
-            return atom.curie;
-        }
-        else {
-            const hash = atom.iri.lastIndexOf('#');
-            return hash > 0
-                ? '...' + atom.iri.slice(hash)
-                : atom.iri;
-        }
-    }
-
     /*~ Create a link (an `a` element) for an atom which is a resource. */
     function atomLink(kind, root, atom, toshorten) {
         if ( atom.blank ) {
@@ -116,7 +96,7 @@ window.emlc = window.emlc || {};
             let tip;
             let text = atom.iri;
             if ( toshorten ) {
-                text = shorten(atom);
+                text = atom.abbrev;
                 if ( atom.iri !== text ) {
                     tip = atom.iri;
                 }
@@ -269,8 +249,8 @@ window.emlc = window.emlc || {};
         // cache the subject, if this is the correct request
         if ( ! tripleCache.subject && triples.length ) {
             tripleCache.subject = dir === 'out'
-                ? shorten(triples[0].subject)
-                : shorten(triples[0].object);
+                ? triples[0].subject.abbrev
+                : triples[0].object.abbrev;
         }
         const addNode = function(rsrc, pred, atomRsrc, atomPred) {
             let slot = tripleCache.nodes[rsrc];
@@ -289,11 +269,11 @@ window.emlc = window.emlc || {};
         };
         // fill in the cache map
         triples.forEach(function(t) {
-            const s = shorten(t.subject);
-            const p = shorten(t.predicate);
+            const s = t.subject.abbrev;
+            const p = t.predicate.abbrev;
             addNode(s, p, t.subject, t.predicate);
             if ( t.object.value === undefined ) {
-                const o = t.object.iri && shorten(t.object);
+                const o = t.object.iri && t.object.abbrev;
                 addNode(o, p, t.object, t.predicate);
                 let slot1 = tripleCache.edges[s];
                 if ( ! slot1 ) {

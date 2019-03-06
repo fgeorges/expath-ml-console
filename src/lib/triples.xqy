@@ -72,6 +72,20 @@ declare function this:xs($name as xs:string) as xs:string {
   $this:xs-uri || $name
 };
 
+(:~
+ : Abbreviate a resource IRI (to CURIE if any, or `...#Foo`, or `.../Bar`, or full IRI.
+ :)
+declare function this:abbreviate($iri as xs:string, $curie as xs:string?)
+   as xs:string
+{
+   (
+      $curie,
+      fn:tail(fn:tokenize($iri, '#'))[fn:last()] ! ('...#' || .),
+      fn:tail(fn:tokenize($iri, '/'))[fn:last()] ! ('.../' || .),
+      $iri
+   )[1]
+};
+
 declare function this:curie($iri as xs:string) as xs:string? {
   this:curie($iri, dbc:config-triple-prefixes(xdmp:database()))
 };
