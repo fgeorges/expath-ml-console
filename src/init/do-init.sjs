@@ -10,10 +10,8 @@ const urlBase  = 'http://localhost:8000/common/codemirror5/addon/hint/';
 const urlDocs  = urlBase + 'marklogic-hint-docs.json';
 const urlTypes = urlBase + 'marklogic-hint-types.json';
 
-function get(url) {
-    // TODO: Ask for password on the init form.  Or is it possible to read from
-    // FS directly?  Need to know the install dir for that.
-    const resp = xdmp.httpGet(url, { authentication: { username: 'admin', password: 'admin' }});
+function get(url, user, pwd) {
+    const resp = xdmp.httpGet(url, { authentication: { username: user, password: pwd }});
     const info = fn.head(resp);
     if ( info.code !== 200 ) {
         xdmp.dir(resp);
@@ -124,13 +122,16 @@ function makeFunctions(lang, suffix, docs) {
     insertJs(lib.functionsUri + lang + '.js', 'aceFunctions' + suffix, res);
 }
 
+const user = t.mandatoryField('user');
+const pwd  = t.mandatoryField('password');
+
 // the type scripts
-const inTypes = get(urlTypes);
+const inTypes = get(urlTypes, user, pwd);
 makeTypes('sjs', 'Sjs', '.', inTypes.javascript);
 makeTypes('xqy', 'Xqy', ':', inTypes.xquery);
 
 // the prefix and function scripts
-const inDocs = get(urlDocs);
+const inDocs = get(urlDocs, user, pwd);
 makePrefixes('sjs', 'Sjs', '.', inDocs);
 makePrefixes('xqy', 'Xqy', ':', inDocs);
 makeFunctions('sjs', 'Sjs', inDocs.javascript);

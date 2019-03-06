@@ -934,6 +934,33 @@ declare function v:input-text-area($name as xs:string, $label as xs:string, $pla
    </div>
 };
 
+declare function v:input-password($id as xs:string, $label as xs:string, $placeholder as xs:string)
+   as element(h:div)
+{
+   v:input-password($id, $label, $placeholder, ())
+};
+
+declare function v:input-password(
+   $id          as xs:string,
+   $label       as xs:string,
+   $placeholder as xs:string,
+   $div-attrs   as attribute()*
+) as element(h:div)
+{
+   v:input-password($id, $label, $placeholder, $div-attrs, ())
+};
+
+declare function v:input-password(
+   $id          as xs:string,
+   $label       as xs:string,
+   $placeholder as xs:string,
+   $div-attrs   as attribute()*,
+   $input-attrs as attribute()*
+) as element(h:div)
+{
+   v:input-text($id, $label, $placeholder, $div-attrs, (), 'password')
+};
+
 declare function v:input-text($id as xs:string, $label as xs:string, $placeholder as xs:string)
    as element(h:div)
 {
@@ -958,11 +985,23 @@ declare function v:input-text(
    $input-attrs as attribute()*
 ) as element(h:div)
 {
+   v:input-text($id, $label, $placeholder, $div-attrs, (), 'text')
+};
+
+declare function v:input-text(
+   $id          as xs:string,
+   $label       as xs:string,
+   $placeholder as xs:string,
+   $div-attrs   as attribute()*,
+   $input-attrs as attribute()*,
+   $type        as xs:string
+) as element(h:div)
+{
    <div xmlns="http://www.w3.org/1999/xhtml">
       { v:inject-class(('form-group', 'row'), $div-attrs) }
       <label for="{ $id }" class="col-sm-2 col-form-label">{ $label }</label>
       <div class="col-sm-10">
-         <input type="text" name="{ $id }" placeholder="{ $placeholder }"> {
+         <input type="{ $type }" name="{ $id }" placeholder="{ $placeholder }"> {
             v:inject-class('form-control', $input-attrs)
          }
          </input>

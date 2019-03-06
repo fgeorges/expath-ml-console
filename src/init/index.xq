@@ -13,7 +13,8 @@ declare function local:not-inited()
    as element()+
 {
    <p>The Console has not been initialized yet.</p>,
-   <p>Click on "Init" to initialize it.</p>
+   <p>Click on "Init" to initialize it.</p>,
+   <p>You need admin credentials.</p>
 };
 
 declare function local:init-failed()
@@ -21,7 +22,8 @@ declare function local:init-failed()
 {
    <p>The Console initialization has previously failed.</p>,
    <p>Click on "Init" to re-initialize it.  This might override any existing
-      configuration.</p>
+      configuration.</p>,
+   <p>You need admin credentials.</p>
 };
 
 declare function local:outdated-init()
@@ -30,7 +32,8 @@ declare function local:outdated-init()
    <p>The Console configuration is potentially outdated.  It has been initialized
       with an older version of MarkLogic.</p>,
    <p>Click on "Init" to re-initialize it.  This might override any existing
-      configuration.</p>
+      configuration.</p>,
+   <p>You need admin credentials.</p>
 };
 
 declare function local:inited()
@@ -38,7 +41,8 @@ declare function local:inited()
 {
    <p>The Console has already been successfully initialized.</p>,
    <p>Click on "Init" to re-initialize it.  This might override any existing
-      configuration.</p>
+      configuration.</p>,
+   <p>You need admin credentials.</p>
 };
 
 declare function local:page()
@@ -57,7 +61,11 @@ declare function local:page()
             local:inited()
          else
             t:error('unknown-value', 'Invalid initialization status: ' || $cfg/@status),
-      v:one-button-form('init', 'Init', v:input-hidden('doinit', 'true'))
+      v:form('init', (
+         v:input-text('user', 'Username', 'Admin user name'),
+         v:input-password('password', 'Password', 'Admin password'),
+         v:input-hidden('doinit', 'true'),
+         v:submit('Init')))
    }
    </wrapper>/*
 };
