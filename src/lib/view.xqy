@@ -9,7 +9,6 @@ import module namespace a       = "http://expath.org/ns/ml/console/admin"   at "
 import module namespace b       = "http://expath.org/ns/ml/console/binary"  at "binary.xqy";
 import module namespace t       = "http://expath.org/ns/ml/console/tools"   at "tools.xqy";
 import module namespace triples = "http://expath.org/ns/ml/console/triples" at "triples.xqy";
-import module namespace init    = "http://expath.org/ns/ml/console/init"    at "../init/lib-init.xqy";
 
 declare namespace c    = "http://expath.org/ns/ml/console";
 declare namespace h    = "http://www.w3.org/1999/xhtml";
@@ -168,26 +167,6 @@ declare function v:console-page(
  : existing JavaScript files instead of containing the code themselves.)
  :)
 declare function v:console-page(
-   $root    as xs:string,
-   $page    as xs:string,
-   $title   as xs:string,
-   $content as function() as element()+,
-   $scripts as element()*
-) as document-node()
-{
-   if ( init:is-init() ) then (
-      v:console-page-no-check($root, $page, $title, $content, $scripts)
-   )
-   else (
-      v:redirect($root || 'init'),
-      xdmp:set-response-content-type("text/plain"),
-      document {
-         'The Console is not initialized, you are being redirected'
-      }
-   )
-};
-
-declare function v:console-page-no-check(
    $root    as xs:string,
    $page    as xs:string,
    $title   as xs:string,

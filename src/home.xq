@@ -1,8 +1,11 @@
 xquery version "3.0";
 
-import module namespace v = "http://expath.org/ns/ml/console/view" at "lib/view.xqy";
+import module namespace t = "http://expath.org/ns/ml/console/tools" at "lib/tools.xqy";
+import module namespace v = "http://expath.org/ns/ml/console/view"  at "lib/view.xqy";
+import module namespace i = "http://expath.org/ns/ml/console/init"  at "init/lib-init.xqy";
 
-declare namespace c = "http://expath.org/ns/ml/console";
+declare namespace c    = "http://expath.org/ns/ml/console";
+declare namespace xdmp = "http://marklogic.com/xdmp";
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 
@@ -16,6 +19,19 @@ declare function local:page()
          <p><em>(: Managing your portable Extensions, Packages and Web
             Applications :)</em></p>
       </div>
+      {
+         t:unless(i:is-init(),
+            <div class="row">
+               <div class="col"/>
+               <div class="col-8">
+                  <div class="alert alert-warning" role="alert">
+                     <strong>Not initialized</strong> Although you can use the Console as is, you
+                     should consider initializing it through the <a href="init">init area</a>.
+                  </div>
+               </div>
+               <div class="col"/>
+            </div>)
+      }
       <p>You will find the following sections in the Console:</p>
       <ul> {
          for $p in $v:pages/c:page

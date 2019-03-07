@@ -70,4 +70,4 @@ declare function local:page()
    </wrapper>/*
 };
 
-v:console-page-no-check('', 'init', 'Initialization', local:page#0, ())
+v:console-page('', 'init', 'Initialization', local:page#0)
