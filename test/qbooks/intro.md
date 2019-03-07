@@ -50,10 +50,6 @@ directory.  The qbooks are in `test/qbooks/`.
 - `sample-large.md` - various examples
 - `dev-params.md` - comprehensive examples for declaring parameters
 
-Screenshot of a qbook:
-
-![qbook example](screenshot.png "Screenshot of what a qbook looks like")
-
 ## Participate
 
 Issues, ideas, insults and other contributions are welcome as new issue tickets on
