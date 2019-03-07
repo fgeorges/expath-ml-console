@@ -1,5 +1,8 @@
 # Qbook introduction
 
+♥ - **Use Markdown and its flexibility to organize, save and share the code you evaluate
+on MarkLogic.**
+
 A query book, or qbook for short, is a simple Markdown file, that contains JavaScript or
 XQuery code.  When rendered in the ML Console, the code is attached with buttons for
 evaluation on MarkLogic.
@@ -46,6 +49,10 @@ directory.  The qbooks are in `test/qbooks/`.
 
 - `sample-large.md` - various examples
 - `dev-params.md` - comprehensive examples for declaring parameters
+
+Screenshot of a qbook:
+
+![qbook example](screenshot.png "Screenshot of what a qbook looks like")
 
 ## Participate
 
