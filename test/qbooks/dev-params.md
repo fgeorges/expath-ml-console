@@ -139,8 +139,8 @@ like `@param $ten select:filename($one)`.
  :)
 declare namespace ns = "some/ns";
 declare variable $one    as xs:string       external;
-declare variable $two    as xs:base64Binary external;
 (: not supported yet
+declare variable $two    as xs:base64Binary external;
 declare variable $three  as text()          external;
 declare variable $four   as binary()        external;
 declare variable $five   as element()       external;
@@ -149,7 +149,7 @@ declare variable $seven  as object-node()   external;
 declare variable $height as array-node()    external;
 :)
 
-fn:count(($one, $two)),
+fn:count(($one)),
 try {
   fn:count(xdmp:unquote($one)//node())
 }
