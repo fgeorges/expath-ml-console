@@ -22,7 +22,10 @@ declare function this:info($proj as element(mlc:project))
 {
    v:db-link('db/' || $proj/mlc:db, $proj/mlc:db),
    ' - ',
-   v:dir-link('db/' || $proj/mlc:db || '/', $proj/mlc:root)
+   if ( xs:string($proj/mlc:root) ) then
+      v:dir-link('db/' || $proj/mlc:db || '/', $proj/mlc:root)
+   else
+      v:component-link('db/' || $proj/mlc:db || '/roots', '[roots]', 'dir')
 };
 
 declare function this:db($proj as element(mlc:project))
