@@ -985,7 +985,7 @@ declare function v:input-text(
    $input-attrs as attribute()*
 ) as element(h:div)
 {
-   v:input-text($id, $label, $placeholder, $div-attrs, (), 'text')
+   v:input-text($id, $label, $placeholder, $div-attrs, $input-attrs, 'text')
 };
 
 declare function v:input-text(
