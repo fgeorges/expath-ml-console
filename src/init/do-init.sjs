@@ -14,7 +14,7 @@ function get(url, user, pwd) {
     const resp = xdmp.httpGet(url, { authentication: { username: user, password: pwd }});
     const info = fn.head(resp);
     if ( info.code !== 200 ) {
-        xdmp.dir(resp);
+        console.dir(resp);
         throw new Error(`MarkLogic responded ${info.code} for ${url}`);
     }
     return fn.head(fn.tail(resp)).toObject();
