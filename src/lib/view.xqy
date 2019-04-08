@@ -55,6 +55,11 @@ declare variable $v:js-libs :=
       <c:lib code="emlc.job">
          <c:path>emlc/emlc-job.js</c:path>
       </c:lib>
+      <c:lib code="emlc.markdown">
+         <c:path>marked.min.js</c:path>
+         <c:path>highlight/highlight.pack.js</c:path>
+         <c:path>emlc/emlc-markdown.js</c:path>
+      </c:lib>
       <c:lib code="emlc.profiler">
          <c:path>emlc/emlc-profiler.js</c:path>
       </c:lib>
@@ -64,10 +69,6 @@ declare variable $v:js-libs :=
       <c:lib code="emlc.trible">
          <c:path>d3.min.js</c:path>
          <c:path>emlc/emlc-trible.js</c:path>
-      </c:lib>
-      <c:lib code="marked">
-         <c:path>marked.min.js</c:path>
-         <c:path>highlight/highlight.pack.js</c:path>
       </c:lib>
       <c:lib code="typeahead">
          <c:path>typeahead.bundle.js</c:path>

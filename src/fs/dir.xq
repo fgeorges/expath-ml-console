@@ -155,7 +155,7 @@ return
          local:page($uri, $start)
       },
       (<lib>emlc.browser</lib>,
-       <lib>marked</lib>,
+       <lib>emlc.markdown</lib>,
        <script>
-          emlc.initMarked('./', '{ $uri }');
+          emlc.renderMarkdown('./', '{ $uri }');
        </script>))
