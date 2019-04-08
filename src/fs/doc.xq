@@ -108,6 +108,10 @@ declare function local:content(
       else if ( $ext = ('xq', 'xql', 'xqm', 'xqy', 'xquery') ) then (
          v:ace-editor(a:get-from-filesystem($uri), 'code', 'xquery', (), (), (), ())
       )
+      else if ( $ext = ('md') ) then (
+         <hr/>,
+         <div class="md-content">{ a:get-from-filesystem($uri) }</div>
+      )
 (:
       if ( bin:is-json($doc/node()) ) then (
          v:edit-json($doc, $id, $uri, $dir, $root, $sep, $db-root)
@@ -139,4 +143,8 @@ return
       function() {
          local:page($uri)
       },
-      <lib>emlc.browser</lib>)
+      (<lib>emlc.browser</lib>,
+       <lib>marked</lib>,
+       <script>
+          emlc.initMarked('./', '{ $uri }');
+       </script>))

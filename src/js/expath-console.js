@@ -30,8 +30,10 @@ window.emlc = window.emlc || {};
             return '<img src="' + dbpath + 'bin?uri=' + uri + href + '"></img>';
          };
          marked.setOptions({
-            highlight: function(code) {
-               return hljs.highlightAuto(code).value;
+            highlight: function(code, lang) {
+               return lang
+                  ? hljs.highlight(lang, code).value
+                  : hljs.highlightAuto(code).value;
             },
             renderer: renderer
          });

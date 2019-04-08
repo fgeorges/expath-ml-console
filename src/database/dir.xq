@@ -174,5 +174,5 @@ return
       (<lib>emlc.browser</lib>,
        <lib>marked</lib>,
        <script>
-          initMarked('./', '{ $uri }');
+          emlc.initMarked('./', '{ $uri }');
        </script>))
