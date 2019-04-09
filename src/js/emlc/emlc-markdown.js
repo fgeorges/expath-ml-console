@@ -7,8 +7,44 @@ window.emlc = window.emlc || {};
 
     emlc.renderMarkdown = renderMarkdown;
 
+    // return the dir part of a path (that is, minus filename if any)
     function dirname(path) {
         return path.match(/.*\//);
+    }
+
+    function highlight(code, lang) {
+        var success = false;
+        // "normalize" lang if 'sjs' or 'xqy'
+        if ( lang === 'sjs' ) {
+            lang = 'javascript';
+        }
+        else if ( lang === 'xqy' ) {
+            lang = 'xquery';
+        }
+        // if lang is explicit
+        if ( lang ) {
+            try {
+                hljs.highlight(lang, code).value;
+                success = true;
+            }
+            catch ( err ) {
+                console.log('Error highlighting lang ' + lang + ': ' + err);
+            }
+        }
+        // if lang is implicit (or if there was an error above, fall back here)
+        if ( ! success ) {
+            try {
+                hljs.highlightAuto(code).value;
+            }
+            catch ( err ) {
+                const msg = 'Error highlighting lang ' + lang + ': ' + err;
+                console.log(msg);
+                alert(msg + '\nPlease report this to'
+                      + ' http://github.com/fgeorges/expath-ml-console.'
+                      + '\nMore info in the browser console logs.');
+                throw err;
+            }
+        }
     }
 
     function renderMarkdown(root, uri) {
@@ -19,41 +55,8 @@ window.emlc = window.emlc || {};
                 return '<img src="' + root + 'bin?uri=' + dir + href + '"></img>';
             };
             marked.setOptions({
-                highlight: function(code, lang) {
-                    var success = false;
-                    // "normalize" lang if 'sjs' or 'xqy'
-                    if ( lang === 'sjs' ) {
-                        lang = 'javascript';
-                    }
-                    else if ( lang === 'xqy' ) {
-                        lang = 'xquery';
-                    }
-                    // if lang is explicit
-                    if ( lang ) {
-                        try {
-                            hljs.highlight(lang, code).value;
-                            success = true;
-                        }
-                        catch ( err ) {
-                            console.log('Error highlighting lang ' + lang + ': ' + err);
-                        }
-                    }
-                    // if lang is implicit (or if there was an error above, fall back here)
-                    if ( ! success ) {
-                        try {
-                            hljs.highlightAuto(code).value;
-                        }
-                        catch ( err ) {
-                            const msg = 'Error highlighting lang ' + lang + ': ' + err;
-                            console.log(msg);
-                            alert(msg + '\nPlease report this to'
-                                  + ' http://github.com/fgeorges/expath-ml-console.'
-                                  + '\nMore info in the browser console logs.');
-                            throw err;
-                        }
-                    }
-                },
-                renderer: renderer
+                highlight: highlight,
+                renderer:  renderer
             });
             $('.md-content').each(function() {
                 const elem = $(this);
