@@ -13,7 +13,6 @@ window.emlc = window.emlc || {};
     }
 
     function highlight(code, lang) {
-        var success = false;
         // "normalize" lang if 'sjs' or 'xqy'
         if ( lang === 'sjs' ) {
             lang = 'javascript';
@@ -24,26 +23,23 @@ window.emlc = window.emlc || {};
         // if lang is explicit
         if ( lang ) {
             try {
-                hljs.highlight(lang, code).value;
-                success = true;
+                return hljs.highlight(lang, code).value;
             }
             catch ( err ) {
                 console.log('Error highlighting lang ' + lang + ': ' + err);
             }
         }
         // if lang is implicit (or if there was an error above, fall back here)
-        if ( ! success ) {
-            try {
-                hljs.highlightAuto(code).value;
-            }
-            catch ( err ) {
-                const msg = 'Error highlighting lang ' + lang + ': ' + err;
-                console.log(msg);
-                alert(msg + '\nPlease report this to'
-                      + ' http://github.com/fgeorges/expath-ml-console.'
-                      + '\nMore info in the browser console logs.');
-                throw err;
-            }
+        try {
+            return hljs.highlightAuto(code).value;
+        }
+        catch ( err ) {
+            const msg = 'Error highlighting lang ' + lang + ': ' + err;
+            console.log(msg);
+            alert(msg + '\nPlease report this to'
+                  + ' http://github.com/fgeorges/expath-ml-console.'
+                  + '\nMore info in the browser console logs.');
+            throw err;
         }
     }
 
