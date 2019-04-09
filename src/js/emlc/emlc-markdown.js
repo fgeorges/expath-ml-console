@@ -7,11 +7,16 @@ window.emlc = window.emlc || {};
 
     emlc.renderMarkdown = renderMarkdown;
 
+    function dirname(path) {
+        return path.match(/.*\//);
+    }
+
     function renderMarkdown(root, uri) {
         $(document).ready(function () {
+            const dir      = dirname(uri);
             const renderer = new marked.Renderer();
             renderer.image = function(href, title, text) {
-                return '<img src="' + root + 'bin?uri=' + uri + href + '"></img>';
+                return '<img src="' + root + 'bin?uri=' + dir + href + '"></img>';
             };
             marked.setOptions({
                 highlight: function(code, lang) {
