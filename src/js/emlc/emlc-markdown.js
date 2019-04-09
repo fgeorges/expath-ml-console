@@ -59,8 +59,10 @@ window.emlc = window.emlc || {};
                 renderer:  renderer
             });
             $('.md-content').each(function() {
-                const elem = $(this);
-                elem.html(marked(elem.text()));
+                const elem   = $(this);
+                const tokens = marked.lexer(elem.text());
+                const html   = marked.parser(tokens);
+                elem.html(html);
             });
         });
     }
