@@ -16,6 +16,14 @@ window.emlc = window.emlc || {};
             marked.setOptions({
                 highlight: function(code, lang) {
                     var success = false;
+                    // "normalize" lang if 'sjs' or 'xqy'
+                    if ( lang === 'sjs' ) {
+                        lang = 'javascript';
+                    }
+                    else if ( lang === 'xqy' ) {
+                        lang = 'xquery';
+                    }
+                    // if lang is explicit
                     if ( lang ) {
                         try {
                             hljs.highlight(lang, code).value;
@@ -25,6 +33,7 @@ window.emlc = window.emlc || {};
                             console.log('Error highlighting lang ' + lang + ': ' + err);
                         }
                     }
+                    // if lang is implicit (or if there was an error above, fall back here)
                     if ( ! success ) {
                         try {
                             hljs.highlightAuto(code).value;
