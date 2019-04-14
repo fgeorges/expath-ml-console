@@ -1239,7 +1239,7 @@ declare function v:input-db-widget($id as xs:string, $name as xs:string, $label 
    as element((: h:input|h:div :))+
 {
    let $buttons := (
-         <div class="btn-group">
+         <div xmlns="http://www.w3.org/1999/xhtml" class="btn-group">
             <button type="button" class="btn btn-outline-secondary dropdown-toggle"
                     data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                Databases
@@ -1259,7 +1259,7 @@ declare function v:input-db-widget($id as xs:string, $name as xs:string, $label 
                       <srv label="WebDAV" type="webDAV"/>)
          return (
             ' ',
-            <div class="btn-group" style="margin-left: 10px;">
+            <div xmlns="http://www.w3.org/1999/xhtml" class="btn-group" style="margin-right: 10px;">
                <button type="button" class="btn btn-outline-secondary dropdown-toggle"
                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                   { xs:string($srv/@label) }
