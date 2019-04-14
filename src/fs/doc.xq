@@ -134,6 +134,47 @@ declare function local:content(
       )
 };
 
+declare function local:button(
+   $label  as xs:string,
+   $values as element(a)+
+) as element(div)
+{
+   <div class="emlc-target-selector btn-group" style="margin-right: 15px;" data-label="{ $label }">
+      <button type="button" class="btn btn-outline-secondary dropdown-toggle"
+              data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+         { $label }
+      </button>
+      <div class="dropdown-menu" style="min-width: 400pt">
+         { $values }
+      </div>
+   </div>
+};
+
+declare function local:db-button(
+   $label as xs:string,
+   $dbs   as element(a:database)+)
+{
+   local:button(
+      $label,
+      for $db in $dbs
+      order by $db/a:name
+      return
+         v:format-db-widget-db($db))
+};
+
+declare function local:as-button($label as xs:string, $asses as element(a:appserver)*)
+{
+   if ( fn:exists($asses) ) then
+      local:button(
+         $label,
+         for $as in $asses
+         order by $as/a:name
+         return
+            v:format-db-widget-as($as, $label))
+   else
+      ()
+};
+
 let $uri := t:mandatory-field('uri')
 return
    v:console-page(
@@ -141,10 +182,31 @@ return
       'project',
       'Browse file system',
       function() {
-         local:page($uri)
+         local:page($uri),
+         <div style="display: none" id="emlc-db-widget-template">
+            <!-- does not bear the "emlc-target-widget" class, must be added when cloning -->
+            <div class="row" style="margin-bottom: 20px; margin-left: 0;"> {
+               let $dbs   := a:get-databases()/a:database
+               let $asses := a:get-appservers()/a:appserver
+               return (
+                  local:db-button('Database', $dbs),
+                  local:as-button('HTTP',   $asses[@type eq 'http']),
+                  local:as-button('XDBC',   $asses[@type eq 'xdbc']),
+                  local:as-button('ODBC',   $asses[@type eq 'odbc']),
+                  local:as-button('WebDAV', $asses[@type eq 'webDAV']),
+                  <div class="col">
+                     <button type="button" class="emlc-target-execute btn btn-outline-secondary float-right">
+                        Execute
+                     </button>
+                  </div>
+               )
+            }
+            </div>
+         </div>
       },
       (<lib>emlc.browser</lib>,
        <lib>emlc.markdown</lib>,
+       <lib>emlc.target</lib>,
        <script>
           emlc.renderMarkdown('./', '{ $uri }');
        </script>))

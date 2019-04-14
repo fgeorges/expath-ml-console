@@ -14,13 +14,6 @@ window.emlc = window.emlc || {};
 
     // highlight some `code` (as text) with an optional `lang`, returns HTML (as text)
     function highlight(code, lang) {
-        // "normalize" lang if 'sjs' or 'xqy'
-        if ( lang === 'sjs' ) {
-            lang = 'javascript';
-        }
-        else if ( lang === 'xqy' ) {
-            lang = 'xquery';
-        }
         // if lang is explicit
         if ( lang ) {
             try {
@@ -46,15 +39,32 @@ window.emlc = window.emlc || {};
 
     // format a MD code block (given as a `token`, add the result to `elem`)
     function codeBlock(elem, token) {
+        // the pre element with the highlighted code
         const pre  = $('<pre>');
         const code = $('<code>');
-        if ( token.lang ) {
-            code.addClass('lang-' + token.lang);
+        // "normalize" lang if 'sjs' or 'xqy'
+        const lang = token.lang === 'sjs'
+            ? 'javascript'
+            : token.lang === 'xqy'
+            ? 'xquery'
+            : token.lang;
+        if ( lang ) {
+            code.addClass('lang-' + lang);
         }
-        const rich = highlight(token.text, token.lang);
+        const rich = highlight(token.text, lang);
         code.html(rich);
         pre.append(code);
-        elem.append(pre);
+        if ( lang === 'javascript' || lang === 'xquery' ) {
+            // the "target database" selection widget
+            const widget = $('#emlc-db-widget-template')
+                .clone()
+                .children()
+                .addClass('emlc-target-widget');
+            emlc.targetInitWidget(widget);
+            // append them all
+            elem.append(pre);
+            elem.append(widget);
+        }
     };
 
     // The main function to enrich an element with content from MD tokens.

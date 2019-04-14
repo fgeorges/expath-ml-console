@@ -1271,7 +1271,7 @@ declare function v:input-db-widget($id as xs:string, $name as xs:string, $label 
                         for $as in $asses
                         order by $as/a:name
                         return
-                           v:format-db-widget-as($as, $id, $srv/@label)
+                           v:format-db-widget-as($as, $srv/@label, $id)
                      else
                         <a class="dropdown-item" style="font-style: italic" href="#">(none)</a>
                }
@@ -1305,37 +1305,49 @@ declare function v:input-db-widget($id as xs:string, $name as xs:string, $label 
       )
 };
 
+declare function v:format-db-widget-db($db as element(a:database)) as element(h:a)
+{
+   v:format-db-widget-db($db, ())
+};
+
 declare function v:format-db-widget-db(
    $db    as element(a:database),
-   $field as xs:string
+   $field as xs:string?
 ) as element(h:a)
 {
    <a xmlns="http://www.w3.org/1999/xhtml"
       class="emlc-target-entry dropdown-item"
       href="#"
-      data-field="#{ $field }"
       data-id="{ $db/@id }"
       data-label="{ $db/a:name }"> {
+      $field ! attribute data-field { '#' || $field },
       $db/fn:string(a:name)
    }
    </a>
 };
 
 declare function v:format-db-widget-as(
-   $as    as element(a:appserver),
-   $field as xs:string,
-   $type  as xs:string
+   $as   as element(a:appserver),
+   $type as xs:string
 ) as element(h:a)
 {
-   let $name  := xs:string($as/a:name)
-   let $label := $name || ' (' || $type || ')'
+   v:format-db-widget-as($as, $type, ())
+};
+
+declare function v:format-db-widget-as(
+   $as    as element(a:appserver),
+   $type  as xs:string,
+   $field as xs:string?
+) as element(h:a)
+{
+   let $name := xs:string($as/a:name)
    return
       <a xmlns="http://www.w3.org/1999/xhtml"
          class="emlc-target-entry dropdown-item"
          href="#"
-         data-field="#{ $field }"
          data-id="{ $as/@id }"
-         data-label="{ $label }">
+         data-label="{ $name }">
+         { $field ! attribute data-field { '#' || $field } }
          <span> {
             $name
          }
