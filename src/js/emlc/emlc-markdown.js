@@ -38,6 +38,7 @@ window.emlc = window.emlc || {};
     }
 
     // format a MD code block (given as a `token`, add the result to `elem`)
+    // TODO: Support SPARQL as well (with prefixes from target DB?)
     function codeBlock(elem, token) {
         // the pre element with the highlighted code
         const pre  = $('<pre>');
@@ -59,7 +60,9 @@ window.emlc = window.emlc || {};
             const widget = $('#emlc-db-widget-template')
                 .clone()
                 .children()
-                .addClass('emlc-target-widget');
+                .addClass('emlc-target-widget')
+                .data('lang', lang)
+                .data('code', token.text);
             emlc.targetInitWidget(widget);
             // append them all
             elem.append(pre);

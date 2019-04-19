@@ -13,6 +13,8 @@
  * TODO: Support query parameters to pass from the client.
  * TODO: Handle errors from evaluating the query.
  * TODO: Support update queries.
+ * TODO: Add the document URI for nodes?  To allow browsing.
+ * TODO: Return the result of a SPARQL query in a specific (tabular) way?
  */
 
 const a = require('/lib/admin.xqy');

@@ -75,9 +75,25 @@ window.emlc = window.emlc || {};
     }
 
     function targetExecute(widget) {
-        const id = widget.data('id');
-// TODO: Add the actual exec of the code (on the server) here...
-alert('ID: ' + id);
+        const id   = encodeURIComponent(widget.data('id'));
+        const lang = encodeURIComponent(widget.data('lang'));
+        const code = encodeURIComponent(widget.data('code'));
+        // TODO: Escape values... (should use a POST instead as well?)
+        const url = '../api/tool/eval?target=' + id + '&lang=' + lang + '&code=' + code;
+        fetch(url, { credentials: 'same-origin' })
+            .then(function(resp) {
+                return resp.json();
+            })
+            .then(function(resp) {
+                // TODO: Display the result in a dedicated pane, with type, links, etc.
+                console.log(resp);
+                alert('See the browser console for result.\n\nTODO: Display properly');
+            })
+            .catch(function(err) {
+                // TODO: Proper error reporting...
+                alert('ERROR: ' + err);
+                console.log(err);
+            });
     }
 
 })();
