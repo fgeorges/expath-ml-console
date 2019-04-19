@@ -354,6 +354,11 @@
       <dispatch>/tools/del-meta.xq</dispatch>
    </match-path>
 
+   <!-- tool api -->
+   <match-path matches="^/api/tool/eval$">
+      <dispatch>/api/tool/eval.sjs</dispatch>
+   </match-path>
+
    <!--
        Web.
    -->
