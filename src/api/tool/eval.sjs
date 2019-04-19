@@ -9,6 +9,10 @@
  *
  * The result of evaluating the code is returned as a JSON array of objects in
  * which each result is enriched with info about its type.
+ *
+ * TODO: Support query parameters to pass from the client.
+ * TODO: Handle errors from evaluating the query.
+ * TODO: Support update queries.
  */
 
 const a = require('/lib/admin.xqy');
