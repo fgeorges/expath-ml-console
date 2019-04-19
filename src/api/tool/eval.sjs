@@ -95,7 +95,7 @@ const nodes = {
     Text: 'text()'
 };
 
-// an item is either a simple JS type, or a node, or an xs.* type, or a cts.* type,
+// an item is either a simple JS type, or a node, or an xs:* type, or a cts:* type,
 // or an object with a constructor
 const item = (i) => {
     const desc = { value: i };
@@ -110,11 +110,11 @@ const item = (i) => {
             desc.kind = k;
         }
         else if ( c.startsWith('xs.') ) {
-            desc.type = c;
+            desc.type = 'xs:' + c.slice(3);
         }
         else if ( c.startsWith('cts.') ) {
-            desc.type = 'cts.query';
-            desc.kind = c;
+            desc.type = 'cts:query';
+            desc.kind = 'cts:' + c.slice(4);
         }
         else {
             // TODO: Is there really no way to distinguish a map:map from a JSON object?
