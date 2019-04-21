@@ -110,7 +110,38 @@ declare function local:content(
       )
       else if ( $ext = ('md') ) then (
          <hr/>,
-         <div class="md-content">{ a:get-from-filesystem($uri) }</div>
+         <div class="md-content"> {
+            a:get-from-filesystem($uri)
+         }
+         </div>,
+         <div id="footpane">
+            <div id="footline">
+               <span>Result</span>
+            </div>
+            <div id="footbody">
+               <p>[no result to display, yet]</p>
+            </div>
+         </div>,
+         <div style="display: none" id="emlc-db-widget-template">
+            <!-- does not bear the "emlc-target-widget" class, must be added when cloning -->
+            <div class="row" style="margin-bottom: 20px; margin-left: 0;"> {
+               let $dbs   := a:get-databases()/a:database
+               let $asses := a:get-appservers()/a:appserver
+               return (
+                  local:db-button('Database', $dbs),
+                  local:as-button('HTTP',   $asses[@type eq 'http']),
+                  local:as-button('XDBC',   $asses[@type eq 'xdbc']),
+                  local:as-button('ODBC',   $asses[@type eq 'odbc']),
+                  local:as-button('WebDAV', $asses[@type eq 'webDAV']),
+                  <div class="col">
+                     <button type="button" class="emlc-target-execute btn btn-outline-secondary float-right">
+                        Execute
+                     </button>
+                  </div>
+               )
+            }
+            </div>
+         </div>
       )
 (:
       if ( bin:is-json($doc/node()) ) then (
@@ -182,31 +213,17 @@ return
       'project',
       'Browse file system',
       function() {
-         local:page($uri),
-         <div style="display: none" id="emlc-db-widget-template">
-            <!-- does not bear the "emlc-target-widget" class, must be added when cloning -->
-            <div class="row" style="margin-bottom: 20px; margin-left: 0;"> {
-               let $dbs   := a:get-databases()/a:database
-               let $asses := a:get-appservers()/a:appserver
-               return (
-                  local:db-button('Database', $dbs),
-                  local:as-button('HTTP',   $asses[@type eq 'http']),
-                  local:as-button('XDBC',   $asses[@type eq 'xdbc']),
-                  local:as-button('ODBC',   $asses[@type eq 'odbc']),
-                  local:as-button('WebDAV', $asses[@type eq 'webDAV']),
-                  <div class="col">
-                     <button type="button" class="emlc-target-execute btn btn-outline-secondary float-right">
-                        Execute
-                     </button>
-                  </div>
-               )
-            }
-            </div>
-         </div>
+         local:page($uri)
       },
       (<lib>emlc.browser</lib>,
+       (: TODO: These 3 are necessary only in case we actually generate the
+          executable MarkDown snippets.  Or at least if we do have an MD file,
+          which we can detect here.  The emlc.markdown code can then display the
+          entire footpane only if it does generate such snippets. :)
+       <lib>emlc.footpane</lib>,
        <lib>emlc.markdown</lib>,
        <lib>emlc.target</lib>,
+       (: /todo :)
        <script>
           emlc.renderMarkdown('./', '{ $uri }');
        </script>))

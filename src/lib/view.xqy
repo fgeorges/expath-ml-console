@@ -34,6 +34,7 @@ declare variable $v:pages as element(c:pages) :=
       <!--c:page name="devel"    title="Devel's evil"                  label="Devel"/-->
    </c:pages>;
 
+(: TODO: Should be able to have CSS files as well in one single lib. :)
 declare variable $v:js-libs :=
    <c:libs>
       <!-- TODO: For now, load everything, but should cherry-pick between sjs and xqy. -->
@@ -51,6 +52,9 @@ declare variable $v:js-libs :=
       </c:lib>
       <c:lib code="emlc.cxan">
          <c:path>emlc/emlc-cxan.js</c:path>
+      </c:lib>
+      <c:lib code="emlc.footpane">
+         <c:path>emlc/emlc-footpane.js</c:path>
       </c:lib>
       <c:lib code="emlc.job">
          <c:path>emlc/emlc-job.js</c:path>
@@ -293,12 +297,12 @@ declare %private function v:console-page-static(
                   $content[@class = 'jumbotron']
                }
                </div>,
-               <div class="container">
+               <div class="container" id="main">
                   { $content[fn:not(@class = 'jumbotron')] }
                </div>
             )
             else (
-               <div class="container">
+               <div class="container" id="main">
                   <h1>{ $title }</h1>
                   { $content }
                </div>

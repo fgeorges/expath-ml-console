@@ -92,6 +92,45 @@ td.cell-code {
 }
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * Footpane-specific.
+ */
+
+/* "height" is set in JS */
+#footpane {
+    position: fixed;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+    margin-bottom: 0px;
+    z-index: 10;
+    background-color: white;
+}
+
+/* "cursor" is set in JS (to "pointer" or "ns-resize") */
+#footline {
+    text-align: right;
+    font-size: 75%;
+    color: rgba(255,255,255,.7);
+    font-weight: bold;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    padding-right: .5em;
+    background-color: #707579;
+}
+
+#footline span {
+    margin-right: .5em;
+}
+
+/* "top" is set in JS (to the "height" of "#footline") */
+#footbody {
+    position: absolute;
+    bottom: 0px;
+    left: 10px;
+    overflow: auto;
+}
+
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  * Trible and triph-specific.
  */
 
