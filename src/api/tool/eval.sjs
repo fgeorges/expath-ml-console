@@ -95,6 +95,19 @@ const nodes = {
     Text: 'text()'
 };
 
+// FIXME: When evaluating XQuery, 42 will result in "number" below, and 'foobar'
+// to "string", as if they were their JavaScript equivalent (probably caused by
+// the mapping for simple types being "transparent", or "invisible" on the
+// JavaScript side of it.)
+//
+// This leads to unprecise type labels in the UI.  A possible solution would be
+// to get the type annotation from XQuery, but this will probably suffer from
+// the same flaw, only the other way arround (so the JavaScript 'foobar' would
+// be an "xs:string".)
+//
+// So probably, the only way is to evaluate and extract types in XQuery for
+// XQuery code and in JavaScript for JavaScript code...
+
 // an item is either a simple JS type, or a node, or an xs:* type, or a cts:* type,
 // or an object with a constructor
 const item = (i) => {
@@ -104,21 +117,27 @@ const item = (i) => {
     }
     else if ( typeof i === 'object' ) {
         const c = i.constructor.name;
-        const k = nodes[c];
-        if ( k ) {
-            desc.type = 'node';
-            desc.kind = k;
+        const n = nodes[c];
+        if ( n ) {
+            desc.type = n;
+            desc.kind = 'node';
         }
         else if ( c.startsWith('xs.') ) {
             desc.type = 'xs:' + c.slice(3);
+            desc.kind = 'atomic';
         }
         else if ( c.startsWith('cts.') ) {
-            desc.type = 'cts:query';
-            desc.kind = 'cts:' + c.slice(4);
+            desc.type = 'cts:' + c.slice(4);
+            desc.kind = 'cts:query';
+        }
+        else if ( c === 'sem.iri' ) {
+            desc.type = 'sem:iri';
+            desc.kind = 'atomic';
         }
         else {
             // TODO: Is there really no way to distinguish a map:map from a JSON object?
             desc.type = 'object';
+            desc.kind = 'object';
             desc.constructor = c;
         }
     }

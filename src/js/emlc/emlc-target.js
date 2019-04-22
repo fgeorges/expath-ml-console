@@ -91,12 +91,16 @@ window.emlc = window.emlc || {};
                 // with all relevant information (not the default HTML by ML.)
                 try {
                     const json = JSON.parse(resp);
+                    emlc.footpanePurge();
+                    json.result.forEach(function(res) {
+                        emlc.footpaneAdd(res.value, res.type);
+                    });
                     emlc.footpaneExpand();
-                    emlc.footpaneText(JSON.stringify(json, null, 3));
                 }
                 catch (err) {
-                    emlc.footpaneExpand();
+                    emlc.footpanePurge();
                     emlc.footpaneError(resp);
+                    emlc.footpaneExpand();
                 }
             })
             .catch(function(err) {

@@ -132,6 +132,17 @@ td.cell-code {
     padding-right: 0px;
 }
 
+#footbody pre {
+    position: relative;
+}
+
+#footbody pre span {
+    position: absolute;
+    top: 1px;
+    right: 7px;
+    font-size: 80%;
+}
+
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  * Trible and triph-specific.
  */

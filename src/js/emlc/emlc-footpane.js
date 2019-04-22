@@ -7,7 +7,8 @@ window.emlc = window.emlc || {};
 
     emlc.footpaneColapse = colapse;
     emlc.footpaneExpand  = expand;
-    emlc.footpaneText    = text;
+    emlc.footpanePurge   = purge;
+    emlc.footpaneAdd     = add;
     emlc.footpaneError   = error;
 
     $(function() {
@@ -43,22 +44,22 @@ window.emlc = window.emlc || {};
         $('#footbody pre').remove();
     };
 
-    function add(content) {
+    // TODO: xs:anyURI and sem:iri would result in links to the browsers (resp.
+    // the document and triple browsers.)  The database to use is the one used
+    // to evaluate the code...
+    function add(text, type) {
         const pre  = $('<pre>');
+        const span = $('<span>');
         const code = $('<code>');
+        pre.append(span);
         pre.append(code);
-        code.text(content);
+        span.text(type);
+        code.text(text);
         $('#footbody').append(pre);
         return pre;
     };
 
-    function text(content) {
-        purge();
-        return add(content);
-    };
-
     function error(content) {
-        purge();
         return add(content).css('color', 'red');
     };
 
