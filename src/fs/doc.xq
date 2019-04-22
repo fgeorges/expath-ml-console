@@ -118,8 +118,8 @@ declare function local:content(
             <div id="footline">
                <span>Result</span>
             </div>
-            <div id="footbody">
-               <p>[no result to display, yet]</p>
+            <div id="footbody" class="container">
+               <pre><code>[no result to display, yet]</code></pre>
             </div>
          </div>,
          <div style="display: none" id="emlc-db-widget-template">

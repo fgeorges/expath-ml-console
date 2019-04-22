@@ -78,21 +78,33 @@ window.emlc = window.emlc || {};
         const id   = encodeURIComponent(widget.data('id'));
         const lang = encodeURIComponent(widget.data('lang'));
         const code = encodeURIComponent(widget.data('code'));
-        // TODO: Escape values... (should use a POST instead as well?)
+        // TODO: Escape values... (should use a POST instead as well, shouldn't we?)
         const url = '../api/tool/eval?target=' + id + '&lang=' + lang + '&code=' + code;
         fetch(url, { credentials: 'same-origin' })
             .then(function(resp) {
-                return resp.json();
+                return resp.text();
             })
             .then(function(resp) {
-                // TODO: Display the result in a dedicated pane, with type, links, etc.
-                console.log(resp);
-                alert('See the browser console for result.\n\nTODO: Display properly');
+                // TODO: Check HTTP response code, instead of relying solely on
+                // JSON parsing throwing an error.  Especially that at the end of
+                // the day, the endpoint should return, in case of error, a JSON
+                // with all relevant information (not the default HTML by ML.)
+                try {
+                    const json = JSON.parse(resp);
+                    emlc.footpaneExpand();
+                    emlc.footpaneText(JSON.stringify(json, null, 3));
+                }
+                catch (err) {
+                    emlc.footpaneExpand();
+                    emlc.footpaneError(resp);
+                }
             })
             .catch(function(err) {
                 // TODO: Proper error reporting...
                 alert('ERROR: ' + err);
-                console.log(err);
+                console.log(arguments);
+                emlc.footpaneExpand();
+                emlc.footpaneError(err);
             });
     }
 
