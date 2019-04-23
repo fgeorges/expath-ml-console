@@ -116,7 +116,9 @@ declare function local:content(
          </div>,
          <div id="footpane">
             <div id="footline">
+               <span>▼</span>
                <span>Result</span>
+               <span>▲</span>
             </div>
             <div id="footbody">
                <pre><code>[no result to display, yet]</code></pre>
