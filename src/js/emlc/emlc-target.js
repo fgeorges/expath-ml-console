@@ -75,9 +75,20 @@ window.emlc = window.emlc || {};
     }
 
     function targetExecute(widget) {
-        const id   = encodeURIComponent(widget.data('id'));
-        const lang = encodeURIComponent(widget.data('lang'));
-        const code = encodeURIComponent(widget.data('code'));
+        const error = (msg) => {
+            emlc.footpanePurge();
+            emlc.footpaneError(msg);
+            emlc.footpaneExpand();
+        };
+        const _id   = widget.data('id');
+        const _lang = widget.data('lang');
+        const _code = widget.data('code');
+        if ( ! _id )   { error('No target selected');   return; }
+        if ( ! _lang ) { error('No lang for the code'); return; }
+        if ( ! _code ) { error('No code to execute');   return; }
+        const id   = encodeURIComponent(_id);
+        const lang = encodeURIComponent(_lang);
+        const code = encodeURIComponent(_code);
         // TODO: Escape values... (should use a POST instead as well, shouldn't we?)
         const url = '../api/tool/eval?target=' + id + '&lang=' + lang + '&code=' + code;
         fetch(url, { credentials: 'same-origin' })
@@ -98,17 +109,14 @@ window.emlc = window.emlc || {};
                     emlc.footpaneExpand();
                 }
                 catch (err) {
-                    emlc.footpanePurge();
-                    emlc.footpaneError(resp);
-                    emlc.footpaneExpand();
+                    error(resp);
                 }
             })
             .catch(function(err) {
                 // TODO: Proper error reporting...
                 alert('ERROR: ' + err);
                 console.log(arguments);
-                emlc.footpaneExpand();
-                emlc.footpaneError(err);
+                error(err);
             });
     }
 
