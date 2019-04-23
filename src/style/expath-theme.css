@@ -126,10 +126,11 @@ td.cell-code {
 #footbody {
     position: absolute;
     bottom: 0px;
-    left: 10px;
+    left: 0px;
     overflow: auto;
     padding-left: 25px;
-    padding-right: 0px;
+    padding-right: 25px;
+    width: 100%
 }
 
 #footbody pre {
@@ -139,8 +140,9 @@ td.cell-code {
 #footbody pre span {
     position: absolute;
     top: 1px;
-    right: 7px;
-    font-size: 80%;
+    right: 4px;
+    font-size: 75%;
+    color: #8C9093;
 }
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

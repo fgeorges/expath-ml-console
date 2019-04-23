@@ -118,7 +118,7 @@ declare function local:content(
             <div id="footline">
                <span>Result</span>
             </div>
-            <div id="footbody" class="container">
+            <div id="footbody">
                <pre><code>[no result to display, yet]</code></pre>
             </div>
          </div>,
