@@ -149,13 +149,16 @@ function evalJavaScript(code, vars, options)
         result.push(desc);
     };
 
-    if ( res instanceof Sequence ) {
-        for ( const i of res ) {
+    // if exactly one single array, unbox it
+    if ( fn.exists(res) && fn.empty(fn.tail(res)) && Array.isArray(fn.head(res)) ) {
+        for ( const i of fn.head(res) ) {
             item(i);
         }
     }
     else {
-        item(res);
+        for ( const i of res ) {
+            item(i);
+        }
     }
 
     return result;
