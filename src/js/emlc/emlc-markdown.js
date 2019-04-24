@@ -68,6 +68,9 @@ window.emlc = window.emlc || {};
             elem.append(pre);
             elem.append(widget);
         }
+        else {
+            elem.append(pre);
+        }
     };
 
     // The main function to enrich an element with content from MD tokens.
