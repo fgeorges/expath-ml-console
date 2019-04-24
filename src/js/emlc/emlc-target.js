@@ -104,7 +104,7 @@ window.emlc = window.emlc || {};
                     const json = JSON.parse(resp);
                     emlc.footpanePurge();
                     json.result.forEach(function(res) {
-                        emlc.footpaneAdd(res.value, res.type);
+                        emlc.footpaneAdd(res.value, res.type, json.input.dbname);
                     });
                     emlc.footpaneExpand();
                 }

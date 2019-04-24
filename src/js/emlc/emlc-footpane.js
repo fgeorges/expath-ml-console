@@ -84,18 +84,31 @@ window.emlc = window.emlc || {};
     // TODO: xs:anyURI and sem:iri would result in links to the browsers (resp.
     // the document and triple browsers.)  The database to use is the one used
     // to evaluate the code...
-    function add(text, type) {
+    function add(text, type, dbname) {
         const pre  = $('<pre>');
         const span = $('<span>');
         const code = $('<code>');
-        pre.append(span);
-        pre.append(code);
         span.text(type);
+        pre.append(span);
         if ( typeof text === 'object' ) {
             code.text(JSON.stringify(text, null, 3));
+            pre.append(code);
+        }
+        else if ( type === 'xs:anyURI' ) {
+            const a = $('<a>').attr('href', `../db/${dbname}/doc?uri=${encodeURIComponent(text)}`);
+            code.text(text).addClass('doc');
+            a.append(code);
+            pre.append(a);
+        }
+        else if ( type === 'sem:iri' ) {
+            const a = $('<a>').attr('href', `../db/${dbname}/triples?rsrc=${encodeURIComponent(text)}`);
+            code.text(text).addClass('rsrc');
+            a.append(code);
+            pre.append(a);
         }
         else {
             code.text(text);
+            pre.append(code);
         }
         $('#footbody').append(pre);
         return pre;

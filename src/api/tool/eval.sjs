@@ -69,6 +69,7 @@ function main(code, lang, target)
             code: code,
             database: db,
             server: as,
+            dbname: xdmp.databaseName(options.database),
             options: options
         }
     };
