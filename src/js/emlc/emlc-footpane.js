@@ -91,7 +91,12 @@ window.emlc = window.emlc || {};
         pre.append(span);
         pre.append(code);
         span.text(type);
-        code.text(text);
+        if ( typeof text === 'object' ) {
+            code.text(JSON.stringify(text, null, 3));
+        }
+        else {
+            code.text(text);
+        }
         $('#footbody').append(pre);
         return pre;
     };
