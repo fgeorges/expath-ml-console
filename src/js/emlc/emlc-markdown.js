@@ -43,18 +43,21 @@ window.emlc = window.emlc || {};
         // the pre element with the highlighted code
         const pre  = $('<pre>');
         const code = $('<code>');
-        // "normalize" lang if 'sjs' or 'xqy'
-        const lang = token.lang === 'sjs'
+        // "normalize" lang if 'js', 'sjs' or 'xqy'
+        const lang = token.lang === 'js' || token.lang === 'sjs'
             ? 'javascript'
             : token.lang === 'xqy'
             ? 'xquery'
             : token.lang;
+        // if no lang, should we try to infer it from, say, the first line to be
+        // `xquery version "3.0";` or `"use strict"`?
         if ( lang ) {
             code.addClass('lang-' + lang);
         }
         const rich = highlight(token.text, lang);
         code.html(rich);
         pre.append(code);
+        elem.append(pre);
         if ( lang === 'javascript' || lang === 'xquery' ) {
             // the "target database" selection widget
             const widget = $('#emlc-db-widget-template')
@@ -64,12 +67,7 @@ window.emlc = window.emlc || {};
                 .data('lang', lang)
                 .data('code', token.text);
             emlc.targetInitWidget(widget);
-            // append them all
-            elem.append(pre);
             elem.append(widget);
-        }
-        else {
-            elem.append(pre);
         }
     };
 
