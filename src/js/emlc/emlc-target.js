@@ -80,18 +80,30 @@ window.emlc = window.emlc || {};
             emlc.footpaneError(msg);
             emlc.footpaneExpand();
         };
-        const _id   = widget.data('id');
-        const _lang = widget.data('lang');
-        const _code = widget.data('code');
-        if ( ! _id )   { error('No target selected');   return; }
-        if ( ! _lang ) { error('No lang for the code'); return; }
-        if ( ! _code ) { error('No code to execute');   return; }
-        const id   = encodeURIComponent(_id);
-        const lang = encodeURIComponent(_lang);
-        const code = encodeURIComponent(_code);
-        // TODO: Escape values... (should use a POST instead as well, shouldn't we?)
-        const url = '../api/tool/eval?target=' + id + '&lang=' + lang + '&code=' + code;
-        fetch(url, { credentials: 'same-origin' })
+        // params from widget
+        const id     = widget.data('id');
+        const lang   = widget.data('lang');
+        const code   = widget.data('code');
+        const params = widget.data('params');
+        if ( ! id )   { error('No target selected');   return; }
+        if ( ! lang ) { error('No lang for the code'); return; }
+        if ( ! code ) { error('No code to execute');   return; }
+        // the request content
+        const body = new FormData();
+        body.append('target', id);
+        body.append('lang',   lang);
+        body.append('code',   code);
+        if ( params && params.length ) {
+            for ( const p of params.split(/,/) ) {
+                const e = $('#' + p);
+                if ( e.length !== 1 ) {
+                    error(`Not exactly one element with ID ${p}: ${e.length}`);
+                }
+                body.append('param-' + e.data('param-name'), e.val());
+            }
+        }
+        // send it
+        fetch('../api/tool/eval', { method: 'POST', body: body, credentials: 'same-origin' })
             .then(function(resp) {
                 return resp.text();
             })

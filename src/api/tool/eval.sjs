@@ -10,7 +10,6 @@
  * The result of evaluating the code is returned as a JSON array of objects in
  * which each result is enriched with info about its type.
  *
- * TODO: Support query parameters to pass from the client.
  * TODO: Handle errors from evaluating the query.
  * TODO: Support update queries.
  * TODO: Add the document URI for nodes?  To allow browsing.
@@ -25,10 +24,11 @@ const xqy = require('/api/tool/lib.xqy');
 const code   = fn.exactlyOne(t.mandatoryField('code'));
 const lang   = fn.exactlyOne(t.mandatoryField('lang'));
 const target = fn.exactlyOne(t.mandatoryField('target'));
+const params = t.fieldNamesMatching('^param-');
 
-main(code, lang, target);
+main(code, lang, target, params);
 
-function main(code, lang, target)
+function main(code, lang, target, params)
 {
     if ( lang !== 'javascript' && lang !== 'xquery' ) {
         t.error('wrong-param', 'The param lang is neither javascript nor xquery: ' + lang);
@@ -57,9 +57,10 @@ function main(code, lang, target)
     }
 
     // the query variables/parameters
-    const vars = {
-        // TODO: Support variables...
-    };
+    const vars = {};
+    for ( const p of params ) {
+        vars[p.slice(6)] = t.optionalField(p, '');
+    }
 
     // prepare the result
     const resp = {

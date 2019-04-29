@@ -59,17 +59,57 @@ window.emlc = window.emlc || {};
         pre.append(code);
         elem.append(pre);
         if ( lang === 'javascript' || lang === 'xquery' ) {
+            // add input elements for the params, returns their ID
+            const params = codeParams(elem, token.text, lang);
             // the "target database" selection widget
             const widget = $('#emlc-db-widget-template')
                 .clone()
                 .children()
                 .addClass('emlc-target-widget')
-                .data('lang', lang)
-                .data('code', token.text);
+                .data('lang',   lang)
+                .data('params', params.join(','))
+                .data('code',   token.text);
             emlc.targetInitWidget(widget);
             elem.append(widget);
         }
     };
+
+    function randomId(len) {
+        if ( ! len ) {
+            len = 16;
+        }
+        const a = [];
+        for ( let i = 0; i < len; ++i ) {
+            // 97 = 'a', 26 = alphabet length
+            const n = Math.floor((Math.random() * 26) + 97);
+            a.push(String.fromCharCode(n));
+        }
+        return a.join('');
+    }
+
+    function codeParams(elem, text, lang) {
+        const re = lang === 'xquery'
+            ? /^\s*\(:\s*@params\s+(.+\S)\s*:\)\s*\n/
+            : /^\s*\/\/\s*@params\s+(.+\S)\s*\n/;
+        const match = re.exec(text);
+        if ( ! match || ! match[1] ) {
+            return [];
+        }
+        const params = match[1].split(/\s+/);
+        const ids    = [];
+        params.forEach(function(p) {
+            const id = randomId();
+            ids.push(id);
+            elem.append($(`
+                <div class="form-group row">
+                  <label class="col-sm-2 col-form-label">${p}</label>
+                  <div class="col-sm-10">
+                    <input type="text" class="form-control" id="${id}" data-param-name="${p}">
+                  </div>
+                </div>`));
+        });
+        return ids;
+    }
 
     // The main function to enrich an element with content from MD tokens.
     //

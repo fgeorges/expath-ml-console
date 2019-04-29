@@ -393,6 +393,15 @@ declare function t:mandatory-field-content-type($name as xs:string)
          t:error('TOOLS001', 'Mandatory field content-type not passed: ' || $name)
 };
 
+(:~
+ : Return all request field names matching the regex.
+ :)
+declare function t:field-names-matching($re as xs:string)
+   as item()*
+{
+   xdmp:get-request-field-names()[fn:matches(., $re)]
+};
+
 (:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  : HTTP response helpers
  :)
