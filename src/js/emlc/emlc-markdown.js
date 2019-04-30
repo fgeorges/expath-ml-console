@@ -93,6 +93,7 @@ window.emlc = window.emlc || {};
         params.forEach(function(p) {
             const id = randomId();
             ids.push(id);
+            const type = p.type ? `data-param-type="${p.type}"` : '';
             // TODO: Make <RET> on these fields to behave like clicking on the "execute" button.
             // (possible here by using jQuery to add the listener straight away, and use click()
             // directly on the button itself...?)
@@ -100,7 +101,8 @@ window.emlc = window.emlc || {};
                 <div class="form-group row">
                   <label class="col-sm-2 col-form-label">${p.label}</label>
                   <div class="col-sm-10">
-                    <input type="text" class="form-control" id="${id}" data-param-name="${p.name}" title="${p.type}">
+                    <input type="text" class="form-control" id="${id}" title="${p.type}"
+                           data-param-name="${p.name}" data-param-label="${p.label}" ${type}>
                   </div>
                 </div>`));
         });
@@ -186,6 +188,7 @@ window.emlc = window.emlc || {};
             }
             tok = next(tok);
             if ( ! isKeyword(tok, 'as') ) { return tok; }
+            // TODO: What about occurrence indicators? (AKA ?, +, and *)
             v.type = tok.innerText;
             tok = next(tok);
             if ( ! isWs(tok) ) { return tok; }

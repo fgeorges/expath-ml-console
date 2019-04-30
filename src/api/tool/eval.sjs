@@ -20,29 +20,23 @@ const a   = require('/lib/admin.xqy');
 const t   = require('/lib/tools.xqy');
 const xqy = require('/api/tool/lib.xqy');
 
-// endpoint params
-const code   = fn.exactlyOne(t.mandatoryField('code'));
-const lang   = fn.exactlyOne(t.mandatoryField('lang'));
-const target = fn.exactlyOne(t.mandatoryField('target'));
-const params = t.fieldNamesMatching('^param-');
+main(xdmp.getRequestBody().toObject());
 
-main(code, lang, target, params);
-
-function main(code, lang, target, params)
+function main(req)
 {
-    if ( lang !== 'javascript' && lang !== 'xquery' ) {
-        t.error('wrong-param', 'The param lang is neither javascript nor xquery: ' + lang);
+    if ( req.lang !== 'javascript' && req.lang !== 'xquery' ) {
+        t.error('wrong-param', `The param lang is neither javascript nor xquery: ${req.lang}`);
     }
 
     // get the actual target
-    const db = t.databaseExists(target);
-    const as = t.appserverExists(target);
+    const db = t.databaseExists(req.target);
+    const as = t.appserverExists(req.target);
 
     if ( db && as ) {
-        t.error('wrong-param', 'Target matches both database and appserver: ' + target);
+        t.error('wrong-param', `Target matches both database and appserver: ${req.target}`);
     }
     else if ( ! db && ! as ) {
-        t.error('wrong-param', 'Target does not exist: ' + target);
+        t.error('wrong-param', `Target does not exist: ${req.target}`);
     }
 
     // the options for eval()
@@ -58,16 +52,31 @@ function main(code, lang, target, params)
 
     // the query variables/parameters
     const vars = {};
-    for ( const p of params ) {
-        vars[p.slice(6)] = t.optionalField(p, '');
+    for ( const p of req.params ) {
+        let v = p.value;
+        if ( p.type ) {
+            const l = p.label || p.name;
+            if ( ! p.type.startsWith('xs:') ) {
+                t.error('wrong-param', `Not an xs: type on param ${l}: ${p.type}`);
+            }
+            const ctor = xs[p.type.slice(3)];
+            if ( ! ctor ) {
+                t.error('wrong-param', `No such type on param ${l}: ${p.type}`);
+            }
+            try {
+                v = ctor(p.value);
+            }
+            catch ( err ) {
+                t.error('wrong-param', `Invalid value for param ${l} for type: ${p.type}`);
+            }
+        }
+        vars[p.name] = v;
     }
 
     // prepare the result
     const resp = {
         input: {
-            target: target,
-            lang: lang,
-            code: code,
+            body: req,
             database: db,
             server: as,
             dbname: xdmp.databaseName(options.database),
@@ -77,9 +86,9 @@ function main(code, lang, target, params)
 
     // do it
     const start = xs.dateTime(new Date());
-    resp.result = lang === 'javascript'
-        ? evalJavaScript(code, vars, options)
-        : xqy.evalXquery(code, vars, options).toArray();
+    resp.result = req.lang === 'javascript'
+        ? evalJavaScript(req.code, vars, options)
+        : xqy.evalXquery(req.code, vars, options).toArray();
     const end = xs.dateTime(new Date());
 
     // add timing info
@@ -115,6 +124,7 @@ function evalJavaScript(code, vars, options)
 
     // an item is either a simple JS type, or a node, or an xs:* type, or a cts:* type,
     // or an object with a constructor
+    // TODO: Use xdmp.type() as in XQuery?
     const item = (i) => {
         const desc = { value: i };
         if ( i === null ) {

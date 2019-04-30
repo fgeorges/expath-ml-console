@@ -89,21 +89,46 @@ window.emlc = window.emlc || {};
         if ( ! lang ) { error('No lang for the code'); return; }
         if ( ! code ) { error('No code to execute');   return; }
         // the request content
-        const body = new FormData();
-        body.append('target', id);
-        body.append('lang',   lang);
-        body.append('code',   code);
+        const body = {
+            target: id,
+            lang:   lang,
+            params: [],
+            code:   code
+        };
         if ( params && params.length ) {
             for ( const p of params.split(/,/) ) {
                 const e = $('#' + p);
                 if ( e.length !== 1 ) {
                     error(`Not exactly one element with ID ${p}: ${e.length}`);
                 }
-                body.append('param-' + e.data('param-name'), e.val());
+                const n = e.data('param-name');
+                const l = e.data('param-label');
+                const t = e.data('param-type');
+                const v = e.val();
+                const o = { name: n, label: l, value: v };
+                if ( ! n ) {
+                    error(`Param with no name, ID ${p}`);
+                }
+                if ( ! l ) {
+                    error(`Param with no label: ${n} - ID ${p}`);
+                }
+                if ( t ) {
+                    o.type = t;
+                }
+                body.params.push(o);
             }
         }
+        // the request
+        const req = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body),
+            credentials: 'same-origin'
+        };
         // send it
-        fetch('../api/tool/eval', { method: 'POST', body: body, credentials: 'same-origin' })
+        fetch('../api/tool/eval', req)
             .then(function(resp) {
                 return resp.text();
             })
