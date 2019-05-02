@@ -93,7 +93,8 @@ window.emlc = window.emlc || {};
         params.forEach(function(p) {
             const id = randomId();
             ids.push(id);
-            const type = p.type ? `data-param-type="${p.type}"` : '';
+            const type  = p.type       ? `data-param-type="${p.type}"` : '';
+            const occur = p.occurrence ? `data-param-occurrence="${p.occurrence}"` : '';
             // TODO: Make <RET> on these fields to behave like clicking on the "execute" button.
             // (possible here by using jQuery to add the listener straight away, and use click()
             // directly on the button itself...?)
@@ -102,7 +103,7 @@ window.emlc = window.emlc || {};
                   <label class="col-sm-2 col-form-label">${p.label}</label>
                   <div class="col-sm-10">
                     <input type="text" class="form-control" id="${id}" title="${p.type}"
-                           data-param-name="${p.name}" data-param-label="${p.label}" ${type}>
+                           data-param-name="${p.name}" data-param-label="${p.label}" ${type} ${occur}>
                   </div>
                 </div>`));
         });
@@ -131,7 +132,7 @@ window.emlc = window.emlc || {};
             return isSpan(tok, 'keyword') && tok.innerText === name;
         };
         const isLiteral = function(tok) {
-            return isSpan(tok, 'literal') && tok.innerText;
+            return isSpan(tok, 'literal');
         };
         const varName = function(tok) {
             if ( isSpan(tok, 'variable') && tok.innerText[0] === '$' ) {
@@ -179,25 +180,28 @@ window.emlc = window.emlc || {};
             if ( ! v.name ) { return tok; }
             tok = next(tok);
             if ( ! isText(tok) ) { return tok; }
-            // TODO: Below, "as" is mandatory, but it is actually optional, even with "external".
-            const match = /^(:[_a-zA-Z][-_.0-9a-zA-Z]*)?\s+$/.exec(tok.textContent);
+            const match = /^(:[_a-zA-Z][-_.0-9a-zA-Z]*)?\s+(external\s*;)?/.exec(tok.textContent);
             if ( ! match ) { return tok; }
             if ( match[1] ) {
                 v.prefix = v.name;
                 v.name   = match[1].slice(1);
             }
-            tok = next(tok);
-            if ( ! isKeyword(tok, 'as') ) { return tok; }
-            // TODO: What about occurrence indicators? (AKA ?, +, and *)
-            v.type = tok.innerText;
-            tok = next(tok);
-            if ( ! isWs(tok) ) { return tok; }
-            tok = next(tok);
-            v.type = isLiteral(tok);
-            if ( ! v.type ) { return tok; }
-            tok = next(tok);
-            if ( ! isText(tok) ) { return tok; }
-            if ( ! /^\s+external\s*;/.test(tok.textContent) ) { return tok; };
+            if ( ! match[2] ) {
+                tok = next(tok);
+                if ( ! isKeyword(tok, 'as') ) { return tok; }
+                tok = next(tok);
+                if ( ! isWs(tok) ) { return tok; }
+                tok = next(tok);
+                if ( ! isLiteral(tok) ) { return tok; }
+                v.type = tok.innerText
+                tok = next(tok);
+                if ( ! isText(tok) ) { return tok; }
+                const occur = /^\s*([?+*])?\s*external\s*;/.exec(tok.textContent);
+                if ( ! occur ) { return tok; };
+                if ( occur[1] ) {
+                    v.occurrence = occur[1];
+                }
+            }
             vars.push(v);
             return next(tok);
         };
@@ -250,6 +254,9 @@ window.emlc = window.emlc || {};
             else {
                 res.name  = '{}' + v.name;
                 res.label = v.name;
+            }
+            if ( v.occurrence ) {
+                res.occurrence = v.occurrence;
             }
             return res;
         });

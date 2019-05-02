@@ -64,10 +64,24 @@ function main(req)
                 t.error('wrong-param', `No such type on param ${l}: ${p.type}`);
             }
             try {
-                v = ctor(p.value);
+                switch ( p.occurrence ) {
+                case undefined:
+                    v = ctor(p.value);
+                    break;
+                case '?':
+                    v = p.value === undefined || p.value === ''
+                        ? null
+                        : ctor(p.value);
+                    break;
+                case '*':
+                case '+':
+                    t.error('wrong-param', `Occurrence '*' and '+' not supported on param ${l}`);
+                default:
+                    t.error('wrong-param', `Unknwon occurrence on param ${l}: ${p.occurrence}`);
+                }
             }
             catch ( err ) {
-                t.error('wrong-param', `Invalid value for param ${l} for type: ${p.type}`);
+                t.error('wrong-param', `Invalid value for param ${l} for type ${p.type}: ${err}`);
             }
         }
         vars[p.name] = v;

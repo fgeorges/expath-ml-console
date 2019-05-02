@@ -104,8 +104,9 @@ window.emlc = window.emlc || {};
                 const n = e.data('param-name');
                 const l = e.data('param-label');
                 const t = e.data('param-type');
+                const o = e.data('param-occurrence');
                 const v = e.val();
-                const o = { name: n, label: l, value: v };
+                const r = { name: n, label: l, value: v };
                 if ( ! n ) {
                     error(`Param with no name, ID ${p}`);
                 }
@@ -113,9 +114,12 @@ window.emlc = window.emlc || {};
                     error(`Param with no label: ${n} - ID ${p}`);
                 }
                 if ( t ) {
-                    o.type = t;
+                    r.type = t;
                 }
-                body.params.push(o);
+                if ( o ) {
+                    r.occurrence = o;
+                }
+                body.params.push(r);
             }
         }
         // the request
