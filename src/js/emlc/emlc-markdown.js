@@ -14,26 +14,15 @@ window.emlc = window.emlc || {};
 
     // highlight some `code` (as text) with an optional `lang`, returns HTML (as text)
     function highlight(code, lang) {
-        // if lang is explicit
-        if ( lang ) {
-            try {
-                return hljs.highlight(lang, code).value;
-            }
-            catch ( err ) {
-                console.log('Error highlighting lang ' + lang + ': ' + err);
-            }
-        }
-        // if lang is implicit (or if there was an error above, fall back here)
         try {
-            return hljs.highlightAuto(code).value;
+            return lang
+                ? hljs.highlight(lang, code).value
+                : hljs.highlightAuto(code).value;
         }
         catch ( err ) {
-            const msg = 'Error highlighting lang ' + lang + ': ' + err;
-            console.log(msg);
-            alert(msg + '\nPlease report this to'
-                  + ' http://github.com/fgeorges/expath-ml-console.'
-                  + '\nMore info in the browser console logs.');
-            throw err;
+            console.log('Error highlighting lang ' + lang + ': ' + err);
+            console.log('Please report this to http://github.com/fgeorges/expath-ml-console.');
+            return code.replace(/&/g, '&amp;').replace(/</g, '&lt;');
         }
     }
 
