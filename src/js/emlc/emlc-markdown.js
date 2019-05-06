@@ -179,16 +179,26 @@ window.emlc = window.emlc || {};
                 tok = next(tok);
                 if ( ! isKeyword(tok, 'as') ) { return tok; }
                 tok = next(tok);
-                if ( ! isWs(tok) ) { return tok; }
-                tok = next(tok);
-                if ( ! isLiteral(tok) ) { return tok; }
-                v.type = tok.innerText
-                tok = next(tok);
-                if ( ! isText(tok) ) { return tok; }
-                const occur = /^\s*([?+*])?\s*external\s*;/.exec(tok.textContent);
-                if ( ! occur ) { return tok; };
-                if ( occur[1] ) {
-                    v.occurrence = occur[1];
+                if ( isWs(tok) ) {
+                    tok = next(tok);
+                    if ( ! isLiteral(tok) ) { return tok; }
+                    v.type = tok.innerText
+                    tok = next(tok);
+                    if ( ! isText(tok) ) { return tok; }
+                    const occur = /^\s*([?+*])?\s*external\s*;/.exec(tok.textContent);
+                    if ( ! occur ) { return tok; };
+                    if ( occur[1] ) {
+                        v.occurrence = occur[1];
+                    }
+                }
+                else {
+                    // for non xs: types - " sem:iri+ external; ..."
+                    const match = /^\s+([_a-zA-Z][-_.0-9a-zA-Z]*):([_a-zA-Z][-_.0-9a-zA-Z]*)\s*([?+*])?\s*external\s*;/.exec(tok.textContent);
+                    if ( ! match ) { return tok; }
+                    v.type = match[1] + ':' + match[2];
+                    if ( match[3] ) {
+                        v.occurrence = match[3];
+                    }
                 }
             }
             vars.push(v);

@@ -56,10 +56,12 @@ function main(req)
         let v = p.value;
         if ( p.type ) {
             const l = p.label || p.name;
-            if ( ! p.type.startsWith('xs:') ) {
-                t.error('wrong-param', `Not an xs: type on param ${l}: ${p.type}`);
-            }
-            const ctor = xs[p.type.slice(3)];
+            // TODO: Pass types (and param names?) as a local name + namespace URI.
+            const ctor = p.type.startsWith('xs:')
+                ? xs[p.type.slice(3)]
+                : p.type.startsWith('sem:')
+                ? sem[p.type.slice(4)]
+                : t.error('wrong-param', `Not an xs: or a sem: type on param ${l}: ${p.type}`);
             if ( ! ctor ) {
                 t.error('wrong-param', `No such type on param ${l}: ${p.type}`);
             }

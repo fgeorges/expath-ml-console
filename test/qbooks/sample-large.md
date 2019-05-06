@@ -146,9 +146,6 @@ sem:sparql("
 
 Parameters in XQuery need to be declared:
 
-**TODO**: Support params of type `sem:iri` (and presumably any type not starting
-with the exact string `xs:`.)
-
 ```xqy
 declare namespace ns = "some/ns";
 declare variable $foo external;
