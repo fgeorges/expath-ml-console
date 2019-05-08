@@ -80,7 +80,7 @@ window.emlc = window.emlc || {};
     }
 
     function codeParams(elem, text, lang, rich) {
-        const params = lang === 'xquery' ? codeParamsXqy(rich) : codeParamsJs(text);
+        const params = lang === 'xquery' ? codeParamsXqy(rich) : codeParamsJs(rich);
         const ids    = [];
         params.forEach(function(p) {
             const id = randomId();
@@ -102,61 +102,142 @@ window.emlc = window.emlc || {};
         return ids;
     }
 
-    function codeParamsJs(text) {
-        const match = /^\s*\/\/\s*@params\s+(.+\S)\s*\n/.exec(text);
-        if ( ! match || ! match[1] ) {
-            return [];
+    const parser = {
+        next: function(tok) {
+            if ( ! tok ) { return; }
+            return tok.nextSibling;
+        },
+        isText: function(tok) {
+            if ( ! tok ) { return; }
+            return tok.nodeName === '#text';
+        },
+        isWs: function(tok) {
+            if ( ! tok ) { return; }
+            return parser.isText(tok) && /^\s+$/.test(tok.textContent);
+        },
+        isSpan: function(tok, name) {
+            if ( ! tok ) { return; }
+            return tok.nodeName === 'SPAN'
+                && tok.attributes.class
+                && tok.attributes.class.textContent === ('hljs-' + name);
+        },
+        isComment: function(tok) {
+            return parser.isSpan(tok, 'comment');
+        },
+        isKeyword: function(tok, name) {
+            return parser.isSpan(tok, 'keyword') && tok.innerText === name;
+        },
+        isLiteral: function(tok) {
+            return parser.isSpan(tok, 'literal');
         }
-        return match[1].split(/\s+/).map(function(n) { return {name: n, label: n}; });
+    };
+
+    function codeParamsJs(html) {
+        const params = [];
+        const nextComment = function(tok) {
+            if ( ! tok ) { return; }
+            if ( parser.isComment(tok) ) {
+                return tok;
+            }
+            return nextComment(parser.next(tok));
+        };
+        const doComment = function(tok) {
+            const lines = [];
+            if ( tok.textContent.startsWith('/*') ) {
+                tok.textContent.slice(3, -2).split(/\n|\r/).forEach(function(line) {
+                    const m = /^\s*\*\s*/.exec(line);
+                    if ( m ) {
+                        line = line.slice(m[0].length);
+                    }
+                    lines.push(line.trim());
+                });
+            }
+            else {
+                lines.push(tok.textContent.slice(3).trim());
+            }
+            lines.forEach(function(line) {
+                const args = line.slice(7).split(/\s+/).filter(function(s) { return s; });
+                if ( line.startsWith('@params') ) {
+                    if ( params.seenParams ) {
+                        console.log('ERROR: cannot have @params several times');
+                    }
+                    if ( params.length ) {
+                        console.log('ERROR: cannot have @params mixed with @param');
+                    }
+                    if ( ! args.length ) {
+                        console.log('ERROR: arguments mandatory for @params');
+                    }
+                    params.seenParams = true;
+                    args.forEach(function(arg) { params.push({
+                        name:  arg,
+                        label: arg
+                    }); });
+                }
+                else if ( line.startsWith('@param') ) {
+                    if ( params.seenParams ) {
+                        console.log('ERROR: cannot have @params mixed with @param');
+                    }
+                    if ( ! args.length ) {
+                        console.log('ERROR: arguments mandatory for @param');
+                    }
+                    const p = {
+                        name:  args[0],
+                        label: args[0]
+                    };
+                    args.slice(1).forEach(function(arg) {
+                        if ( arg.startsWith('as:') ) {
+                            p.type = arg.slice(3).replace('.', ':');
+                        }
+                        else if ( arg.startsWith('select:') ) {
+                            console.log(`ERROR: @param select:* argument not supported yet: ${arg}`);
+                        }
+                        else {
+                            console.log(`ERROR: unknown @param argument: ${arg}`);
+                        }
+                    });
+                    params.push(p);
+                }
+            });
+            return parser.next(tok);
+        };
+        // loop as long as we have "top-level" comments
+        const parse = function(tok) {
+            if ( ! tok ) { return; }
+            tok = nextComment(tok);
+            if ( ! tok ) { return; }
+            tok = doComment(tok);
+            parse(tok);
+        };
+        // make actual nodes out of the output of hljs
+        const tokens = $.parseHTML(html);
+        // parse the tokens
+        parse(tokens[0]);
+        return params;
     }
 
     // parse the XQuery code for namespace and variable declarations, based on
     // the hljs output, used as a poor man's lexer
     function codeParamsXqy(html) {
         // parsing util functions
-        const isSpan = function(tok, name) {
-            if ( ! tok ) { return; }
-            return tok.nodeName === 'SPAN'
-                && tok.attributes.class
-                && tok.attributes.class.textContent === ('hljs-' + name);
-        };
-        const isKeyword = function(tok, name) {
-            return isSpan(tok, 'keyword') && tok.innerText === name;
-        };
-        const isLiteral = function(tok) {
-            return isSpan(tok, 'literal');
-        };
         const varName = function(tok) {
-            if ( isSpan(tok, 'variable') && tok.innerText[0] === '$' ) {
+            if ( parser.isSpan(tok, 'variable') && tok.innerText[0] === '$' ) {
                 return tok.innerText.slice(1);
             }
         };
-        const isText = function(tok) {
-            if ( ! tok ) { return; }
-            return tok.nodeName === '#text';
-        };
-        const isWs = function(tok) {
-            if ( ! tok ) { return; }
-            return isText(tok) && /^\s+$/.test(tok.textContent);
-        };
-        const next = function(tok) {
-            if ( ! tok ) { return; }
-            return tok.nextSibling;
-        };
         const nextDecl = function(tok) {
             if ( ! tok ) { return; }
-            if ( isKeyword(tok, 'declare') ) {
+            if ( parser.isKeyword(tok, 'declare') ) {
                 return tok;
             }
-            return nextDecl(next(tok));
+            return nextDecl(parser.next(tok));
         };
         const declType = function(tok) {
-            const n = next(tok);
+            const n = parser.next(tok);
             if ( n.nodeName !== '#text' ) { return; }
             if ( /^\s+variable\s+$/.test(n.textContent) ) {
                 return 'variable';
             }
-            else if ( isWs(n) && isKeyword(next(n), 'namespace') ) {
+            else if ( parser.isWs(n) && parser.isKeyword(parser.next(n), 'namespace') ) {
                 return 'namespace';
             }
         };
@@ -166,12 +247,12 @@ window.emlc = window.emlc || {};
         // "eat" a variable declaration (only external vars are captured)
         const doVar = function(tok) {
             const v = {};
-            tok = next(next(tok)); // ignore "declare" and " variable "
+            tok = parser.next(parser.next(tok)); // ignore "declare" and " variable "
             if ( ! tok ) { return; }
             v.name = varName(tok);
             if ( ! v.name ) { return tok; }
-            tok = next(tok);
-            if ( ! isText(tok) ) { return tok; }
+            tok = parser.next(tok);
+            if ( ! parser.isText(tok) ) { return tok; }
             const match = /^(:[_a-zA-Z][-_.0-9a-zA-Z]*)?\s+(external\s*;)?/.exec(tok.textContent);
             if ( ! match ) { return tok; }
             if ( match[1] ) {
@@ -179,15 +260,15 @@ window.emlc = window.emlc || {};
                 v.name   = match[1].slice(1);
             }
             if ( ! match[2] ) {
-                tok = next(tok);
-                if ( ! isKeyword(tok, 'as') ) { return tok; }
-                tok = next(tok);
-                if ( isWs(tok) ) {
-                    tok = next(tok);
-                    if ( ! isLiteral(tok) ) { return tok; }
+                tok = parser.next(tok);
+                if ( ! parser.isKeyword(tok, 'as') ) { return tok; }
+                tok = parser.next(tok);
+                if ( parser.isWs(tok) ) {
+                    tok = parser.next(tok);
+                    if ( ! parser.isLiteral(tok) ) { return tok; }
                     v.type = tok.innerText
-                    tok = next(tok);
-                    if ( ! isText(tok) ) { return tok; }
+                    tok = parser.next(tok);
+                    if ( ! parser.isText(tok) ) { return tok; }
                     const occur = /^\s*([?+*])?\s*external\s*;/.exec(tok.textContent);
                     if ( ! occur ) { return tok; };
                     if ( occur[1] ) {
@@ -196,7 +277,8 @@ window.emlc = window.emlc || {};
                 }
                 else {
                     // for non xs: types - " sem:iri+ external; ..."
-                    const match = /^\s+([_a-zA-Z][-_.0-9a-zA-Z]*):([_a-zA-Z][-_.0-9a-zA-Z]*)\s*([?+*])?\s*external\s*;/.exec(tok.textContent);
+                    const match = /^\s+([_a-zA-Z][-_.0-9a-zA-Z]*):([_a-zA-Z][-_.0-9a-zA-Z]*)\s*([?+*])?\s*external\s*;/
+                        .exec(tok.textContent);
                     if ( ! match ) { return tok; }
                     v.type = match[1] + ':' + match[2];
                     if ( match[3] ) {
@@ -205,33 +287,33 @@ window.emlc = window.emlc || {};
                 }
             }
             vars.push(v);
-            return next(tok);
+            return parser.next(tok);
         };
         // "eat" a namespace declaration
         const doNs = function(tok) {
-            tok = next(next(next(tok))); // ignore "declare", " " and "namespace"
-            if ( ! isText(tok) ) { return tok; }
+            tok = parser.next(parser.next(parser.next(tok))); // ignore "declare", " " and "namespace"
+            if ( ! parser.isText(tok) ) { return tok; }
             const match = /^\s+([_a-zA-Z][-_.0-9a-zA-Z]*)\s*=\s*$/.exec(tok.textContent);
             if ( ! match ) { return tok; }
             const prefix = match[1];
-            tok = next(tok);
-            if ( ! isSpan(tok, 'string') ) { return; }
+            tok = parser.next(tok);
+            if ( ! parser.isSpan(tok, 'string') ) { return; }
             const quote = tok.innerText.slice(0, 1);
             if ( quote !== '"' && quote !== "'" ) { return; }
             if ( quote !== tok.innerText.slice(-1) ) { return; }
             const uri = tok.innerText.slice(1, -1);
-            tok = next(tok);
-            if ( ! isText(tok) ) { return tok; }
+            tok = parser.next(tok);
+            if ( ! parser.isText(tok) ) { return tok; }
             if ( ! /^\s*;/.test(tok.textContent) ) { return tok; };
             nses[prefix] = uri;
-            return next(tok);
+            return parser.next(tok);
         };
         // loop as long as we have "declare" statements
         const parse = function(tok) {
             if ( ! tok ) { return; }
             const decl = nextDecl(tok);
             if ( ! decl ) { return; }
-            var   here = next(decl);
+            var   here = parser.next(decl);
             const type = declType(decl);
             if ( type === 'variable' ) {
                 here = doVar(decl);
