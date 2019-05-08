@@ -133,18 +133,6 @@ td.cell-code {
     width: 100%
 }
 
-#footbody pre {
-    position: relative;
-}
-
-#footbody pre span {
-    position: absolute;
-    top: 1px;
-    right: 4px;
-    font-size: 75%;
-    color: #8C9093;
-}
-
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  * Trible and triph-specific.
  */
@@ -209,6 +197,15 @@ pre {
   -webkit-border-radius: 3px;
   -moz-border-radius: 3px;
   border-radius: 3px;
+  position: relative;
+}
+
+pre > span {
+  position: absolute;
+  top: 1px;
+  right: 4px;
+  font-size: 75%;
+  color: #8C9093;
 }
 
  a code ,

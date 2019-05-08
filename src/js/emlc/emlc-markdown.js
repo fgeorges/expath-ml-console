@@ -31,6 +31,7 @@ window.emlc = window.emlc || {};
     function codeBlock(elem, token) {
         // the pre element with the highlighted code
         const pre  = $('<pre>');
+        const span = $('<span>');
         const code = $('<code>');
         // "normalize" lang if 'js', 'sjs' or 'xqy'
         const lang = token.lang === 'js' || token.lang === 'sjs'
@@ -45,6 +46,8 @@ window.emlc = window.emlc || {};
         }
         const rich = highlight(token.text, lang);
         code.html(rich);
+        span.text(token.lang);
+        pre.append(span);
         pre.append(code);
         elem.append(pre);
         if ( lang === 'javascript' || lang === 'xquery' ) {
