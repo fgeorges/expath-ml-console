@@ -133,71 +133,100 @@ window.emlc = window.emlc || {};
         }
     };
 
+    function parseBangComment(text, lang) {
+        const result = {
+            params:   {},
+            atParams: false
+        };
+        const addParam = function(name) {
+            if ( lang === 'xquery' ) {
+                name = name.slice(1);
+            }
+            if ( result.params[name] ) {
+                console.log(`ERROR: got several times the param with name "${name}"`);
+            }
+            else {
+                result.params[name] = {name: name};
+            }
+            return result.params[name];
+        };
+        if ( text[0] === '/' && text[1] === '/' ) {
+            text = text.slice(3);
+        }
+        else {
+            text = text.slice(3, -2);
+        }
+        const indent = lang === 'xquery' ? /^\s*:\s*/ : /^\s*\*\s*/;
+        const lines  = [];
+        text.split(/(\n|\r)+/).forEach(function(line) {
+            const m = indent.exec(line);
+            if ( m ) {
+                line = line.slice(m[0].length);
+            }
+            const l = line.trim();
+            if ( l.length ) {
+                lines.push(l);
+            }
+        });
+        lines.forEach(function(line) {
+            const args = line.slice(7).split(/\s+/).filter(function(s) { return s; });
+            if ( line.startsWith('@params') ) {
+                if ( result.atParams ) {
+                    console.log('ERROR: cannot have @params several times');
+                }
+                if ( result.params.length ) {
+                    console.log('ERROR: cannot have @params mixed with @param');
+                }
+                if ( ! args.length ) {
+                    console.log('ERROR: arguments mandatory for @params');
+                }
+                result.atParams = true;
+                args.forEach(addParam);
+            }
+            else if ( line.startsWith('@param') ) {
+                if ( result.atParams ) {
+                    console.log('ERROR: cannot have @params mixed with @param');
+                }
+                if ( ! args.length ) {
+                    console.log('ERROR: arguments mandatory for @param');
+                }
+                const p = addParam(args[0]);
+                args.slice(1).forEach(function(arg) {
+                    if ( arg.startsWith('as:') ) {
+                        p.type = lang === 'xquery'
+                            ? arg.slice(3)
+                            : arg.slice(3).replace('.', ':');
+                    }
+                    else if ( arg === 'select:file' ) {
+                        p.file = true;
+                    }
+                    else if ( arg.startsWith('select:') ) {
+                        console.log(`ERROR: invalid @param select:* argument value: ${arg}`);
+                    }
+                    else {
+                        console.log(`ERROR: unknown @param argument: ${arg}`);
+                    }
+                });
+            }
+        });
+        return result;
+    }
+
     function codeParamsJs(html) {
         const params = [];
         const nextComment = function(tok) {
             if ( ! tok ) { return; }
-            if ( parser.isComment(tok) ) {
+            if ( parser.isComment(tok) && tok.textContent[2] === '!' ) {
                 return tok;
             }
             return nextComment(parser.next(tok));
         };
         const doComment = function(tok) {
-            const lines = [];
-            if ( tok.textContent.startsWith('/*') ) {
-                tok.textContent.slice(3, -2).split(/\n|\r/).forEach(function(line) {
-                    const m = /^\s*\*\s*/.exec(line);
-                    if ( m ) {
-                        line = line.slice(m[0].length);
-                    }
-                    lines.push(line.trim());
-                });
-            }
-            else {
-                lines.push(tok.textContent.slice(3).trim());
-            }
-            lines.forEach(function(line) {
-                const args = line.slice(7).split(/\s+/).filter(function(s) { return s; });
-                if ( line.startsWith('@params') ) {
-                    if ( params.seenParams ) {
-                        console.log('ERROR: cannot have @params several times');
-                    }
-                    if ( params.length ) {
-                        console.log('ERROR: cannot have @params mixed with @param');
-                    }
-                    if ( ! args.length ) {
-                        console.log('ERROR: arguments mandatory for @params');
-                    }
-                    params.seenParams = true;
-                    args.forEach(function(arg) { params.push({
-                        name:  arg,
-                        label: arg
-                    }); });
-                }
-                else if ( line.startsWith('@param') ) {
-                    if ( params.seenParams ) {
-                        console.log('ERROR: cannot have @params mixed with @param');
-                    }
-                    if ( ! args.length ) {
-                        console.log('ERROR: arguments mandatory for @param');
-                    }
-                    const p = {
-                        name:  args[0],
-                        label: args[0]
-                    };
-                    args.slice(1).forEach(function(arg) {
-                        if ( arg.startsWith('as:') ) {
-                            p.type = arg.slice(3).replace('.', ':');
-                        }
-                        else if ( arg.startsWith('select:') ) {
-                            console.log(`ERROR: @param select:* argument not supported yet: ${arg}`);
-                        }
-                        else {
-                            console.log(`ERROR: unknown @param argument: ${arg}`);
-                        }
-                    });
-                    params.push(p);
-                }
+            const res = parseBangComment(tok.textContent, 'javascript').params;
+            Object.keys(res).forEach(function(n) {
+                const p = res[n];
+                p.label = p.name;
+                params.push(p);
             });
             return parser.next(tok);
         };
@@ -225,9 +254,13 @@ window.emlc = window.emlc || {};
                 return tok.innerText.slice(1);
             }
         };
+        // return next "bang comment" or "declare" statement
         const nextDecl = function(tok) {
             if ( ! tok ) { return; }
             if ( parser.isKeyword(tok, 'declare') ) {
+                return tok;
+            }
+            if ( parser.isComment(tok) && tok.textContent[2] === '!' ) {
                 return tok;
             }
             return nextDecl(parser.next(tok));
@@ -243,22 +276,50 @@ window.emlc = window.emlc || {};
             }
         };
         // the variables to accumulate the variable and namespace declarations
-        const vars = [];
+        const vars = {};
         const nses = {};
+        const addVar = function(name) {
+            if ( ! vars[name] ) {
+                vars[name] = {name: name};
+            }
+            return vars[name];
+        };
+        // "eat" a comment
+        const doComment = function(tok) {
+            const res = parseBangComment(tok.textContent, 'xquery').params;
+            Object.keys(res).forEach(function(n) {
+                const p = res[n];
+                const v = addVar(p.name);
+                if ( p.file ) {
+                    v.file = p.file;
+                }
+                // check if there is anything more than `name` and `file` props
+                const keys = Object.keys(p);
+                if ( keys.find(function(k) { return k !== 'name' && k !== 'file'; }) ) {
+                    console.log(`ERROR: Only support name and file @param args in XQuery: ${keys}`);
+                }
+            });
+            return parser.next(tok);
+        };
         // "eat" a variable declaration (only external vars are captured)
         const doVar = function(tok) {
-            const v = {};
             tok = parser.next(parser.next(tok)); // ignore "declare" and " variable "
             if ( ! tok ) { return; }
-            v.name = varName(tok);
-            if ( ! v.name ) { return tok; }
+            const name = varName(tok);
+            if ( ! name ) { return tok; }
             tok = parser.next(tok);
             if ( ! parser.isText(tok) ) { return tok; }
             const match = /^(:[_a-zA-Z][-_.0-9a-zA-Z]*)?\s+(external\s*;)?/.exec(tok.textContent);
             if ( ! match ) { return tok; }
+            let v;
             if ( match[1] ) {
-                v.prefix = v.name;
-                v.name   = match[1].slice(1);
+                const l = match[1].slice(1);
+                v = addVar(name + ':' + l);
+                v.lname  = l;
+                v.prefix = name;
+            }
+            else {
+                v = addVar(name);
             }
             if ( ! match[2] ) {
                 tok = parser.next(tok);
@@ -287,7 +348,6 @@ window.emlc = window.emlc || {};
                     }
                 }
             }
-            vars.push(v);
             return parser.next(tok);
         };
         // "eat" a namespace declaration
@@ -305,40 +365,45 @@ window.emlc = window.emlc || {};
             const uri = tok.innerText.slice(1, -1);
             tok = parser.next(tok);
             if ( ! parser.isText(tok) ) { return tok; }
-            if ( ! /^\s*;/.test(tok.textContent) ) { return tok; };
+            if ( ! /^\s*\;/.test(tok.textContent) ) { return tok; };
             nses[prefix] = uri;
             return parser.next(tok);
         };
         // loop as long as we have "declare" statements
         const parse = function(tok) {
             if ( ! tok ) { return; }
-            const decl = nextDecl(tok);
-            if ( ! decl ) { return; }
-            var   here = parser.next(decl);
-            const type = declType(decl);
-            if ( type === 'variable' ) {
-                here = doVar(decl);
+            tok = nextDecl(tok);
+            if ( ! tok ) { return; }
+            var next = parser.next(tok);
+            if ( parser.isComment(tok) ) {
+                next = doComment(tok);
             }
-            else if ( type === 'namespace' ) {
-                here = doNs(decl);
+            else {
+                const type = declType(tok);
+                if ( type === 'variable' ) {
+                    next = doVar(tok);
+                }
+                else if ( type === 'namespace' ) {
+                    next = doNs(tok);
+                }
             }
-            parse(here);
+            parse(next);
         };
         // make actual nodes out of the output of hljs
         const tokens = $.parseHTML(html);
         // parse the tokens
         parse(tokens[0]);
-        return vars.map(function(v) {
+        return Object.keys(vars).map(function(n) {
+            const v   = vars[n];
             const res = {
-                type: v.type
+                label: v.name,
+                name:  v.prefix ? '{' + nses[v.prefix] + '}' + v.lname : '{}' + v.name
             };
-            if ( v.prefix ) {
-                res.name  = '{' + nses[v.prefix] + '}' + v.name;
-                res.label = v.prefix + ':' + v.name;
+            if ( v.type ) {
+                res.type = v.type;
             }
-            else {
-                res.name  = '{}' + v.name;
-                res.label = v.name;
+            if ( v.file ) {
+                res.file = v.file;
             }
             if ( v.occurrence ) {
                 res.occurrence = v.occurrence;
