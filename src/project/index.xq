@@ -41,42 +41,44 @@ declare function local:page() as element()+
          }
          </tbody>
       </table>,
-   <p>Projects let you handle applications and libraries source files.  For now, they allow you
-      to browse project XQuery and JavaScript source files, and display their documentation.
-      The documentation must be embedded in the source files as xqDoc comments in XQuery, and
-      as the equivalent in JavaScript (only using <code>/*~ ... */</code> instead of
-      <code>(:~ ... :)</code>.)</p>,
+   <p>Projects let you handle applications and libraries source files.</p>,
+   <p>You can browse JavaScript and XQuery source files, and display their documentation.
+      The documentation must be embedded in the source files as xqDoc comments in XQuery,
+      and as the equivalent in JavaScript.  Respectively <code>(:~ ... :)</code> and
+      <code>/*~ ... */</code>.</p>,
+   <p>A project can also contain query books.  A query book, or qbook for short, is a simple
+      Markdown file.  All the JavaScript and XQuery code blocks in the file are made executable
+      on MarkLogic.  A bit like you would do with QConsole, except that the code is in Markdown
+      files, so you can add any text, structure them in directories, and add them to Git.  You
+      can also pass parameter to the queries using forms on the page.</p>,
    <p>The Console supports 3 types of projects:</p>,
    <ul>
-      <li><b><a href="http://expath.org/modules/xproject/">XProject</a></b> - on the filesystem,
-         must conform to some conventions (conventions are enforced by the Console, to some
-         extent)</li>
-      <li><b>source directories</b> - plug to existing source files directories on the
-         filesystem</li>
-      <li><b>database directories</b> - plug to source files directories on a database (ideal for
-         inspecting code of an installed application)</li>
+      <li><b><a href="http://mlproj.org/">mlproj</a></b> - on the filesystem, must conform to some
+         structure and conventions</li>
+      <li><b>directories</b> - plug to existing source code directories on the filesystem</li>
+      <li><b>databases</b> - plug to existing source code "directories" on a database</li>
    </ul>,
-   <p>The forms below let you create new projects in the Console.</p>,
 
-   <h3>XProject</h3>,
-   <p>XProject is a simple project structure for XQuery- and XSLT-based projects.  It is based on
-      simple conventions, like a directory <code>src/</code>, a directory <code>xproject/</code>,
-      and a project descriptor in <code>xproject/project.xml</code>.  You can find everything
-      about XProject on <a href="http://expath.org/modules/xproject/">this page</a>.</p>,
-   <p>You can either plug to an existing project, or create a brand-new one.</p>,
+   <h3>mlproj</h3>,
+   <p>The project manager <code>mlproj</code> defines a simple structure for MarkLogic projects.
+      It is based on simple conventions, like a directory <code>src/</code> for source code, and on
+      config files to describe the clusters for the various environments to manage.  You can find
+      everything about <code>mlproj</code> on <a href="http://mlproj.org/">mlproj.org</a>.</p>,
+   <p>You can either plug to an existing project, or create a brand-new one with a skeleton.</p>,
    v:one-liner-link('Add project', 'project/_/xproject', 'Add'),
 
-   <h3>Source directories</h3>,
+   <h3>Directory</h3>,
    <p>The projects based on XProject are fully supported in the Console.  But if you projects
       are not following the same conventions, you can still add their source directories here.
-      This will allow you to use simplest features, like browsing and displaying their XQDoc
+      This will allow you to use simplest features, like browsing code and displaying their XQDoc
       comments.</p>,
    v:one-liner-link('Add project', 'project/_/srcdir', 'Add'),
 
-   <h3>DB directories</h3>,
+   <h3>Database</h3>,
    <p>Modules stored in a database (like a database used as the module database for an appserver)
       can be browsed the same way <code>Source directories</code> allows to browse modules on a
-      file system.</p>,
+      file system.  This allows you to look at source code already deployed on a modules
+      database.</p>,
    v:one-liner-link('Add project', 'project/_/dbdir', 'Add')
 };
 
