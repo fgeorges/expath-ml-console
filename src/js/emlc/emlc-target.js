@@ -75,6 +75,81 @@ window.emlc = window.emlc || {};
     }
 
     function targetExecute(widget) {
+        // function to recurse on params (necessary for async behaviours)
+        const doParams = function(body, ids) {
+            if ( ids.length ) {
+                const id    = ids.pop();
+                const input = $('#' + id);
+                if ( input.length !== 1 ) {
+                    error(`Not exactly one element with ID ${id}: ${input.length}`);
+                }
+                const name  = input.data('param-name');
+                const label = input.data('param-label');
+                const type  = input.data('param-type');
+                const occur = input.data('param-occurrence');
+                const val   = input.val();
+                const param = { name: name, label: label, value: val };
+                if ( ! name ) {
+                    error(`Param with no name, ID ${id}`);
+                }
+                if ( ! label ) {
+                    error(`Param with no label: ${name} - ID ${id}`);
+                }
+                if ( type ) {
+                    param.type = type;
+                }
+                if ( occur ) {
+                    param.occurrence = occur;
+                }
+                body.params.push(param);
+                doParams(body, ids);
+            }
+            else {
+                doSend(body);
+            }
+        };
+
+        // actuall send, once the body is complete
+        const doSend = function(body) {
+            // the request
+            const req = {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(body),
+                credentials: 'same-origin'
+            };
+            // send it
+            fetch('../api/tool/eval', req)
+                .then(function(resp) {
+                    return resp.text();
+                })
+                .then(function(resp) {
+                    // TODO: Check HTTP response code, instead of relying solely on
+                    // JSON parsing throwing an error.  Especially that at the end of
+                    // the day, the endpoint should return, in case of error, a JSON
+                    // with all relevant information (not the default HTML by ML.)
+                    try {
+                        const json = JSON.parse(resp);
+                        emlc.footpanePurge();
+                        json.result.forEach(function(res) {
+                            emlc.footpaneAdd(res.value, res.type, json.input.dbname);
+                        });
+                        emlc.footpaneExpand();
+                    }
+                    catch (err) {
+                        error(resp);
+                    }
+                })
+                .catch(function(err) {
+                    // TODO: Proper error reporting...
+                    alert('ERROR: ' + err);
+                    console.log(arguments);
+                    error(err);
+                });
+        };
+
         const error = (msg) => {
             emlc.footpanePurge();
             emlc.footpaneError(msg);
@@ -96,69 +171,11 @@ window.emlc = window.emlc || {};
             code:   code
         };
         if ( params && params.length ) {
-            for ( const p of params.split(/,/) ) {
-                const e = $('#' + p);
-                if ( e.length !== 1 ) {
-                    error(`Not exactly one element with ID ${p}: ${e.length}`);
-                }
-                const n = e.data('param-name');
-                const l = e.data('param-label');
-                const t = e.data('param-type');
-                const o = e.data('param-occurrence');
-                const v = e.val();
-                const r = { name: n, label: l, value: v };
-                if ( ! n ) {
-                    error(`Param with no name, ID ${p}`);
-                }
-                if ( ! l ) {
-                    error(`Param with no label: ${n} - ID ${p}`);
-                }
-                if ( t ) {
-                    r.type = t;
-                }
-                if ( o ) {
-                    r.occurrence = o;
-                }
-                body.params.push(r);
-            }
+            doParams(body, params.split(/,/));
         }
-        // the request
-        const req = {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(body),
-            credentials: 'same-origin'
-        };
-        // send it
-        fetch('../api/tool/eval', req)
-            .then(function(resp) {
-                return resp.text();
-            })
-            .then(function(resp) {
-                // TODO: Check HTTP response code, instead of relying solely on
-                // JSON parsing throwing an error.  Especially that at the end of
-                // the day, the endpoint should return, in case of error, a JSON
-                // with all relevant information (not the default HTML by ML.)
-                try {
-                    const json = JSON.parse(resp);
-                    emlc.footpanePurge();
-                    json.result.forEach(function(res) {
-                        emlc.footpaneAdd(res.value, res.type, json.input.dbname);
-                    });
-                    emlc.footpaneExpand();
-                }
-                catch (err) {
-                    error(resp);
-                }
-            })
-            .catch(function(err) {
-                // TODO: Proper error reporting...
-                alert('ERROR: ' + err);
-                console.log(arguments);
-                error(err);
-            });
+        else {
+            doSend(body);
+        }
     }
 
 })();
