@@ -55,18 +55,9 @@ return
       'project',
       $toks[fn:last()],
       function() { local:page($id, $src, $root) },
-      (<lib>marked</lib>,
-       <script type="text/javascript" xmlns="http://www.w3.org/1999/xhtml">
-          marked.setOptions({{
-             highlight: function (code) {{
-                return hljs.highlightAuto(code).value;
-             }}
-          }});
-          $('.md-content').each(function() {{
-             var elem = $(this);
-             var md = marked(elem.text());
-             elem.html(md);
-          }});
+      (<lib>emlc.markdown</lib>,
+       <script>
+          emlc.renderMarkdown();
           // TODO: Select nodes with class `md-content` AND `todo`...
           $('div.todo p:first').prepend('<code class="todo">TODO</code> ');
        </script>))

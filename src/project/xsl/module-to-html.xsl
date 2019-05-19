@@ -108,16 +108,15 @@
       -->
       <xsl:if test="exists(comment/param)">
          <p>Parameters:</p>,
-         <ul>
+         <div class="md-content">
             <xsl:for-each select="comment/param">
-               <li class="md-content">
-                  <xsl:text>`</xsl:text>
-                  <xsl:value-of select="@name"/>
-                  <xsl:text>` - </xsl:text>
-                  <xsl:value-of select="."/>
-               </li>
+               <xsl:text>- `</xsl:text>
+               <xsl:value-of select="@name"/>
+               <xsl:text>` - </xsl:text>
+               <xsl:value-of select="."/>
+               <xsl:text>&#10;</xsl:text>
             </xsl:for-each>
-         </ul>
+         </div>
       </xsl:if>
       <xsl:apply-templates select="comment/return"/>
       <xsl:apply-templates select="comment/body"/>

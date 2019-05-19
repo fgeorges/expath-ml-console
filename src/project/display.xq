@@ -77,7 +77,7 @@ return
             local:page($id, $proj, $read)
       },
       if ( fn:exists($proj) ) then (
-         <lib>marked</lib>,
+         <lib>emlc.markdown</lib>,
          <script type="text/javascript">
             var renderer = new marked.Renderer();
             renderer.image = function(href, title, text) {{

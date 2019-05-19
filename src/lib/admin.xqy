@@ -308,7 +308,7 @@ declare function a:get-directory($dir as xs:string) as element(dir:directory)?
  : @param $file the absolute path of the file
  : @param $parse true if the file is XML and must be parsed
  :
- : TODO: Support binary files as well.  Replace $parse by a flag kind of
+ : @todo Support binary files as well.  Replace $parse by a flag kind of
  : parameter.  If 'xml', then xdmp:unquote(...), if 'text' then text{...}, and
  : if 'bin' then binary{...}.
  :)

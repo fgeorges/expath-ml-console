@@ -464,15 +464,19 @@ window.emlc = window.emlc || {};
 
     function renderMarkdown(root, uri) {
         $(document).ready(function () {
-            const dir      = dirname(uri);
-            const renderer = new marked.Renderer();
-            renderer.image = function(href, title, text) {
-                return '<img src="' + root + 'bin?uri=' + dir + href + '"></img>';
-            };
-            marked.setOptions({
-                highlight: highlight,
-                renderer:  renderer
-            });
+            const options = { highlight: highlight };
+            if ( root ) {
+                const dir      = dirname(uri);
+                const renderer = new marked.Renderer();
+                renderer.image = function(href, title, text) {
+                    return '<img src="' + root + 'bin?uri=' + dir + href + '"></img>';
+                };
+                options.renderer = renderer;
+            }
+            else if ( uri ) {
+                console.log(`ERROR: URI with no root: ${uri}`);
+            }
+            marked.setOptions(options);
             $('.md-content').each(function() {
                 const elem   = $(this);
                 const tokens = marked.lexer(elem.text());

@@ -198,7 +198,7 @@ declare function local:display-file($title as xs:string, $path as xs:string)
 };
 
 v:console-page('../', 'project', 'Projects', local:page#0,
-   (<lib>marked</lib>,
+   (<lib>emlc.markdown</lib>,
     <script type="text/javascript" xmlns="http://www.w3.org/1999/xhtml">
        marked.setOptions({{
           highlight: function (code) {{
