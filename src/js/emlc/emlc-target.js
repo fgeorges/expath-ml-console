@@ -108,7 +108,7 @@ window.emlc = window.emlc || {};
                 if ( occur ) {
                     param.occurrence = occur;
                 }
-                if ( files.length ) {
+                if ( files && files.length ) {
                     if ( files.length > 1 ) {
                         console.log(`Only support 1 file: ${files.length} - ${name} - ${label}`);
                     }

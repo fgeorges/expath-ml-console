@@ -312,15 +312,15 @@ window.emlc = window.emlc || {};
             if ( ! parser.isText(tok) ) { return tok; }
             const match = /^(:[_a-zA-Z][-_.0-9a-zA-Z]*)?\s+(external\s*;)?/.exec(tok.textContent);
             if ( ! match ) { return tok; }
-            let v;
+            const v = {};
             if ( match[1] ) {
                 const l = match[1].slice(1);
-                v = addVar(name + ':' + l);
+                v.name   = name + ':' + l;
                 v.lname  = l;
                 v.prefix = name;
             }
             else {
-                v = addVar(name);
+                v.name = name;
             }
             if ( ! match[2] ) {
                 tok = parser.next(tok);
@@ -349,6 +349,11 @@ window.emlc = window.emlc || {};
                     }
                 }
             }
+            const p = addVar(v.name);
+            if ( v.lname      ) p.lname      = v.lname;
+            if ( v.prefix     ) p.prefix     = v.prefix;
+            if ( v.type       ) p.type       = v.type;
+            if ( v.occurrence ) p.occurrence = v.occurrence;
             return parser.next(tok);
         };
         // "eat" a namespace declaration
