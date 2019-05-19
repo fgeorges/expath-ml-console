@@ -274,9 +274,9 @@ declare function a:browse-db-files(
 (:~
  : Get a raw file from the filesystem.
  :
- : Return the empty sequence if the file does not exist.
+ : @param $file the absolute path of the file
  :
- : $file the absolute path of the file
+ : @return The empty sequence if the file does not exist.
  :)
 declare function a:get-from-filesystem($file  as xs:string) as xs:string?
 {
@@ -291,9 +291,9 @@ declare function a:get-from-filesystem($file  as xs:string) as xs:string?
 (:~
  : Return a MarkLogic filesystem directory descriptor.
  :
- : Return the empty sequence if the directory does not exist.
+ : @param $dir the absolute path of the directory
  :
- : $dir the absolute path of the directory
+ : @return The empty sequence if the directory does not exist.
  :)
 declare function a:get-directory($dir as xs:string) as element(dir:directory)?
 {
@@ -305,8 +305,8 @@ declare function a:get-directory($dir as xs:string) as element(dir:directory)?
 (:~
  : Get a document from the filesystem.
  :
- : $file the absolute path of the file
- : $parse true if the file is XML and must be parsed
+ : @param $file the absolute path of the file
+ : @param $parse true if the file is XML and must be parsed
  :
  : TODO: Support binary files as well.  Replace $parse by a flag kind of
  : parameter.  If 'xml', then xdmp:unquote(...), if 'text' then text{...}, and
