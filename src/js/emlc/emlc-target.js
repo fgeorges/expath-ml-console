@@ -75,7 +75,13 @@ window.emlc = window.emlc || {};
     }
 
     function targetExecute(widget) {
-        // function to recurse on params (necessary for async behaviours)
+        const error = (msg) => {
+            emlc.footpanePurge();
+            emlc.footpaneError(msg);
+            emlc.footpaneExpand();
+        };
+
+        // function to recurse on params (necessary for the async File API)
         const doParams = function(body, ids) {
             if ( ids.length ) {
                 const id    = ids.pop();
@@ -87,8 +93,9 @@ window.emlc = window.emlc || {};
                 const label = input.data('param-label');
                 const type  = input.data('param-type');
                 const occur = input.data('param-occurrence');
-                const val   = input.val();
-                const param = { name: name, label: label, value: val };
+                const files = input.prop('files');
+                const param = { name: name, label: label };
+                body.params.push(param);
                 if ( ! name ) {
                     error(`Param with no name, ID ${id}`);
                 }
@@ -101,8 +108,27 @@ window.emlc = window.emlc || {};
                 if ( occur ) {
                     param.occurrence = occur;
                 }
-                body.params.push(param);
-                doParams(body, ids);
+                if ( files.length ) {
+                    if ( files.length > 1 ) {
+                        console.log(`Only support 1 file: ${files.length} - ${name} - ${label}`);
+                    }
+                    const file   = files[0];
+                    const reader = new FileReader();
+                    reader.onload = function(evt) {
+                        param.value = evt.target.result;
+                        doParams(body, ids);
+                    };
+                    reader.onerror = function(evt) {
+                        error(`Error reading file: ${file.name}`);
+                    };
+                    // TODO: Only text for now, but if type is xs:*Binary or binary(),
+                    // send binary.  Also, what if file is text, but not UTF-8?
+                    reader.readAsText(file, 'UTF-8');
+                }
+                else {
+                    param.value = input.val();
+                    doParams(body, ids);
+                }
             }
             else {
                 doSend(body);
@@ -150,11 +176,6 @@ window.emlc = window.emlc || {};
                 });
         };
 
-        const error = (msg) => {
-            emlc.footpanePurge();
-            emlc.footpaneError(msg);
-            emlc.footpaneExpand();
-        };
         // params from widget
         const id     = widget.data('id');
         const lang   = widget.data('lang');

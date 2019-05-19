@@ -85,7 +85,8 @@ window.emlc = window.emlc || {};
         params.forEach(function(p) {
             const id = randomId();
             ids.push(id);
-            const title = p.type ? `${p.label} as ${p.type}` : p.label;
+            const kind  = p.file       ? 'type="file"' : 'type="text" class="form-control"';
+            const title = p.type       ? `${p.label} as ${p.type}` : p.label;
             const type  = p.type       ? `data-param-type="${p.type}"` : '';
             const occur = p.occurrence ? `data-param-occurrence="${p.occurrence}"` : '';
             // TODO: Make <RET> on these fields to behave like clicking on the "execute" button.
@@ -95,8 +96,8 @@ window.emlc = window.emlc || {};
                 <div class="form-group row">
                   <label class="col-sm-2 col-form-label" title="${title}">${p.label}</label>
                   <div class="col-sm-10">
-                    <input type="text" class="form-control" id="${id}" title="${title}"
-                           data-param-name="${p.name}" data-param-label="${p.label}" ${type} ${occur}>
+                    <input id="${id}" title="${title}" ${kind} ${type} ${occur}
+                           data-param-name="${p.name}" data-param-label="${p.label}">
                   </div>
                 </div>`));
         });
