@@ -2,7 +2,7 @@
 
 declareUpdate();
 
-const view = require('./create.xqy');
+const view = require('create.xqy');
 const proj = require('../proj-lib');
 const ml   = require('../mlproj/ml');
 const core = require('../mlproj/core');

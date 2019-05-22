@@ -78,7 +78,8 @@ return
       },
       if ( fn:exists($proj) ) then (
          <lib>emlc.markdown</lib>,
-         <script type="text/javascript">
+         (: TODO: Use renderMarkdown() instead, but adapt the bin endpoint calculation then. :)
+         <script>
             var renderer = new marked.Renderer();
             renderer.image = function(href, title, text) {{
                return '<img src="{ local:bin-endpoint($proj, '../') }' + href + '"></img>';
