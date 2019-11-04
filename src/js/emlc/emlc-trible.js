@@ -17,6 +17,14 @@
  * column renderer (that is, actual HTML formatting), it must be as a lexical HTML string.
  * Not as jQuery nodes.  So if we use a jQuery node, we need to use `[0].outerHTML` to get
  * its HTML serialization when returning it.
+ *
+ * TODO: Add support for fullscreen display, via a button.  Use the Fullscreen API, and
+ * the functions `Element.requestFullscreen()` and `Document.exitFullscreen()`.
+ *
+ * TODO: Provide a toolbar to control the graph (the fullscreen button, but also toggling
+ * the aspect of the nodes, using CURIEs like now, but also larger cards with more info,
+ * dots with color by distance, or even by cluster with the same path, displaying or not
+ * the cards on mouse over, etc.)
  */
 
 // ensure the emlc global var
@@ -26,15 +34,19 @@ window.emlc = window.emlc || {debug: {}};
 
     // module variable to store the triples from the requests to the endpoint
     const tripleCache = {
-        triples: {
-            "in":  null,
-            "out": null
-        },
-        nodes:  {},
-        edges:  {},
-        values: {}    // not used yet
+        expected: 2,
+        // the node and edge arrays to be used by d3 force, and the simulation itself
+        nodes:    [],
+        edges:    [],
+        force:    null,
+        // the maps used to index the above arrays and retrieve slots efficiently
+        nodeMap:  {},
+        edgeMap:  {}
+        // scalar values are not used (yet?)
+        // values: {}
     };
-    tripleCache.expected = Object.keys(tripleCache.triples).length;
+    // leak it for debug purposes
+    emlc.debug.tripleCache = tripleCache;
 
     // initialize the triple tables on the page
     $(document).ready(function () {
@@ -191,43 +203,50 @@ window.emlc = window.emlc || {debug: {}};
             const root    = table.data('trible-root');
             const subject = table.data('trible-subject');
             const object  = table.data('trible-object');
+            tripleCache.db    = db;
+            tripleCache.rules = rules;
             if ( ! subject && ! object ) {
                 throw new Error('Neither subject nor object set on the trible');
             }
             else if ( subject && object ) {
                 throw new Error(`Both subject and object set on the trible: ${subject} - ${object}`);
             }
-            // the endpoint url
-            const params = {};
-            if ( subject ) params.subject = subject;
-            if ( object  ) params.object  = object;
-            if ( rules   ) params.rules   = rules;
-            const url = '/api/db/' + db + '/triples?'
-                + Object.keys(params)
-                    .map(p => `${p}=${encodeURIComponent(params[p])}`)
-                    .join('&');
-            // do it
-            fetch(url, { credentials: 'same-origin' })
-                .then(function(resp) {
-                    return resp.json();
-                })
-                .then(function(resp) {
-                    const dir     = subject ? 'out' : 'in';
-                    const triples = resp.triples;
-                    if ( dir === 'out' && triples.length ) {
-                        enrichSummary(triples[0].subject, root);
-                    }
-                    showLoaded(table, loading);
-                    doFillIn(table, triples, dir, root);
-                    cacheTriples(triples, dir);
-                })
-                .catch(function(err) {
-                    onError(err, message, loading);
-                });
+            fetchTriple(subject, object, db, rules, loading, function(triples) {
+                const dir = subject ? 'out' : 'in';
+                if ( dir === 'out' && triples.length ) {
+                    enrichSummary(triples[0].subject, root);
+                }
+                showLoaded(table, loading);
+                doFillIn(table, triples, dir, root);
+                cacheTriples(triples, dir);
+            });
         }
         catch (err) {
             onError(err, message, loading);
         }
+    }
+
+    function fetchTriple(subject, object, db, rules, loading, callback) {
+        // the endpoint url
+        const params = {};
+        if ( subject ) params.subject = subject;
+        if ( object  ) params.object  = object;
+        if ( rules   ) params.rules   = rules;
+        const url = '/api/db/' + db + '/triples?'
+            + Object.keys(params)
+              .map(p => `${p}=${encodeURIComponent(params[p])}`)
+              .join('&');
+        // do it
+        fetch(url, { credentials: 'same-origin' })
+            .then(function(resp) {
+                return resp.json();
+            })
+            .then(function(resp) {
+                callback(resp.triples);
+            })
+            .catch(function(err) {
+                onError(err, message, loading);
+            });
     }
 
     function showLoaded(id, data) {
@@ -239,71 +258,76 @@ window.emlc = window.emlc || {debug: {}};
         }
     }
 
+    // dir = `out` or `in` for both inital requests from the trible
+    // dir = `hopping` for the extra requests from the triph (extra hop from one resource)
     function cacheTriples(triples, dir) {
-        if ( tripleCache.triples[dir] ) {
-            throw new Error(`Already received triples for request "${dir}"`);
+        if ( dir !== 'hopping' ) {
+            // still expecting request to respond, to get them all?
+            tripleCache.expected --;
+            // cache the subject, depending on the request direction
+            if ( ! tripleCache.subject && triples.length ) {
+                tripleCache.subject = dir === 'out'
+                    ? triples[0].subject.abbrev
+                    : triples[0].object.abbrev;
+            }
         }
-        // keep the triples as is, from the endpoint
-        tripleCache.triples[dir] = triples;
-        tripleCache.expected --;
-        // cache the subject, if this is the correct request
-        if ( ! tripleCache.subject && triples.length ) {
-            tripleCache.subject = dir === 'out'
-                ? triples[0].subject.abbrev
-                : triples[0].object.abbrev;
-        }
-        const addNode = function(rsrc, pred, atomRsrc, atomPred) {
-            let slot = tripleCache.nodes[rsrc];
-            if ( ! slot ) {
-                slot = tripleCache.nodes[rsrc] = {
-                    name:    rsrc,
-                    rsrc:    atomRsrc,
-                    labels:  atomRsrc.labels  || [],
-                    classes: atomRsrc.classes || [],
+        const addNode = function(rsrc, pred) {
+            if ( ! rsrc.iri ) {
+                return; // if not a node
+            }
+            let node = tripleCache.nodeMap[rsrc.abbrev];
+            // we "clone" the atoms (rsrc and pred) in an "atom-like" fashion, suitable
+            // for atomLink
+            if ( ! node ) {
+                node = {
+                    abbrev:  rsrc.abbrev,
+                    blank:   rsrc.blank,
+                    curie:   rsrc.curie,
+                    iri:     rsrc.iri,
+                    labels:  rsrc.labels  || [],
+                    classes: rsrc.classes || [],
                     preds:   {}
                 };
+                // update the map, and push to the array
+                tripleCache.nodeMap[rsrc.abbrev] = node;
+                tripleCache.nodes.push(node);
             }
-            if ( (! tripleCache.subject || tripleCache.subject !== rsrc) && (! slot.preds[pred]) ) {
-                slot.preds[pred] = atomPred;
+            if ( (! tripleCache.subject || tripleCache.subject !== rsrc.abbrev) && (! node.preds[pred.abbrev]) ) {
+                node.preds[pred.abbrev] = {
+                    abbrev: pred.abbrev,
+                    blank:  pred.blank,
+                    curie:  pred.curie,
+                    iri:    pred.iri
+                };
             }
         };
         // fill in the cache map
         triples.forEach(function(t) {
-            const s = t.subject.abbrev;
-            const p = t.predicate.abbrev;
-            addNode(s, p, t.subject, t.predicate);
-            if ( t.object.value === undefined ) {
-                const o = t.object.iri && t.object.abbrev;
-                addNode(o, p, t.object, t.predicate);
-                let slot1 = tripleCache.edges[s];
-                if ( ! slot1 ) {
-                    slot1 = tripleCache.edges[s] = {};
+            addNode(t.subject, t.predicate);
+            addNode(t.object,  t.predicate);
+            if ( t.object.iri ) {
+                const s = t.subject.abbrev;
+                const o = t.object.abbrev;
+                let slot = tripleCache.edgeMap[s];
+                if ( ! slot ) {
+                    slot = tripleCache.edgeMap[s] = {};
                 }
-                let slot2 = slot1[o];
-                if ( ! slot2 ) {
-                    slot2 = slot1[o] = {};
+                if ( ! slot[o] ) {
+                    const edge = {
+                        source: tripleCache.nodeMap[s],
+                        target: tripleCache.nodeMap[o]
+                    };
+                    // update the map, and push to the array
+                    slot[o] = edge;
+                    tripleCache.edges.push(edge);
                 }
-                let slot3 = slot2[p];
-                if ( ! slot3 ) {
-                    slot3 = slot2[p] = {};
-                }
-                // does not allow several triples "?s ?p ?o" (yet?)
-                slot3[p] = t.predicate;
-            }
-            else {
-                let slot1 = tripleCache.values[s];
-                if ( ! slot1 ) {
-                    slot1 = tripleCache.values[s] = {};
-                }
-                let slot2 = slot1[p];
-                if ( ! slot2 ) {
-                    slot2 = slot1[p] = [];
-                }
-                slot2.push(t.object.value);
             }
         });
         // time to draw?
-        if ( tripleCache.expected ) {
+        if ( dir === 'hopping' ) {
+            // nothing, handled directly in the click handler
+        }
+        else if ( tripleCache.expected ) {
             setTimeout(delayedDrawing, 1000);
         }
         else {
@@ -316,27 +340,6 @@ window.emlc = window.emlc || {debug: {}};
         if ( tripleCache.expected ) {
             drawGraph();
         }
-    }
-
-    /*~ Flatten the map into a node array suitable for D3. */
-    function getNodes() {
-        const nodes = Object.keys(tripleCache.nodes).map(function(name) {
-            return tripleCache.nodes[name];
-        });
-        return nodes;
-    }
-
-    /*~ Flatten the map into an edge array suitable for D3. */
-    function getEdges() {
-        const edges = [];
-        Object.keys(tripleCache.edges).forEach(function(source) {
-            const slot = tripleCache.edges[source];
-            Object.keys(slot).forEach(function(target) {
-                // does not take the various predicates into account, yet (if more than one)
-                edges.push({ source: source, target: target });
-            });
-        });
-        return edges;
     }
 
     /*~
@@ -406,12 +409,17 @@ window.emlc = window.emlc || {debug: {}};
                         // Send 2 requests, like in fillInTrible() (for triples in and out
                         // of the node.)  Add them to the same triple cache (I guess I can
                         // rework it a bit to be optimized as a "triple graph cache", so
-                        // it is specifically for drawing the graph.
+                        // it is specifically for drawing the graph.)
                         //
                         // Make sure it supports (and is robust for) real graphs, not only
                         // the current resource and its direct neighbours.
                         //
                         // And then just trigger drawing the graph again.
+                        tripleCache.force.stop();
+                        fetchTriple(iri, null, tripleCache.db, tripleCache.rules, null, function(triples) {
+                            cacheTriples(triples, 'hopping');
+                            drawGraph();
+                        });
                     })
                     .on('mouseover', function() {
                         drawTip(datum, options);
@@ -548,8 +556,6 @@ window.emlc = window.emlc || {debug: {}};
     function drawGraph() {
         console.log(`Draw graph whilst still expecting ${tripleCache.expected} requests`);
         showLoaded('#triph');
-        const nodes   = getNodes();
-        const edges   = getEdges();
         const height  = 400;
         const tooltip = $('#triph-tooltip');
         const graph   = d3.select('#triph')
@@ -558,8 +564,11 @@ window.emlc = window.emlc || {debug: {}};
             .on('click', function() {
                 tooltip.hide();
             });
-        const root   = graph.attr('data-trible-root');
-        const tblock = d3.textBlock()
+        // parseInt() drops the "*px" at the end
+        const centerX = (parseInt(graph.style('width')) / 2) - 75;
+        const centerY = height / 2;
+        const root    = graph.attr('data-trible-root');
+        const tblock  = d3.textBlock()
             .root(root)
             .tooltip(tooltip)
             .label(function(datum) {
@@ -573,32 +582,45 @@ window.emlc = window.emlc || {debug: {}};
                     ? { color: '#dd1144', bg: '#fcf6f8', border: '#f7d6df' }
                     : { color: '#2a839e', bg: '#f5fafb', border: '#a8ddec' };
             });
+        const rsrc = tripleCache.nodes.find(node => node.abbrev === tripleCache.subject);
+        if ( rsrc ) {
+            rsrc.fx = centerX;
+            rsrc.fy = centerY;
+        }
         // all the vertex elements
-        const vertices = graph.select('#triph-nodes').selectAll('rect')
-            .data(nodes)
+        graph.select('#triph-nodes')
+            .selectAll('g')
+            .data(tripleCache.nodes)
             .enter()
               .append('g')
-              .attr('transform', function(datum) { return `translate(${datum.x},${datum.y})`; })
               .call(tblock);
         // all the link elements
-        const links = d3.select('#triph-links')
+        d3.select('#triph-links')
             .selectAll('line')
-            .data(edges)
+            .data(tripleCache.edges)
             .enter()
               .append('line')
-                .attr('stroke', '#a8ddec');
+              .attr('stroke', '#a8ddec');
         // where the force graph magic happens
-        d3.forceSimulation()
-            .nodes(nodes)
-            // parseInt() drops the "*px" at the end
-            .force('center_force', d3.forceCenter((parseInt(graph.style('width')) / 2) - 75, height / 2))
-            .force('charge_force', d3.forceManyBody())
-            .force('links', d3.forceLink(edges).id(function(datum) { return datum.abbrev; }).distance(160))
+        tripleCache.force = d3.forceSimulation()
+            .nodes(tripleCache.nodes)
+            .force('center_force', d3.forceCenter()
+                .x(centerX)
+                .y(centerY))
+            .force('charge_force', d3.forceManyBody()
+                .strength(-100))
+            .force('links', d3.forceLink(tripleCache.edges)
+                .id(function(datum) { return datum.abbrev; })
+                .distance(100))
             .on('tick', function() {
-                vertices.attr('transform', function(datum) {
-                    return `translate(${datum.x}, ${datum.y})`;
-                })
-                links.attr('x1', function(datum) { return datum.source.x; })
+                graph.select('#triph-nodes')
+                    .selectAll('g')
+                    .attr('transform', function(datum) {
+                        return `translate(${datum.x}, ${datum.y})`;
+                    });
+                d3.select('#triph-links')
+                    .selectAll('line')
+                    .attr('x1', function(datum) { return datum.source.x; })
                     .attr('y1', function(datum) { return datum.source.y; })
                     .attr('x2', function(datum) { return datum.target.x; })
                     .attr('y2', function(datum) { return datum.target.y; });
