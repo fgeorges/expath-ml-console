@@ -610,7 +610,6 @@ window.emlc = window.emlc || {debug: {}};
             .force('charge_force', d3.forceManyBody()
                 .strength(-100))
             .force('links', d3.forceLink(tripleCache.edges)
-                .id(function(datum) { return datum.abbrev; })
                 .distance(100))
             .on('tick', function() {
                 graph.select('#triph-nodes')
