@@ -563,13 +563,13 @@ window.emlc = window.emlc || {debug: {}};
             .root(root)
             .tooltip(tooltip)
             .label(function(datum) {
-                return datum.name;
+                return datum.abbrev;
             })
             .iri(function(datum) {
                 return datum.iri;
             })
             .colors(function(datum) {
-                return datum.name === tripleCache.subject
+                return datum.abbrev === tripleCache.subject
                     ? { color: '#dd1144', bg: '#fcf6f8', border: '#f7d6df' }
                     : { color: '#2a839e', bg: '#f5fafb', border: '#a8ddec' };
             });
@@ -593,7 +593,7 @@ window.emlc = window.emlc || {debug: {}};
             // parseInt() drops the "*px" at the end
             .force('center_force', d3.forceCenter((parseInt(graph.style('width')) / 2) - 75, height / 2))
             .force('charge_force', d3.forceManyBody())
-            .force('links', d3.forceLink(edges).id(function(datum) { return datum.name; }).distance(160))
+            .force('links', d3.forceLink(edges).id(function(datum) { return datum.abbrev; }).distance(160))
             .on('tick', function() {
                 vertices.attr('transform', function(datum) {
                     return `translate(${datum.x}, ${datum.y})`;
