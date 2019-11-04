@@ -369,6 +369,9 @@ window.emlc = window.emlc || {debug: {}};
                 const label = typeof params.label === 'function'
                     ? params.label(datum, index)
                     : params.label;
+                const iri = typeof params.iri === 'function'
+                    ? params.iri(datum, index)
+                    : params.iri;
                 const root = typeof params.root === 'function'
                     ? params.root(datum, index)
                     : params.root;
@@ -469,7 +472,7 @@ window.emlc = window.emlc || {debug: {}};
 
             const iri = elem('span');
             iri.append(elem('span').text('IRI: '));
-            iri.append(atomLink('rsrc', params.root, datum.rsrc, true));
+            iri.append(atomLink('rsrc', params.root, datum, true));
             tt.append(iri);
 
             if ( datum.classes.length ) {
@@ -500,6 +503,15 @@ window.emlc = window.emlc || {debug: {}};
                 return params.label;
             }
             params.label = value;
+            return impl;
+        };
+
+        // getter/setter for the iri param
+        impl.iri = function(value) {
+            if ( ! arguments.length ) {
+                return params.iri;
+            }
+            params.iri = value;
             return impl;
         };
 
@@ -552,6 +564,9 @@ window.emlc = window.emlc || {debug: {}};
             .tooltip(tooltip)
             .label(function(datum) {
                 return datum.name;
+            })
+            .iri(function(datum) {
+                return datum.iri;
             })
             .colors(function(datum) {
                 return datum.name === tripleCache.subject
