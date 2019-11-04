@@ -1,7 +1,7 @@
 "use strict";
 
 // ensure the emlc global var
-window.emlc = window.emlc || {};
+window.emlc = window.emlc || {debug: {}};
 
 (function() {
 

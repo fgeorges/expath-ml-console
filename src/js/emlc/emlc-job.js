@@ -1,7 +1,7 @@
 "use strict";
 
 // ensure the emlc global var
-window.emlc = window.emlc || {};
+window.emlc = window.emlc || {debug: {}};
 
 // This lib seems to be used only by the legacy page job/original.xq.  Make sure
 // to delete it when the legacy page goes away.
