@@ -64,7 +64,7 @@ declare function local:page(
          local:metadata($db, $uri),
          local:properties($uri),
          local:permissions($db, $uri),
-         if ( $db/a:triple-index/fn:boolean(.) ) then
+         if ( $db/a:triple-index/xs:boolean(.) ) then
             local:triples($uri, $decls)
          else
             ()
