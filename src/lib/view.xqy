@@ -662,7 +662,7 @@ declare function v:edit-node(
          <form method="POST" action="{ $top }delete" style="display: none" id="{ $id }-delete">
             <input type="hidden" name="doc"        value="{ $uri }"/>
             <input type="hidden" name="back-label" value="the directory"/>
-            <input type="hidden" name="back-url"   value="dir?uri={ $back-params }"/>
+            <input type="hidden" name="back-url"   value="dir?{ $back-params }"/>
          </form>
       </dummy>/*
    )
