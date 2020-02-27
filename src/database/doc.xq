@@ -98,12 +98,12 @@ declare function local:summary($uri as xs:string)
             <td> {
                let $doc := fn:doc($uri)
                return
-                  if ( fn:empty($doc/node()[2]) and bin:is-json($doc/node()) ) then
-                     'JSON'
+                  if ( fn:empty($doc/node()) or fn:exists($doc/text()) ) then
+                     'Text'
                   else if ( fn:exists($doc/*) ) then
                      'XML'
-                  else if ( fn:exists($doc/text()) ) then
-                     'Text'
+                  else if ( fn:empty($doc/node()[2]) and bin:is-json($doc/node()) ) then
+                     'JSON'
                   else
                      'Binary'
             }
